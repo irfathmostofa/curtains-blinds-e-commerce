@@ -10,7 +10,7 @@ import {
   products,
   testimonials,
 } from "@/lib/data/fallback";
-import { DEFAULT_SETTINGS } from "@/lib/site";
+import { DEFAULT_SETTINGS, mergeHomepage } from "@/lib/site";
 import type {
   BlogPost,
   Booking,
@@ -61,6 +61,8 @@ function seed(): Store {
 
 export function getStore(): Store {
   if (!g.__mdStore) g.__mdStore = seed();
+  g.__mdStore.settings.homepage = mergeHomepage(g.__mdStore.settings.homepage);
+  g.__mdStore.settings.seo = { ...DEFAULT_SETTINGS.seo, ...g.__mdStore.settings.seo };
   return g.__mdStore;
 }
 

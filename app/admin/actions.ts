@@ -108,6 +108,7 @@ export async function saveSettings(settings: Record<string, unknown>) {
     await supabase?.from("site_settings").upsert([
       { key: "general", value: settings },
       { key: "seo", value: (settings as { seo?: unknown }).seo || store.settings.seo },
+      { key: "homepage", value: (settings as { homepage?: unknown }).homepage || store.settings.homepage },
     ]);
   }
   return { ok: true };

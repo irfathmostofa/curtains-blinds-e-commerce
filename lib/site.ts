@@ -1,4 +1,4 @@
-import type { SiteSettings } from "@/lib/types";
+import type { HomepageContent, SiteSettings } from "@/lib/types";
 
 export const SITE_NAME =
   process.env.NEXT_PUBLIC_SITE_NAME || "Maison Drape";
@@ -57,4 +57,83 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     keywords: "curtains Dubai, blinds Abu Dhabi, motorised curtains UAE, blackout drapes",
     twitter_handle: "@maisondrape",
   },
+  homepage: {
+    hero: {
+      badge: "Dubai · Abu Dhabi · Trade programme",
+      title: "Curtains and blinds that actually belong in a Gulf home.",
+      subtitle:
+        "Made-to-measure drapes, sheers, rollers and silent motors. One complimentary visit, a written estimate, installation that respects your floors.",
+      primary_cta_label: "Book a free visit",
+      primary_cta_href: "/book",
+      secondary_cta_label: "Browse collections",
+      secondary_cta_href: "/products",
+      image_url:
+        "https://images.unsplash.com/photo-1615800002234-05ed6eaff144?auto=format&fit=crop&w=1600&q=80",
+      image_alt: "Floor-to-ceiling linen drapes in a bright Dubai living room",
+    },
+    features: [
+      { icon: "ruler", title: "Free measuring visit", body: "Consultants bring fabric books to your villa or apartment." },
+      { icon: "shield", title: "12-month warranty", body: "Workmanship cover on every install, plus motor manufacturer warranty." },
+      { icon: "sparkles", title: "UAE-ready fabrics", body: "UV-stable weaves, blackout and sunscreen specified for Gulf glare." },
+      { icon: "clock", title: "Same-week visit", body: "Dubai and Abu Dhabi diaries typically open within 48 hours." },
+    ],
+    collections: {
+      eyebrow: "Collections",
+      title: "Window treatments for every elevation",
+      subtitle: "Curtains, blinds and motors specified for villas, apartments and commercial interiors.",
+    },
+    bestsellers: {
+      eyebrow: "Bestsellers",
+      title: "Pieces clients reorder",
+      subtitle: "",
+    },
+    reviews: {
+      eyebrow: "Reviews",
+      title: "Homes we have dressed",
+      subtitle: "",
+    },
+    cta: {
+      title: "Need a number before we visit?",
+      subtitle: "Share room count, product type and budget. We reply the same working day.",
+      button_label: "Get an estimate",
+      button_href: "/get-estimate",
+    },
+    partners: {
+      eyebrow: "Partners",
+      title: "Studios and developers we supply",
+      subtitle: "",
+    },
+    faqs: {
+      eyebrow: "FAQs",
+      title: "Before you book",
+      subtitle: "Visits, lead times, motors and trade pricing — answered in plain language.",
+    },
+    story: {
+      title: "Custom curtains and blinds across the UAE",
+      paragraphs: [
+        "Maison Drape is a made-to-measure curtains and blinds atelier serving Dubai and Abu Dhabi. We specify pinch-pleat and S-wave drapes, zebra and sunscreen rollers, roman shades and silent motorised tracks for villas, apartments, hotels and offices. Every project starts with a free in-home measuring visit so blackout, UV and stack-back are designed around your actual glass — not a catalogue sketch.",
+        "Looking for custom curtains in Dubai, heat-ready blinds in Abu Dhabi, or smart motorised window treatments? Book a visit or request an estimate. Interior designers can join our trade programme.",
+      ],
+    },
+  },
 };
+
+export function mergeHomepage(saved?: Partial<HomepageContent> | null): HomepageContent {
+  const base = DEFAULT_SETTINGS.homepage;
+  if (!saved) return structuredClone(base);
+  return {
+    hero: { ...base.hero, ...saved.hero },
+    features: saved.features?.length ? saved.features : base.features.map((f) => ({ ...f })),
+    collections: { ...base.collections, ...saved.collections },
+    bestsellers: { ...base.bestsellers, ...saved.bestsellers },
+    reviews: { ...base.reviews, ...saved.reviews },
+    cta: { ...base.cta, ...saved.cta },
+    partners: { ...base.partners, ...saved.partners },
+    faqs: { ...base.faqs, ...saved.faqs },
+    story: {
+      ...base.story,
+      ...saved.story,
+      paragraphs: saved.story?.paragraphs?.length ? saved.story.paragraphs : [...base.story.paragraphs],
+    },
+  };
+}

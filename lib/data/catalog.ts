@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { DEFAULT_SETTINGS } from "@/lib/site";
+import { DEFAULT_SETTINGS, mergeHomepage } from "@/lib/site";
 import { getStore } from "@/lib/data/store";
 import type {
   BlogPost,
@@ -170,8 +170,17 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       social_links: (map.social_links as SiteSettings["social_links"]) || DEFAULT_SETTINGS.social_links,
       trust: (map.trust as SiteSettings["trust"]) || DEFAULT_SETTINGS.trust,
       seo: (map.seo as SiteSettings["seo"]) || DEFAULT_SETTINGS.seo,
+      homepage: mergeHomepage(
+        (map.homepage as SiteSettings["homepage"]) ||
+          (typeof map.general === "object" && map.general
+            ? (map.general as SiteSettings).homepage
+            : undefined)
+      ),
     } as SiteSettings;
-  }, getStore().settings);
+  }, (() => {
+    const settings = getStore().settings;
+    return { ...settings, homepage: mergeHomepage(settings.homepage) };
+  })());
 }
 
 export async function getLeads(): Promise<Lead[]> {

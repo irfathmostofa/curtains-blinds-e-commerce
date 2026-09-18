@@ -18,7 +18,12 @@ export function HeroVisual({ src, alt }: { src: string; alt: string }) {
         animate={{ scale: 1 }}
         transition={{ duration: 8, ease: "easeOut" }}
       >
-        <Image src={src} alt={alt} fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+        {src.startsWith("data:") ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={src} alt={alt} className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <Image src={src} alt={alt} fill priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+        )}
       </motion.div>
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-ink/25 via-transparent to-brass/10" />
       <motion.div

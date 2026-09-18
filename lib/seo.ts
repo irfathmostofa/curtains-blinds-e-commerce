@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { DEFAULT_SETTINGS, SITE_NAME, SITE_URL } from "@/lib/site";
 import { getStore } from "@/lib/data/store";
 import type { SeoConfig, SiteSettings } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
@@ -8,25 +8,7 @@ function siteDefaults(): SiteSettings {
   try {
     return getStore().settings;
   } catch {
-    return {
-      nav_links: [],
-      company_name: SITE_NAME,
-      tagline: "",
-      phone: "",
-      email: "",
-      whatsapp: "",
-      social_links: [],
-      business_hours: "",
-      locations: [],
-      trust: { rating: 0, reviews: 0, warranty: "" },
-      seo: {
-        default_title: SITE_NAME,
-        default_description: "",
-        og_image: "",
-        keywords: "",
-        twitter_handle: "",
-      },
-    };
+    return DEFAULT_SETTINGS;
   }
 }
 

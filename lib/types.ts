@@ -121,6 +121,48 @@ export type LocationInfo = {
   mapEmbedUrl: string;
 };
 
+export type HomepageFeature = {
+  icon: "ruler" | "shield" | "sparkles" | "clock";
+  title: string;
+  body: string;
+};
+
+export type HomepageSectionCopy = {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+};
+
+export type HomepageContent = {
+  hero: {
+    badge: string;
+    title: string;
+    subtitle: string;
+    primary_cta_label: string;
+    primary_cta_href: string;
+    secondary_cta_label: string;
+    secondary_cta_href: string;
+    image_url: string;
+    image_alt: string;
+  };
+  features: HomepageFeature[];
+  collections: HomepageSectionCopy;
+  bestsellers: HomepageSectionCopy;
+  reviews: HomepageSectionCopy;
+  cta: {
+    title: string;
+    subtitle: string;
+    button_label: string;
+    button_href: string;
+  };
+  partners: HomepageSectionCopy;
+  faqs: HomepageSectionCopy;
+  story: {
+    title: string;
+    paragraphs: string[];
+  };
+};
+
 export type SiteSettings = {
   nav_links: NavLink[];
   company_name: string;
@@ -139,6 +181,7 @@ export type SiteSettings = {
     keywords: string;
     twitter_handle: string;
   };
+  homepage: HomepageContent;
 };
 
 export type CmsPage = {
