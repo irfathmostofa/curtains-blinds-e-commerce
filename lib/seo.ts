@@ -1,25 +1,57 @@
 import type { Metadata } from "next";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { getStore } from "@/lib/data/store";
 import type { SeoConfig, SiteSettings } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
 
-export function buildMetadata(config: SeoConfig): Metadata {
+function siteDefaults(): SiteSettings {
+  try {
+    return getStore().settings;
+  } catch {
+    return {
+      nav_links: [],
+      company_name: SITE_NAME,
+      tagline: "",
+      phone: "",
+      email: "",
+      whatsapp: "",
+      social_links: [],
+      business_hours: "",
+      locations: [],
+      trust: { rating: 0, reviews: 0, warranty: "" },
+      seo: {
+        default_title: SITE_NAME,
+        default_description: "",
+        og_image: "",
+        keywords: "",
+        twitter_handle: "",
+      },
+    };
+  }
+}
+
+export function buildMetadata(config: SeoConfig, settings?: SiteSettings): Metadata {
+  const site = settings || siteDefaults();
+  const seo = site.seo;
+  const siteName = site.company_name || SITE_NAME;
   const url = absoluteUrl(config.path);
-  const title = config.title.includes(SITE_NAME) ? config.title : `${config.title} | ${SITE_NAME}`;
+  const title = config.title.includes(siteName) ? config.title : `${config.title} | ${siteName}`;
   const image =
     config.image ||
+    seo.og_image ||
     "https://images.unsplash.com/photo-1615800002234-05ed6eaff144?auto=format&fit=crop&w=1200&q=80";
 
   return {
     title,
     description: config.description,
+    keywords: seo.keywords ? seo.keywords.split(",").map((k) => k.trim()).filter(Boolean) : undefined,
     alternates: { canonical: url },
     robots: config.noIndex ? { index: false, follow: false } : { index: true, follow: true },
     openGraph: {
       title,
       description: config.description,
       url,
-      siteName: SITE_NAME,
+      siteName,
       type: config.type === "article" ? "article" : "website",
       images: [{ url: image, width: 1200, height: 630, alt: title }],
     },
@@ -28,6 +60,7 @@ export function buildMetadata(config: SeoConfig): Metadata {
       title,
       description: config.description,
       images: [image],
+      site: seo.twitter_handle || undefined,
     },
   };
 }

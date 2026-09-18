@@ -48,4 +48,13 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     reviews: 1280,
     warranty: "12-month workmanship warranty",
   },
+  seo: {
+    default_title: `${SITE_NAME} | Curtains & Blinds in Dubai & Abu Dhabi`,
+    default_description:
+      "Bespoke curtains, blinds and motorised window treatments with free in-home measuring across Dubai and Abu Dhabi.",
+    og_image:
+      "https://images.unsplash.com/photo-1615800002234-05ed6eaff144?auto=format&fit=crop&w=1200&q=80",
+    keywords: "curtains Dubai, blinds Abu Dhabi, motorised curtains UAE, blackout drapes",
+    twitter_handle: "@maisondrape",
+  },
 };

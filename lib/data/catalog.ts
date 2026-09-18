@@ -169,6 +169,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       locations: (map.locations as SiteSettings["locations"]) || DEFAULT_SETTINGS.locations,
       social_links: (map.social_links as SiteSettings["social_links"]) || DEFAULT_SETTINGS.social_links,
       trust: (map.trust as SiteSettings["trust"]) || DEFAULT_SETTINGS.trust,
+      seo: (map.seo as SiteSettings["seo"]) || DEFAULT_SETTINGS.seo,
     } as SiteSettings;
   }, getStore().settings);
 }

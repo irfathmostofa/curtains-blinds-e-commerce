@@ -15,6 +15,7 @@ export type FieldConfig = {
   required?: boolean;
   options?: { label: string; value: string }[];
   hint?: string;
+  group?: "content" | "seo" | "media";
 };
 
 export type EntityConfig = {
@@ -59,17 +60,16 @@ export const entities: Record<string, EntityConfig> = {
       { key: "is_active", label: "Active" },
     ],
     fields: [
-      { name: "name", label: "Name", type: "text", required: true },
-      { name: "slug", label: "Slug", type: "text", required: true },
-      { name: "category_id", label: "Category ID", type: "text", required: true },
-      { name: "base_price", label: "Base price (AED)", type: "number", required: true },
-      { name: "description", label: "Description", type: "textarea" },
-      { name: "seo_title", label: "SEO title", type: "text" },
-      { name: "seo_description", label: "SEO description", type: "textarea" },
-      { name: "is_bestseller", label: "Bestseller", type: "checkbox" },
-      { name: "is_active", label: "Active", type: "checkbox" },
-      { name: "fabric_options", label: "Fabric options (JSON array)", type: "json" },
-      { name: "images", label: "Images JSON [{url, alt}]", type: "json" },
+      { name: "name", label: "Name", type: "text", required: true, group: "content" },
+      { name: "slug", label: "Slug", type: "text", required: true, group: "content" },
+      { name: "category_id", label: "Category ID", type: "text", required: true, group: "content" },
+      { name: "base_price", label: "Base price (AED)", type: "number", required: true, group: "content" },
+      { name: "description", label: "Description", type: "textarea", group: "content" },
+      { name: "is_bestseller", label: "Bestseller", type: "checkbox", group: "content" },
+      { name: "is_active", label: "Active", type: "checkbox", group: "content" },
+      { name: "fabric_options", label: "Fabric options (comma separated)", type: "json", group: "content" },
+      { name: "seo_title", label: "Meta title", type: "text", group: "seo", hint: "Shown in search results and browser tabs." },
+      { name: "seo_description", label: "Meta description", type: "textarea", group: "seo", hint: "Aim for 140–160 characters." },
     ],
   },
   categories: {
@@ -85,14 +85,14 @@ export const entities: Record<string, EntityConfig> = {
       { key: "sort_order", label: "Order" },
     ],
     fields: [
-      { name: "name", label: "Name", type: "text", required: true },
-      { name: "slug", label: "Slug", type: "text", required: true },
-      { name: "description", label: "Description", type: "textarea" },
-      { name: "parent_id", label: "Parent ID", type: "text" },
-      { name: "sort_order", label: "Sort order", type: "number" },
-      { name: "image_alt", label: "Image alt text", type: "text", required: true },
-      { name: "seo_title", label: "SEO title", type: "text" },
-      { name: "seo_description", label: "SEO description", type: "textarea" },
+      { name: "name", label: "Name", type: "text", required: true, group: "content" },
+      { name: "slug", label: "Slug", type: "text", required: true, group: "content" },
+      { name: "description", label: "Description", type: "textarea", group: "content" },
+      { name: "parent_id", label: "Parent ID", type: "text", group: "content" },
+      { name: "sort_order", label: "Sort order", type: "number", group: "content" },
+      { name: "image_alt", label: "Image alt text", type: "text", required: true, group: "media" },
+      { name: "seo_title", label: "Meta title", type: "text", group: "seo" },
+      { name: "seo_description", label: "Meta description", type: "textarea", group: "seo" },
     ],
   },
   leads: {
@@ -174,15 +174,15 @@ export const entities: Record<string, EntityConfig> = {
       { key: "published_at", label: "Published" },
     ],
     fields: [
-      { name: "title", label: "Title", type: "text", required: true },
-      { name: "slug", label: "Slug", type: "text", required: true },
-      { name: "excerpt", label: "Excerpt", type: "textarea" },
-      { name: "content", label: "HTML content", type: "textarea", hint: "HTML is rendered on the public article page." },
-      { name: "cover_image_alt", label: "Cover image alt", type: "text", required: true },
-      { name: "author", label: "Author", type: "text" },
-      { name: "published_at", label: "Published at", type: "date" },
-      { name: "seo_title", label: "SEO title", type: "text" },
-      { name: "seo_description", label: "SEO description", type: "textarea" },
+      { name: "title", label: "Title", type: "text", required: true, group: "content" },
+      { name: "slug", label: "Slug", type: "text", required: true, group: "content" },
+      { name: "excerpt", label: "Excerpt", type: "textarea", group: "content" },
+      { name: "content", label: "HTML content", type: "textarea", hint: "HTML is rendered on the public article page.", group: "content" },
+      { name: "cover_image_alt", label: "Cover image alt", type: "text", required: true, group: "media" },
+      { name: "author", label: "Author", type: "text", group: "content" },
+      { name: "published_at", label: "Published at", type: "date", group: "content" },
+      { name: "seo_title", label: "Meta title", type: "text", group: "seo" },
+      { name: "seo_description", label: "Meta description", type: "textarea", group: "seo" },
     ],
   },
   faqs: {

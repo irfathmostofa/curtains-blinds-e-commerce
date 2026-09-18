@@ -132,6 +132,13 @@ export type SiteSettings = {
   business_hours: string;
   locations: LocationInfo[];
   trust: { rating: number; reviews: number; warranty: string };
+  seo: {
+    default_title: string;
+    default_description: string;
+    og_image: string;
+    keywords: string;
+    twitter_handle: string;
+  };
 };
 
 export type CmsPage = {

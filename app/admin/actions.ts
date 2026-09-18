@@ -105,7 +105,10 @@ export async function saveSettings(settings: Record<string, unknown>) {
   store.settings = { ...store.settings, ...settings } as typeof store.settings;
   if (isSupabaseConfigured()) {
     const supabase = createClient();
-    await supabase?.from("site_settings").upsert({ key: "general", value: settings });
+    await supabase?.from("site_settings").upsert([
+      { key: "general", value: settings },
+      { key: "seo", value: (settings as { seo?: unknown }).seo || store.settings.seo },
+    ]);
   }
   return { ok: true };
 }
