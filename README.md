@@ -29,6 +29,8 @@ npm run dev
 
 Apply `supabase/schema.sql` (and optionally `supabase/seed.sql`) in the Supabase SQL editor before using live data.
 
+Image uploads need Storage buckets plus RLS. Re-run the storage section of `supabase/schema.sql` if you already applied an older version. Set `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` so the admin uploader can write files without hitting Storage RLS.
+
 Without Supabase credentials the public site and admin demo still run on fallback content.
 
 ## Environment

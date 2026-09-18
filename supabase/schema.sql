@@ -141,6 +141,8 @@ create or replace function public.is_admin()
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select exists (
     select 1 from public.admin_users au
@@ -188,5 +190,36 @@ create policy "admin write admin_users" on public.admin_users for all using (pub
 
 insert into storage.buckets (id, name, public)
 values ('product-images', 'product-images', true),
-       ('blog-images', 'blog-images', true)
+       ('blog-images', 'blog-images', true),
+       ('partner-logos', 'partner-logos', true)
 on conflict (id) do nothing;
+
+drop policy if exists "public read media" on storage.objects;
+drop policy if exists "admin insert media" on storage.objects;
+drop policy if exists "admin update media" on storage.objects;
+drop policy if exists "admin delete media" on storage.objects;
+
+create policy "public read media"
+  on storage.objects for select
+  using (bucket_id in ('product-images', 'blog-images', 'partner-logos'));
+
+create policy "admin insert media"
+  on storage.objects for insert
+  with check (
+    bucket_id in ('product-images', 'blog-images', 'partner-logos')
+    and public.is_admin()
+  );
+
+create policy "admin update media"
+  on storage.objects for update
+  using (
+    bucket_id in ('product-images', 'blog-images', 'partner-logos')
+    and public.is_admin()
+  );
+
+create policy "admin delete media"
+  on storage.objects for delete
+  using (
+    bucket_id in ('product-images', 'blog-images', 'partner-logos')
+    and public.is_admin()
+  );

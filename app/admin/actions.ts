@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/utils";
 import { loginSchema } from "@/lib/validations";
 import { getStore } from "@/lib/data/store";
@@ -123,27 +124,42 @@ export async function uploadProcessedImage(formData: FormData) {
   if (!alt.trim()) return { error: "Alt text is required." };
 
   const processed = await processImage(file, `${slugify(name)}-${Date.now()}`);
-  const supabase = createClient();
-  if (isSupabaseConfigured() && supabase) {
-    const { data, error } = await supabase.storage
-      .from(folder)
+  const bucket = allowedBucket(folder);
+  const admin = createAdminClient();
+  const session = createClient();
+  const storage = admin || session;
+
+  if (isSupabaseConfigured() && storage) {
+    if (!admin) {
+      const {
+        data: { user },
+      } = await session!.auth.getUser();
+      if (!user) return { error: "Sign in again before uploading." };
+    }
+    const { data, error } = await storage.storage
+      .from(bucket)
       .upload(processed.fullName, processed.full, { contentType: "image/webp", upsert: true });
     if (error) return { error: error.message };
-    await supabase.storage.from(folder).upload(processed.thumbName, processed.thumb, {
+    await storage.storage.from(bucket).upload(processed.thumbName, processed.thumb, {
       contentType: "image/webp",
       upsert: true,
     });
-    const pub = supabase.storage.from(folder).getPublicUrl(data.path);
+    const pub = storage.storage.from(bucket).getPublicUrl(data.path);
     return {
       url: pub.data.publicUrl,
       alt,
-      thumbnailUrl: supabase.storage.from(folder).getPublicUrl(processed.thumbName).data.publicUrl,
+      thumbnailUrl: storage.storage.from(bucket).getPublicUrl(processed.thumbName).data.publicUrl,
     };
   }
 
   const url = `data:image/webp;base64,${processed.full.toString("base64")}`;
   const thumbnailUrl = `data:image/webp;base64,${processed.thumb.toString("base64")}`;
   return { url, thumbnailUrl, alt };
+}
+
+function allowedBucket(folder: string) {
+  const buckets = ["product-images", "blog-images", "partner-logos"];
+  return buckets.includes(folder) ? folder : "product-images";
 }
 
 function mapTable(entity: string) {
