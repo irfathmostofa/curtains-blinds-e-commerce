@@ -21,7 +21,7 @@ export function buildMetadata(config: SeoConfig, settings?: SiteSettings): Metad
   const image =
     config.image ||
     seo.og_image ||
-    "https://images.unsplash.com/photo-1615800002234-05ed6eaff144?auto=format&fit=crop&w=1200&q=80";
+    "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80";
 
   return {
     title,

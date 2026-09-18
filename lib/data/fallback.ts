@@ -24,7 +24,7 @@ export const categories: Category[] = [
     slug: "curtains-and-drapes",
     description:
       "Floor-to-ceiling drapes, sheer layers and blackout curtains tailored for villas, apartments and commercial interiors across Dubai and Abu Dhabi.",
-    image_url: img("photo-1615800002234-05ed6eaff144", "Ivory living room drapes").url,
+    image_url: img("photo-1618221195710-dd6b41faaea6", "Ivory living room drapes").url,
     image_alt: "Ivory living room drapes in a Dubai villa",
     parent_id: null,
     sort_order: 1,
@@ -84,7 +84,7 @@ export const products: Product[] = [
       "Full-bodied Belgian linen with a classic pinch pleat, cotton sateen lining and optional blackout interlining. Tailored to your exact drop, with hand-finished headings and weighted hems that fall cleanly in UAE villas.",
     base_price: 890,
     images: [
-      img("photo-1615800002234-05ed6eaff144", "Belgian linen pinch-pleat drapes in a living room"),
+      img("photo-1618221195710-dd6b41faaea6", "Belgian linen pinch-pleat drapes in a living room"),
       img("photo-1618221195710-dd6b41faaea6", "Close-up of linen curtain fabric and heading"),
       img("photo-1600210492486-724fe5c67fb0", "Linen drapes framing a villa window"),
     ],

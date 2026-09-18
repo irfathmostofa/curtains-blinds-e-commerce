@@ -223,3 +223,16 @@ create policy "admin delete media"
     bucket_id in ('product-images', 'blog-images', 'partner-logos')
     and public.is_admin()
   );
+
+drop policy if exists "authenticated insert media" on storage.objects;
+drop policy if exists "authenticated update media" on storage.objects;
+
+create policy "authenticated insert media"
+  on storage.objects for insert
+  to authenticated
+  with check (bucket_id in ('product-images', 'blog-images', 'partner-logos'));
+
+create policy "authenticated update media"
+  on storage.objects for update
+  to authenticated
+  using (bucket_id in ('product-images', 'blog-images', 'partner-logos'));

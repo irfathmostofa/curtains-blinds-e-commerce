@@ -2,8 +2,10 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { mkdir, writeFile } from "fs/promises";
+import path from "path";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, createWriteClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/utils";
 import { loginSchema } from "@/lib/validations";
 import { getStore } from "@/lib/data/store";
@@ -58,7 +60,7 @@ export async function upsertEntity(entity: string, payload: Record<string, unkno
   else list.unshift(row);
 
   if (isSupabaseConfigured()) {
-    const supabase = createClient();
+    const supabase = createWriteClient();
     if (supabase) {
       const { error } = await supabase.from(mapTable(entity)).upsert(row);
       if (error) return { error: error.message };
@@ -75,7 +77,7 @@ export async function deleteEntity(entity: string, id: string) {
     if (idx >= 0) list.splice(idx, 1);
   }
   if (isSupabaseConfigured()) {
-    const supabase = createClient();
+    const supabase = createWriteClient();
     await supabase?.from(mapTable(entity)).delete().eq("id", id);
   }
   return { ok: true };
@@ -105,7 +107,7 @@ export async function saveSettings(settings: Record<string, unknown>) {
   const store = getStore();
   store.settings = { ...store.settings, ...settings } as typeof store.settings;
   if (isSupabaseConfigured()) {
-    const supabase = createClient();
+    const supabase = createWriteClient();
     await supabase?.from("site_settings").upsert([
       { key: "general", value: settings },
       { key: "seo", value: (settings as { seo?: unknown }).seo || store.settings.seo },
@@ -126,35 +128,43 @@ export async function uploadProcessedImage(formData: FormData) {
   const processed = await processImage(file, `${slugify(name)}-${Date.now()}`);
   const bucket = allowedBucket(folder);
   const admin = createAdminClient();
-  const session = createClient();
-  const storage = admin || session;
 
-  if (isSupabaseConfigured() && storage) {
-    if (!admin) {
-      const {
-        data: { user },
-      } = await session!.auth.getUser();
-      if (!user) return { error: "Sign in again before uploading." };
-    }
-    const { data, error } = await storage.storage
+  if (admin) {
+    await admin.storage.createBucket(bucket, { public: true }).catch(() => undefined);
+    await admin.storage.updateBucket(bucket, { public: true }).catch(() => undefined);
+    const { data, error } = await admin.storage
       .from(bucket)
       .upload(processed.fullName, processed.full, { contentType: "image/webp", upsert: true });
-    if (error) return { error: error.message };
-    await storage.storage.from(bucket).upload(processed.thumbName, processed.thumb, {
-      contentType: "image/webp",
-      upsert: true,
-    });
-    const pub = storage.storage.from(bucket).getPublicUrl(data.path);
-    return {
-      url: pub.data.publicUrl,
-      alt,
-      thumbnailUrl: storage.storage.from(bucket).getPublicUrl(processed.thumbName).data.publicUrl,
-    };
+    if (!error && data) {
+      await admin.storage.from(bucket).upload(processed.thumbName, processed.thumb, {
+        contentType: "image/webp",
+        upsert: true,
+      });
+      const pub = admin.storage.from(bucket).getPublicUrl(data.path);
+      return {
+        url: pub.data.publicUrl,
+        alt,
+        thumbnailUrl: admin.storage.from(bucket).getPublicUrl(processed.thumbName).data.publicUrl,
+      };
+    }
   }
 
-  const url = `data:image/webp;base64,${processed.full.toString("base64")}`;
-  const thumbnailUrl = `data:image/webp;base64,${processed.thumb.toString("base64")}`;
-  return { url, thumbnailUrl, alt };
+  return saveLocalImage(processed, alt);
+}
+
+async function saveLocalImage(
+  processed: { full: Buffer; thumb: Buffer; fullName: string; thumbName: string },
+  alt: string
+) {
+  const dir = path.join(process.cwd(), "public", "uploads");
+  await mkdir(dir, { recursive: true });
+  await writeFile(path.join(dir, processed.fullName), processed.full);
+  await writeFile(path.join(dir, processed.thumbName), processed.thumb);
+  return {
+    url: `/uploads/${processed.fullName}`,
+    thumbnailUrl: `/uploads/${processed.thumbName}`,
+    alt,
+  };
 }
 
 function allowedBucket(folder: string) {

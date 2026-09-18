@@ -53,7 +53,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     default_description:
       "Bespoke curtains, blinds and motorised window treatments with free in-home measuring across Dubai and Abu Dhabi.",
     og_image:
-      "https://images.unsplash.com/photo-1615800002234-05ed6eaff144?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80",
     keywords: "curtains Dubai, blinds Abu Dhabi, motorised curtains UAE, blackout drapes",
     twitter_handle: "@maisondrape",
   },
@@ -68,7 +68,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       secondary_cta_label: "Browse collections",
       secondary_cta_href: "/products",
       image_url:
-        "https://images.unsplash.com/photo-1615800002234-05ed6eaff144?auto=format&fit=crop&w=1600&q=80",
+        "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1600&q=80",
       image_alt: "Floor-to-ceiling linen drapes in a bright Dubai living room",
     },
     features: [

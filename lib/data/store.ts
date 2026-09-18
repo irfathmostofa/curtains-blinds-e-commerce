@@ -59,10 +59,22 @@ function seed(): Store {
   };
 }
 
+const BROKEN_HERO = "photo-1615800002234-05ed6eaff144";
+const VALID_HERO = "photo-1618221195710-dd6b41faaea6";
+
+function repairBrokenHero(url?: string) {
+  return url?.includes(BROKEN_HERO) ? url.replace(BROKEN_HERO, VALID_HERO) : url;
+}
+
 export function getStore(): Store {
   if (!g.__mdStore) g.__mdStore = seed();
   g.__mdStore.settings.homepage = mergeHomepage(g.__mdStore.settings.homepage);
   g.__mdStore.settings.seo = { ...DEFAULT_SETTINGS.seo, ...g.__mdStore.settings.seo };
+  g.__mdStore.settings.homepage.hero.image_url =
+    repairBrokenHero(g.__mdStore.settings.homepage.hero.image_url) ||
+    DEFAULT_SETTINGS.homepage.hero.image_url;
+  g.__mdStore.settings.seo.og_image =
+    repairBrokenHero(g.__mdStore.settings.seo.og_image) || DEFAULT_SETTINGS.seo.og_image;
   return g.__mdStore;
 }
 
