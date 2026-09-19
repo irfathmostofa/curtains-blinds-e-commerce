@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Category } from "@/lib/types";
 import { useLocale } from "@/components/locale-provider";
+import { stripHtml } from "@/lib/html";
 
 export function CategoryCard({ category }: { category: Category }) {
   const { t } = useLocale();
@@ -21,7 +22,7 @@ export function CategoryCard({ category }: { category: Category }) {
           <div className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/15 to-transparent transition duration-500 group-hover:from-ink/85" />
           <div className="absolute bottom-0 p-5 text-ivory transition duration-500 group-hover:translate-y-[-4px]">
             <h3 className="font-serif text-2xl">{t(category.name)}</h3>
-            <p className="mt-1 line-clamp-2 text-sm text-ivory/80">{t(category.description)}</p>
+            <p className="mt-1 line-clamp-2 text-sm text-ivory/80">{stripHtml(t(category.description))}</p>
           </div>
         </div>
       </Link>

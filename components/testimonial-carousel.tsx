@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HtmlContent } from "@/components/html-content";
 import { useLocale } from "@/components/locale-provider";
 import type { Testimonial } from "@/lib/types";
 
@@ -38,7 +39,7 @@ export function TestimonialCarousel({ items }: { items: Testimonial[] }) {
               />
             ))}
           </div>
-          <p className="font-serif text-2xl leading-snug text-balance">“{item.review_text}”</p>
+          <HtmlContent html={item.review_text} className="font-serif text-2xl leading-snug text-foreground" />
           <footer className="mt-6 text-sm text-muted-foreground">
             <cite className="not-italic font-medium text-foreground">{item.customer_name}</cite>
             {` · ${item.source}`}

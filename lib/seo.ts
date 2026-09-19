@@ -3,6 +3,7 @@ import { DEFAULT_SETTINGS, SITE_NAME, SITE_URL } from "@/lib/site";
 import { getStore } from "@/lib/data/store";
 import type { SeoConfig, SiteSettings } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
+import { stripHtml } from "@/lib/html";
 
 function siteDefaults(): SiteSettings {
   try {
@@ -98,7 +99,7 @@ export function faqJsonLd(items: { question: string; answer: string }[]) {
     mainEntity: items.map((item) => ({
       "@type": "Question",
       name: item.question,
-      acceptedAnswer: { "@type": "Answer", text: item.answer },
+      acceptedAnswer: { "@type": "Answer", text: stripHtml(item.answer) },
     })),
   };
 }

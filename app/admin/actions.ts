@@ -50,7 +50,10 @@ export async function adminLogout() {
 export async function upsertEntity(entity: string, payload: Record<string, unknown>) {
   const store = getStore();
   const id = String(payload.id || crypto.randomUUID());
-  const row = { ...payload, id };
+  const row: Record<string, unknown> = { ...payload, id };
+  if (!row.slug && (row.name || row.title)) {
+    row.slug = slugify(String(row.name || row.title));
+  }
 
   const list = (store as Record<string, unknown>)[entity];
   if (!Array.isArray(list)) return { error: "Unknown entity" };

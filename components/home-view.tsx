@@ -15,6 +15,7 @@ import { ShieldCheck, Ruler, Sparkles, Clock } from "lucide-react";
 import { HeroIntro, HeroItem } from "@/components/hero-intro";
 import { HeroVisual } from "@/components/hero-visual";
 import { Reveal, SectionFrame, Stagger, StaggerItem } from "@/components/motion/reveal";
+import { HtmlContent } from "@/components/html-content";
 import { useLocale } from "@/components/locale-provider";
 import type { HomepageFeature } from "@/lib/types";
 import type { Category, Faq, Partner, Product, SiteSettings, Testimonial } from "@/lib/types";
@@ -73,7 +74,7 @@ export function HomeView({
               </h1>
             </HeroItem>
             <HeroItem className="mt-4 sm:mt-6">
-              <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">{t(hero.subtitle)}</p>
+              <HtmlContent html={t(hero.subtitle)} className="max-w-xl text-base sm:text-lg" />
             </HeroItem>
             <HeroItem className="mt-5 sm:mt-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -105,7 +106,7 @@ export function HomeView({
                 <div className="h-full rounded-2xl border border-border bg-card p-5 transition duration-300 hover:-translate-y-1 hover:border-accent/30 hover:shadow-md">
                   <Icon className="mb-3 h-5 w-5 text-accent" aria-hidden="true" />
                   <h2 className="font-serif text-xl">{t(f.title)}</h2>
-                  <p className="mt-2 text-sm text-muted-foreground">{t(f.body)}</p>
+                  <HtmlContent html={t(f.body)} className="mt-2 text-sm" />
                 </div>
               </StaggerItem>
             );
@@ -208,7 +209,7 @@ export function HomeView({
         </Reveal>
         {home.story.paragraphs.map((paragraph, i) => (
           <Reveal key={i} delay={0.08 * (i + 1)}>
-            <p className="leading-relaxed text-muted-foreground">{t(paragraph)}</p>
+            <HtmlContent html={t(paragraph)} />
           </Reveal>
         ))}
       </SectionFrame>

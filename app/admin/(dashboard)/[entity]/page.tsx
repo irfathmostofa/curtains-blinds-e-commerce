@@ -33,6 +33,12 @@ export default function EntityListPage({
   if (searchParams.location) rows = rows.filter((r) => r.location === searchParams.location);
 
   return (
-    <EntityManager config={config} rows={rows} status={searchParams.status} location={searchParams.location} />
+    <EntityManager
+      config={config}
+      rows={rows}
+      categories={store.categories.map((c) => ({ id: c.id, name: c.name }))}
+      status={searchParams.status}
+      location={searchParams.location}
+    />
   );
 }

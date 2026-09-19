@@ -1,6 +1,7 @@
 "use client";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { HtmlContent } from "@/components/html-content";
 import { useLocale } from "@/components/locale-provider";
 import type { Faq } from "@/lib/types";
 
@@ -12,7 +13,7 @@ export function FAQAccordion({ items }: { items: Pick<Faq, "id" | "question" | "
         <AccordionItem key={item.id} value={item.id}>
           <AccordionTrigger>{t(item.question)}</AccordionTrigger>
           <AccordionContent>
-            <p>{t(item.answer)}</p>
+            <HtmlContent html={t(item.answer)} />
           </AccordionContent>
         </AccordionItem>
       ))}

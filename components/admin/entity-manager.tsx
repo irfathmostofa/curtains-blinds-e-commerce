@@ -13,11 +13,13 @@ import { LeadsExport } from "@/app/admin/(dashboard)/[entity]/export-button";
 export function EntityManager({
   config,
   rows,
+  categories = [],
   status,
   location,
 }: {
   config: EntityConfig;
   rows: Record<string, unknown>[];
+  categories?: { id: string; name: string }[];
   status?: string;
   location?: string;
 }) {
@@ -49,6 +51,7 @@ export function EntityManager({
           {config.creatable ? (
             <Button
               type="button"
+              className="w-full sm:w-auto"
               onClick={() => {
                 setEditing(null);
                 setOpen(true);
@@ -68,10 +71,10 @@ export function EntityManager({
           className="sm:max-w-xs"
         />
         {config.key === "leads" || config.key === "bookings" ? (
-          <form className="flex flex-wrap gap-3 text-sm">
-            <label className="flex items-center gap-2">
+          <form className="flex flex-col gap-3 text-sm sm:flex-row sm:flex-wrap sm:items-center">
+            <label className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
               Status
-              <select name="status" defaultValue={status || ""} className="h-10 rounded-xl border px-3">
+              <select name="status" defaultValue={status || ""} className="h-10 min-w-0 flex-1 rounded-xl border px-3 sm:w-auto">
                 <option value="">All</option>
                 {(config.key === "leads"
                   ? ["new", "contacted", "converted"]
@@ -84,9 +87,9 @@ export function EntityManager({
               </select>
             </label>
             {config.key === "bookings" ? (
-              <label className="flex items-center gap-2">
+              <label className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
                 Location
-                <select name="location" defaultValue={location || ""} className="h-10 rounded-xl border px-3">
+                <select name="location" defaultValue={location || ""} className="h-10 min-w-0 flex-1 rounded-xl border px-3 sm:w-auto">
                   <option value="">All</option>
                   <option>Dubai</option>
                   <option>Abu Dhabi</option>
@@ -110,12 +113,13 @@ export function EntityManager({
       />
 
       <Dialog open={open} onOpenChange={(v) => (v ? setOpen(true) : close())}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-h-[92dvh] w-[min(96vw,52rem)] max-w-3xl overflow-y-auto p-4 sm:p-6">
           <h2 className="pr-8 font-serif text-2xl">{editing ? `Edit ${config.title}` : `New ${config.title}`}</h2>
           <FormBuilder
             key={String(editing?.id || "new")}
             config={config}
             initial={editing || undefined}
+            categories={categories}
             onDone={close}
           />
         </DialogContent>

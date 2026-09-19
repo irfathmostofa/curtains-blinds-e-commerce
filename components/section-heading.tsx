@@ -1,5 +1,6 @@
 "use client";
 
+import { HtmlContent } from "@/components/html-content";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/components/locale-provider";
 
@@ -24,7 +25,7 @@ export function SectionHeading({
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{t(eyebrow)}</p>
       ) : null}
       <Heading className="text-balance text-3xl md:text-4xl">{t(title)}</Heading>
-      {subtitle ? <p className="leading-relaxed text-muted-foreground">{t(subtitle)}</p> : null}
+      {subtitle ? <HtmlContent html={t(subtitle)} /> : null}
     </div>
   );
 }

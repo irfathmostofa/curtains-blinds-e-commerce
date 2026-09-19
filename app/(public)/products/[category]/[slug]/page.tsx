@@ -15,6 +15,8 @@ import {
 } from "@/lib/data/catalog";
 import { buildMetadata, faqJsonLd, productJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/json-ld";
+import { HtmlContent } from "@/components/html-content";
+import { stripHtml } from "@/lib/html";
 
 export const revalidate = 3600;
 
@@ -30,7 +32,7 @@ export async function generateMetadata({ params }: { params: { category: string;
   if (!product) return {};
   return buildMetadata({
     title: product.seo_title || product.name,
-    description: product.seo_description || product.description.slice(0, 160),
+    description: product.seo_description || stripHtml(product.description).slice(0, 160),
     path: `/products/${params.category}/${product.slug}`,
     image: product.images[0]?.url,
     type: "product",
@@ -55,7 +57,7 @@ export default async function ProductPage({ params }: { params: { category: stri
       <JsonLd
         data={productJsonLd({
           name: product.name,
-          description: product.description,
+          description: stripHtml(product.description),
           image: product.images[0]?.url || "",
           price: product.base_price,
           path,
@@ -77,7 +79,7 @@ export default async function ProductPage({ params }: { params: { category: stri
         <div className="space-y-6">
           <p className="text-xs uppercase tracking-[0.2em] text-accent">{product.category?.name}</p>
           <h1 className="font-serif text-4xl">{product.name}</h1>
-          <p className="leading-relaxed text-muted-foreground">{product.description}</p>
+          <HtmlContent html={product.description} />
           <ProductOptions product={product} />
         </div>
       </div>

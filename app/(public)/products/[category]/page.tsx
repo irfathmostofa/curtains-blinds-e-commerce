@@ -5,6 +5,8 @@ import { SectionHeading } from "@/components/section-heading";
 import { getCategories, getCategoryBySlug, getProductsByCategory } from "@/lib/data/catalog";
 import { buildMetadata } from "@/lib/seo";
 import { Stagger, StaggerItem } from "@/components/motion/reveal";
+import { HtmlContent } from "@/components/html-content";
+import { stripHtml } from "@/lib/html";
 
 export const revalidate = 3600;
 
@@ -18,7 +20,7 @@ export async function generateMetadata({ params }: { params: { category: string 
   if (!category) return {};
   return buildMetadata({
     title: category.seo_title || category.name,
-    description: category.seo_description || category.description,
+    description: category.seo_description || stripHtml(category.description),
     path: `/products/${category.slug}`,
     image: category.image_url,
   });
@@ -38,7 +40,10 @@ export default async function CategoryPage({ params }: { params: { category: str
           { name: category.name, path: `/products/${category.slug}` },
         ]}
       />
-      <SectionHeading as="h1" title={category.name} subtitle={category.description} />
+      <div className="space-y-4">
+        <SectionHeading as="h1" title={category.name} />
+        <HtmlContent html={category.description} />
+      </div>
       <Stagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {products.map((p) => (
           <StaggerItem key={p.id}>

@@ -13,7 +13,7 @@ export function WhatsAppFloatingButton({ phone }: { phone: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-[5.5rem] right-4 z-40 flex h-12 items-center gap-2 rounded-full bg-[#25D366] px-4 text-sm font-semibold text-white shadow-lg sm:bottom-5 sm:right-5 sm:h-14 sm:px-5 rtl:left-4 rtl:right-auto"
+      className="fixed bottom-[5.5rem] right-4 z-30 flex h-12 items-center gap-2 rounded-full bg-[#25D366] px-4 text-sm font-semibold text-white shadow-lg sm:bottom-5 sm:right-5 sm:h-14 sm:px-5 rtl:left-4 rtl:right-auto"
       aria-label={t("Chat on WhatsApp")}
       initial={{ opacity: 0, y: 24, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}

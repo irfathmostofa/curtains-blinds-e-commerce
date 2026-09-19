@@ -1,11 +1,14 @@
 export type FieldType =
   | "text"
   | "textarea"
+  | "richtext"
   | "number"
   | "checkbox"
   | "select"
   | "image"
   | "json"
+  | "tags"
+  | "slug"
   | "date";
 
 export type FieldConfig = {
@@ -62,13 +65,13 @@ export const entities: Record<string, EntityConfig> = {
     ],
     fields: [
       { name: "name", label: "Name", type: "text", required: true, group: "content" },
-      { name: "slug", label: "Slug", type: "text", required: true, group: "content" },
-      { name: "category_id", label: "Category ID", type: "text", required: true, group: "content" },
+      { name: "slug", label: "Slug", type: "slug", required: true, group: "content", hint: "URL path. Auto-fills from the name." },
+      { name: "category_id", label: "Category", type: "select", required: true, group: "content" },
       { name: "base_price", label: "Base price (AED)", type: "number", required: true, group: "content" },
-      { name: "description", label: "Description", type: "textarea", group: "content" },
+      { name: "description", label: "Description", type: "richtext", group: "content" },
       { name: "is_bestseller", label: "Bestseller", type: "checkbox", group: "content" },
       { name: "is_active", label: "Active", type: "checkbox", group: "content" },
-      { name: "fabric_options", label: "Fabric options (comma separated)", type: "json", group: "content" },
+      { name: "fabric_options", label: "Fabric options", type: "tags", group: "content", hint: "Tap a suggestion or type a custom fabric and press Enter." },
       { name: "seo_title", label: "Meta title", type: "text", group: "seo", hint: "Shown in search results and browser tabs." },
       { name: "seo_description", label: "Meta description", type: "textarea", group: "seo", hint: "Aim for 140–160 characters." },
     ],
@@ -87,9 +90,9 @@ export const entities: Record<string, EntityConfig> = {
     ],
     fields: [
       { name: "name", label: "Name", type: "text", required: true, group: "content" },
-      { name: "slug", label: "Slug", type: "text", required: true, group: "content" },
-      { name: "description", label: "Description", type: "textarea", group: "content" },
-      { name: "parent_id", label: "Parent ID", type: "text", group: "content" },
+      { name: "slug", label: "Slug", type: "slug", required: true, group: "content", hint: "URL path. Auto-fills from the name." },
+      { name: "description", label: "Description", type: "richtext", group: "content" },
+      { name: "parent_id", label: "Parent category", type: "select", group: "content" },
       { name: "sort_order", label: "Sort order", type: "number", group: "content" },
       { name: "image_alt", label: "Image alt text", type: "text", required: true, group: "media" },
       { name: "seo_title", label: "Meta title", type: "text", group: "seo" },
@@ -157,7 +160,7 @@ export const entities: Record<string, EntityConfig> = {
     fields: [
       { name: "customer_name", label: "Customer name", type: "text", required: true },
       { name: "rating", label: "Rating", type: "number", required: true },
-      { name: "review_text", label: "Review", type: "textarea", required: true },
+      { name: "review_text", label: "Review", type: "richtext", required: true },
       { name: "source", label: "Source", type: "text" },
       { name: "is_featured", label: "Featured", type: "checkbox" },
     ],
@@ -176,9 +179,9 @@ export const entities: Record<string, EntityConfig> = {
     ],
     fields: [
       { name: "title", label: "Title", type: "text", required: true, group: "content" },
-      { name: "slug", label: "Slug", type: "text", required: true, group: "content" },
+      { name: "slug", label: "Slug", type: "slug", required: true, group: "content", hint: "URL path. Auto-fills from the title." },
       { name: "excerpt", label: "Excerpt", type: "textarea", group: "content" },
-      { name: "content", label: "HTML content", type: "textarea", hint: "HTML is rendered on the public article page.", group: "content" },
+      { name: "content", label: "Content", type: "richtext", group: "content" },
       { name: "cover_image_alt", label: "Cover image alt", type: "text", required: true, group: "media" },
       { name: "author", label: "Author", type: "text", group: "content" },
       { name: "published_at", label: "Published at", type: "date", group: "content" },
@@ -200,7 +203,7 @@ export const entities: Record<string, EntityConfig> = {
     ],
     fields: [
       { name: "question", label: "Question", type: "text", required: true },
-      { name: "answer", label: "Answer", type: "textarea", required: true },
+      { name: "answer", label: "Answer", type: "richtext", required: true },
       { name: "category", label: "Category", type: "text" },
       { name: "sort_order", label: "Sort order", type: "number" },
     ],

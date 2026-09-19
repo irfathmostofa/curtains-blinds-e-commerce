@@ -3,10 +3,10 @@
 import { useState, type FormEvent } from "react";
 import { saveSettings } from "@/app/admin/actions";
 import { ImageUploader } from "@/components/admin/image-uploader";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import type { HomepageContent, HomepageFeature, SiteSettings } from "@/lib/types";
 
 const ICONS: HomepageFeature["icon"][] = ["ruler", "shield", "sparkles", "clock"];
@@ -65,11 +65,11 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="hero-title">Headline</Label>
-            <Textarea id="hero-title" value={hero.title} onChange={(e) => patchHero({ title: e.target.value })} />
+            <Input id="hero-title" value={hero.title} onChange={(e) => patchHero({ title: e.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="hero-sub">Subtitle</Label>
-            <Textarea id="hero-sub" value={hero.subtitle} onChange={(e) => patchHero({ subtitle: e.target.value })} />
+            <Label>Subtitle</Label>
+            <RichTextEditor value={hero.subtitle} onChange={(html) => patchHero({ subtitle: html })} minHeight="120px" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -140,11 +140,11 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`f-body-${index}`}>Body</Label>
-                  <Textarea
-                    id={`f-body-${index}`}
+                  <Label>Body</Label>
+                  <RichTextEditor
                     value={feature.body}
-                    onChange={(e) => patchFeature(index, { body: e.target.value })}
+                    onChange={(html) => patchFeature(index, { body: html })}
+                    minHeight="110px"
                   />
                 </div>
               </div>
@@ -176,11 +176,11 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               <Input id={`${key}-title`} value={home[key].title} onChange={(e) => patchSection(key, { title: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor={`${key}-sub`}>Subtitle</Label>
-              <Textarea
-                id={`${key}-sub`}
+              <Label>Subtitle</Label>
+              <RichTextEditor
                 value={home[key].subtitle}
-                onChange={(e) => patchSection(key, { subtitle: e.target.value })}
+                onChange={(html) => patchSection(key, { subtitle: html })}
+                minHeight="110px"
               />
             </div>
           </section>
@@ -193,8 +193,8 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
             <Input id="cta-title" value={home.cta.title} onChange={(e) => patchCta({ title: e.target.value })} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="cta-sub">Subtitle</Label>
-            <Textarea id="cta-sub" value={home.cta.subtitle} onChange={(e) => patchCta({ subtitle: e.target.value })} />
+            <Label>Subtitle</Label>
+            <RichTextEditor value={home.cta.subtitle} onChange={(html) => patchCta({ subtitle: html })} minHeight="110px" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -220,19 +220,19 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
           </div>
           {home.story.paragraphs.map((p, i) => (
             <div key={i} className="space-y-2">
-              <Label htmlFor={`story-p-${i}`}>Paragraph {i + 1}</Label>
-              <Textarea
-                id={`story-p-${i}`}
+              <Label>Paragraph {i + 1}</Label>
+              <RichTextEditor
                 value={p}
-                onChange={(e) =>
+                onChange={(html) =>
                   setHome((h) => ({
                     ...h,
                     story: {
                       ...h.story,
-                      paragraphs: h.story.paragraphs.map((para, idx) => (idx === i ? e.target.value : para)),
+                      paragraphs: h.story.paragraphs.map((para, idx) => (idx === i ? html : para)),
                     },
                   }))
                 }
+                minHeight="140px"
               />
             </div>
           ))}

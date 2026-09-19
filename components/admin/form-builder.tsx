@@ -6,18 +6,56 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ImageUploader } from "@/components/admin/image-uploader";
+import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { SlugField } from "@/components/admin/slug-field";
+import { TagInput } from "@/components/admin/tag-input";
 import type { EntityConfig, FieldConfig } from "@/lib/admin/entities";
 import { deleteEntity, upsertEntity } from "@/app/admin/actions";
+import { slugify } from "@/lib/utils";
+import { stripHtml } from "@/lib/html";
+
+function asTags(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (typeof value === "string") {
+    const raw = value.trim();
+    if (!raw) return [];
+    if (raw.startsWith("[")) {
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.map(String) : [];
+      } catch {
+        return raw.split(",").map((s) => s.trim()).filter(Boolean);
+      }
+    }
+    return raw.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+  return [];
+}
 
 function FieldControl({
   field,
   values,
   setField,
+  slugLocked,
+  setSlugLocked,
+  options,
 }: {
   field: FieldConfig;
   values: Record<string, unknown>;
   setField: (name: string, value: unknown) => void;
+  slugLocked: boolean;
+  setSlugLocked: (locked: boolean) => void;
+  options: { label: string; value: string }[];
 }) {
+  if (field.type === "richtext") {
+    return (
+      <RichTextEditor
+        value={String(values[field.name] ?? "")}
+        onChange={(html) => setField(field.name, html)}
+        placeholder={`Write ${field.label.toLowerCase()}…`}
+      />
+    );
+  }
   if (field.type === "textarea") {
     return (
       <Textarea
@@ -30,28 +68,48 @@ function FieldControl({
   }
   if (field.type === "checkbox") {
     return (
-      <input
-        id={field.name}
-        type="checkbox"
-        checked={Boolean(values[field.name])}
-        onChange={(e) => setField(field.name, e.target.checked)}
-      />
+      <label className="flex min-h-11 items-center gap-3 rounded-xl border bg-card px-3">
+        <input
+          id={field.name}
+          type="checkbox"
+          checked={Boolean(values[field.name])}
+          onChange={(e) => setField(field.name, e.target.checked)}
+        />
+        <span className="text-sm">{field.label}</span>
+      </label>
     );
   }
   if (field.type === "select") {
     return (
       <select
         id={field.name}
+        required={field.required}
         className="h-11 w-full rounded-xl border bg-card px-3"
         value={String(values[field.name] ?? "")}
         onChange={(e) => setField(field.name, e.target.value)}
       >
-        {field.options?.map((o) => (
+        <option value="">{field.required ? "Select…" : "None"}</option>
+        {options.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
           </option>
         ))}
       </select>
+    );
+  }
+  if (field.type === "tags") {
+    return <TagInput value={asTags(values[field.name])} onChange={(next) => setField(field.name, next)} />;
+  }
+  if (field.type === "slug") {
+    const source = String(values.name || values.title || "");
+    return (
+      <SlugField
+        value={String(values.slug ?? "")}
+        source={source}
+        locked={slugLocked}
+        onChange={(next) => setField("slug", next)}
+        onLock={setSlugLocked}
+      />
     );
   }
   if (field.type === "json") {
@@ -84,12 +142,17 @@ export function FormBuilder({
   config,
   initial,
   onDone,
+  categories = [],
 }: {
   config: EntityConfig;
   initial?: Record<string, unknown>;
   onDone?: () => void;
+  categories?: { id: string; name: string }[];
 }) {
-  const [values, setValues] = useState<Record<string, unknown>>(initial || {});
+  const [values, setValues] = useState<Record<string, unknown>>(
+    initial || (config.key === "products" ? { is_active: true, fabric_options: [] } : {})
+  );
+  const [slugLocked, setSlugLocked] = useState(Boolean(initial?.slug));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [images, setImages] = useState<{ url: string; alt: string; thumbnailUrl?: string }[]>(() => {
@@ -107,34 +170,44 @@ export function FormBuilder({
   });
 
   function setField(name: string, value: unknown) {
-    setValues((v) => ({ ...v, [name]: value }));
+    setValues((v) => {
+      const next = { ...v, [name]: value };
+      if ((name === "name" || name === "title") && !slugLocked) {
+        next.slug = slugify(String(value));
+      }
+      return next;
+    });
   }
 
   const contentFields = config.fields.filter((f) => (f.group || "content") === "content");
   const seoFields = config.fields.filter((f) => f.group === "seo");
   const showMedia = ["products", "categories", "posts", "partners"].includes(config.key);
   const seoTitle = String(values.seo_title || values.name || values.title || "");
-  const seoDesc = String(values.seo_description || values.description || values.excerpt || "");
+  const seoDesc = stripHtml(String(values.seo_description || values.description || values.excerpt || ""));
+
+  function fieldOptions(field: FieldConfig) {
+    if (field.options?.length) return field.options;
+    if (field.name === "category_id") {
+      return categories.map((c) => ({ label: c.name, value: c.id }));
+    }
+    if (field.name === "parent_id") {
+      return categories
+        .filter((c) => c.id !== values.id)
+        .map((c) => ({ label: c.name, value: c.id }));
+    }
+    return [];
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
     const payload: Record<string, unknown> = { ...values };
+    if (!payload.slug) payload.slug = slugify(String(payload.name || payload.title || ""));
     if (payload.base_price) payload.base_price = Number(payload.base_price);
     if (payload.sort_order) payload.sort_order = Number(payload.sort_order);
     if (payload.rating) payload.rating = Number(payload.rating);
-    if (typeof payload.fabric_options === "string") {
-      try {
-        payload.fabric_options = payload.fabric_options.trim().startsWith("[")
-          ? JSON.parse(payload.fabric_options)
-          : payload.fabric_options.split(",").map((s) => s.trim()).filter(Boolean);
-      } catch {
-        payload.fabric_options = String(payload.fabric_options)
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-      }
-    }
+    if (payload.parent_id === "") payload.parent_id = null;
+    payload.fabric_options = asTags(payload.fabric_options);
     if (config.key === "products") payload.images = images;
     if (config.key === "categories" && images[0]) {
       payload.image_url = images[0].url;
@@ -159,11 +232,27 @@ export function FormBuilder({
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      <section className="space-y-4">
+      <section className="grid gap-4 sm:grid-cols-2">
         {contentFields.map((field) => (
-          <div key={field.name} className="space-y-2">
-            <Label htmlFor={field.name}>{field.label}</Label>
-            <FieldControl field={field} values={values} setField={setField} />
+          <div
+            key={field.name}
+            className={
+              field.type === "richtext" || field.type === "textarea" || field.type === "tags" || field.type === "slug"
+                ? "space-y-2 sm:col-span-2"
+                : field.type === "checkbox"
+                  ? "space-y-2 sm:col-span-1"
+                  : "space-y-2"
+            }
+          >
+            {field.type === "checkbox" ? null : <Label htmlFor={field.name}>{field.label}</Label>}
+            <FieldControl
+              field={field}
+              values={values}
+              setField={setField}
+              slugLocked={slugLocked}
+              setSlugLocked={setSlugLocked}
+              options={fieldOptions(field)}
+            />
             {field.hint ? <p className="text-xs text-muted-foreground">{field.hint}</p> : null}
           </div>
         ))}
@@ -209,7 +298,14 @@ export function FormBuilder({
           {seoFields.map((field) => (
             <div key={field.name} className="space-y-2">
               <Label htmlFor={field.name}>{field.label}</Label>
-              <FieldControl field={field} values={values} setField={setField} />
+              <FieldControl
+                field={field}
+                values={values}
+                setField={setField}
+                slugLocked={slugLocked}
+                setSlugLocked={setSlugLocked}
+                options={field.options || []}
+              />
               {field.name === "seo_title" ? (
                 <p className="text-xs text-muted-foreground">{seoTitle.length}/60 characters</p>
               ) : null}
@@ -228,8 +324,8 @@ export function FormBuilder({
       ) : null}
 
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <div className="flex flex-wrap gap-3">
-        <Button type="submit" disabled={saving}>
+      <div className="sticky bottom-0 flex flex-wrap gap-3 border-t bg-card py-3">
+        <Button type="submit" disabled={saving} className="min-w-28">
           {saving ? "Saving…" : "Save"}
         </Button>
         {initial?.id ? (
