@@ -1,4 +1,7 @@
+"use client";
+
 import { cn } from "@/lib/utils";
+import { useLocale } from "@/components/locale-provider";
 
 export function SectionHeading({
   eyebrow,
@@ -14,13 +17,14 @@ export function SectionHeading({
   as?: "h1" | "h2" | "h3";
 }) {
   const Heading = as;
+  const { t } = useLocale();
   return (
     <div className={cn("max-w-2xl space-y-3", align === "center" && "mx-auto text-center")}>
       {eyebrow ? (
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{eyebrow}</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{t(eyebrow)}</p>
       ) : null}
-      <Heading className="text-3xl md:text-4xl text-balance">{title}</Heading>
-      {subtitle ? <p className="text-muted-foreground leading-relaxed">{subtitle}</p> : null}
+      <Heading className="text-balance text-3xl md:text-4xl">{t(title)}</Heading>
+      {subtitle ? <p className="leading-relaxed text-muted-foreground">{t(subtitle)}</p> : null}
     </div>
   );
 }

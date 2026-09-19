@@ -1,12 +1,16 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { PriceTag } from "@/components/price-tag";
 import { Badge } from "@/components/ui/badge";
+import { useLocale } from "@/components/locale-provider";
 
 export function ProductCard({ product }: { product: Product }) {
   const href = `/products/${product.category?.slug || "curtains-and-drapes"}/${product.slug}`;
   const image = product.images[0];
+  const { t } = useLocale();
 
   return (
     <article className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition duration-500 hover:-translate-y-1.5 hover:shadow-xl">
@@ -22,14 +26,14 @@ export function ProductCard({ product }: { product: Product }) {
             />
           ) : null}
           {product.is_bestseller ? (
-            <Badge className="absolute left-3 top-3 bg-card/90">Bestseller</Badge>
+            <Badge className="absolute left-3 top-3 bg-card/90">{t("Bestseller")}</Badge>
           ) : null}
         </div>
         <div className="space-y-2 p-5">
-          <h3 className="font-serif text-xl leading-snug transition-colors group-hover:text-accent">{product.name}</h3>
-          <PriceTag amount={product.base_price} />
-          <p className="text-sm font-medium text-accent transition-transform duration-300 group-hover:translate-x-1">
-            View details
+          <h3 className="font-serif text-xl leading-snug transition-colors group-hover:text-accent">{t(product.name)}</h3>
+          <PriceTag amount={product.base_price} note={t("From")} />
+          <p className="text-sm font-medium text-accent transition-transform duration-300 group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
+            {t("View details")}
           </p>
         </div>
       </Link>

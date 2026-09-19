@@ -5,11 +5,12 @@ import { motion, useReducedMotion } from "framer-motion";
 
 export function HeroVisual({ src, alt }: { src: string; alt: string }) {
   const reduced = useReducedMotion();
+  const isLocal = src.startsWith("data:") || src.startsWith("/");
   return (
     <motion.div
-      className="relative aspect-[4/5] overflow-hidden rounded-3xl shadow-2xl"
-      initial={reduced ? false : { opacity: 0, scale: 0.96, x: 24 }}
-      animate={{ opacity: 1, scale: 1, x: 0 }}
+      className="relative aspect-[4/5] min-h-[280px] w-full overflow-hidden rounded-3xl shadow-2xl sm:min-h-[360px] lg:min-h-[520px]"
+      initial={reduced ? false : { opacity: 0, scale: 0.96, y: 18 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
     >
       <motion.div
@@ -18,7 +19,7 @@ export function HeroVisual({ src, alt }: { src: string; alt: string }) {
         animate={{ scale: 1 }}
         transition={{ duration: 8, ease: "easeOut" }}
       >
-        {src.startsWith("data:") ? (
+        {isLocal ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={src} alt={alt} className="absolute inset-0 h-full w-full object-cover" />
         ) : (

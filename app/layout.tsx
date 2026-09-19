@@ -1,19 +1,29 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Outfit } from "next/font/google";
+import { Cinzel, Josefin_Sans, Noto_Naskh_Arabic } from "next/font/google";
 import "./globals.css";
 import { AnalyticsScripts } from "@/components/analytics-scripts";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { getSiteSettings } from "@/lib/data/catalog";
+import { cookies } from "next/headers";
+import { LocaleProvider } from "@/components/locale-provider";
+import { localeDir, type Locale } from "@/lib/i18n";
 
-const serif = Cormorant_Garamond({
+const serif = Cinzel({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["400", "500", "600", "700"],
   variable: "--font-serif",
 });
 
-const sans = Outfit({
+const sans = Josefin_Sans({
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-sans",
+});
+
+const arabic = Noto_Naskh_Arabic({
+  subsets: ["arabic"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-arabic",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -45,11 +55,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = (cookies().get("md_locale")?.value === "ar" ? "ar" : "en") as Locale;
   return (
-    <html lang="en">
-      <body className={`${serif.variable} ${sans.variable} font-sans`}>
+    <html lang={locale} dir={localeDir(locale)} className={locale === "ar" ? "locale-ar" : undefined}>
+      <body className={`${serif.variable} ${sans.variable} ${arabic.variable} font-sans`}>
         <AnalyticsScripts />
-        {children}
+        <LocaleProvider initial={locale}>{children}</LocaleProvider>
       </body>
     </html>
   );

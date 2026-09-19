@@ -60,6 +60,7 @@ const config: Config = {
       fontFamily: {
         serif: ["var(--font-serif)", "Georgia", "serif"],
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        arabic: ["var(--font-arabic)", "var(--font-sans)", "system-ui", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

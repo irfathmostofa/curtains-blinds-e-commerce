@@ -12,6 +12,7 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: "10mb",
     },
+    allowedHosts: [".monkeycode-ai.live"],
   },
   allowedDevOrigins: [".monkeycode-ai.live"],
 };
