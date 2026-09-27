@@ -307,7 +307,7 @@ export function AiChatbot() {
           <motion.div
             role="dialog"
             aria-label={t("AI assistant")}
-            className="fixed bottom-[9.5rem] left-4 z-40 flex h-[min(38rem,78dvh)] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[1.6rem] border border-primary/10 bg-card shadow-[0_24px_80px_rgba(28,25,22,0.22)] sm:bottom-24 sm:left-5 rtl:left-auto rtl:right-4"
+            className="fixed bottom-[9.5rem] left-4 z-40 flex h-[min(38rem,78dvh)] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[1.6rem] border border-primary/10 bg-card shadow-[0_24px_80px_rgba(28,25,22,0.22)] sm:bottom-1 sm:left-5 rtl:left-auto rtl:right-4"
             initial={{ opacity: 0, y: 18, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 18, scale: 0.96 }}
