@@ -52,6 +52,26 @@ export async function generateMetadata(): Promise<Metadata> {
       images: seo.og_image ? [seo.og_image] : undefined,
       site: seo.twitter_handle || undefined,
     },
+    verification: {
+      google: seo.google_site_verification || undefined,
+      other: seo.bing_site_verification
+        ? { "msvalidate.01": seo.bing_site_verification }
+        : undefined,
+    },
+    alternates: {
+      canonical: SITE_URL,
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
   };
 }
 

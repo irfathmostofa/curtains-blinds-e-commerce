@@ -118,6 +118,29 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
             <Label htmlFor="seo-tw">Twitter handle</Label>
             <Input id="seo-tw" value={seo.twitter_handle} onChange={(e) => patchSeo({ twitter_handle: e.target.value })} />
           </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="gsc">Google Search Console verification</Label>
+              <Input
+                id="gsc"
+                placeholder="Paste content value from google-site-verification"
+                value={seo.google_site_verification}
+                onChange={(e) => patchSeo({ google_site_verification: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Search Console HTML tag method: paste only the content value, not the full meta tag. After verify, submit /sitemap.xml.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bing">Bing Webmaster verification</Label>
+              <Input
+                id="bing"
+                placeholder="msvalidate.01 content value"
+                value={seo.bing_site_verification}
+                onChange={(e) => patchSeo({ bing_site_verification: e.target.value })}
+              />
+            </div>
+          </div>
           <div className="space-y-2">
             <Label>Open Graph image</Label>
             <ImageUploader

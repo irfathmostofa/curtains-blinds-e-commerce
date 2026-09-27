@@ -222,6 +222,8 @@ export type SiteSettings = {
     og_image: string;
     keywords: string;
     twitter_handle: string;
+    google_site_verification: string;
+    bing_site_verification: string;
   };
   gtm_id: string;
   meta_pixel_id: string;
