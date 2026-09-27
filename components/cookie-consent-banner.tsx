@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useLocale } from "@/components/locale-provider";
 
 function setConsent(value: "accepted" | "rejected") {
   document.cookie = `cookie_consent=${value};path=/;max-age=${60 * 60 * 24 * 365};SameSite=Lax`;
@@ -10,6 +11,7 @@ function setConsent(value: "accepted" | "rejected") {
 
 export function CookieConsentBanner() {
   const [visible, setVisible] = useState(false);
+  const { t } = useLocale();
 
   useEffect(() => {
     const match = document.cookie.split("; ").find((c) => c.startsWith("cookie_consent="));
@@ -20,7 +22,7 @@ export function CookieConsentBanner() {
     <AnimatePresence>
       {visible ? (
         <motion.div
-          className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 p-4 backdrop-blur md:p-6"
+          className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur md:p-6"
           initial={{ y: 80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 80, opacity: 0 }}
@@ -28,9 +30,9 @@ export function CookieConsentBanner() {
         >
           <div className="container flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <p className="max-w-2xl text-sm text-muted-foreground">
-              We use essential cookies to run this site and optional analytics after you accept. Read our{" "}
+              {t("We use essential cookies to run this site and optional analytics after you accept. Read our")}{" "}
               <a className="underline" href="/privacy-policy">
-                privacy policy
+                {t("privacy policy")}
               </a>
               .
             </p>
@@ -43,7 +45,7 @@ export function CookieConsentBanner() {
                   setVisible(false);
                 }}
               >
-                Reject
+                {t("Reject")}
               </Button>
               <Button
                 size="sm"
@@ -52,7 +54,7 @@ export function CookieConsentBanner() {
                   setVisible(false);
                 }}
               >
-                Accept
+                {t("Accept")}
               </Button>
             </div>
           </div>

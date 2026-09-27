@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { HtmlContent } from "@/components/html-content";
 
 export function CTABanner({
   title,
@@ -27,7 +28,7 @@ export function CTABanner({
       <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
         <div className="max-w-xl space-y-2">
           <h2 className="font-serif text-3xl">{title}</h2>
-          {subtitle ? <p className="text-primary-foreground/80">{subtitle}</p> : null}
+          {subtitle ? <HtmlContent html={subtitle} className="prose-invert text-primary-foreground/80" /> : null}
         </div>
         <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.98 }}>
           <Button asChild variant="secondary" size="lg">

@@ -4,11 +4,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HtmlContent } from "@/components/html-content";
+import { useLocale } from "@/components/locale-provider";
 import type { Testimonial } from "@/lib/types";
 
 export function TestimonialCarousel({ items }: { items: Testimonial[] }) {
   const [index, setIndex] = useState(0);
   const [dir, setDir] = useState(1);
+  const { t } = useLocale();
   if (!items.length) return null;
   const item = items[index];
 
@@ -36,7 +39,7 @@ export function TestimonialCarousel({ items }: { items: Testimonial[] }) {
               />
             ))}
           </div>
-          <p className="font-serif text-2xl leading-snug text-balance">“{item.review_text}”</p>
+          <HtmlContent html={item.review_text} className="font-serif text-2xl leading-snug text-foreground" />
           <footer className="mt-6 text-sm text-muted-foreground">
             <cite className="not-italic font-medium text-foreground">{item.customer_name}</cite>
             {` · ${item.source}`}
@@ -48,7 +51,7 @@ export function TestimonialCarousel({ items }: { items: Testimonial[] }) {
           type="button"
           variant="outline"
           size="icon"
-          aria-label="Previous testimonial"
+          aria-label={t("Previous testimonial")}
           onClick={() => go(index === 0 ? items.length - 1 : index - 1)}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -57,7 +60,7 @@ export function TestimonialCarousel({ items }: { items: Testimonial[] }) {
           type="button"
           variant="outline"
           size="icon"
-          aria-label="Next testimonial"
+          aria-label={t("Next testimonial")}
           onClick={() => go(index === items.length - 1 ? 0 : index + 1)}
         >
           <ChevronRight className="h-4 w-4" />

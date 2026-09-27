@@ -9,7 +9,6 @@ import {
 } from "@/lib/data/catalog";
 import { buildMetadata, faqJsonLd, localBusinessJsonLd, organizationJsonLd } from "@/lib/seo";
 
-
 export const revalidate = 0;
 
 export const metadata = buildMetadata({
