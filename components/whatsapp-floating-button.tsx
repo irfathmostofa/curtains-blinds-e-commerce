@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { trackClientEvent } from "@/lib/analytics/client";
 import { useLocale } from "./locale-provider";
 
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -23,6 +24,7 @@ export function WhatsAppFloatingButton({ phone }: { phone: string }) {
       rel="noopener noreferrer"
       className="fixed bottom-[5.5rem] right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg sm:bottom-5 sm:right-5 sm:h-14 sm:w-14 rtl:left-4 rtl:right-auto"
       aria-label={t("Chat on WhatsApp")}
+      onClick={() => trackClientEvent({ name: "Contact", contentName: "WhatsApp" })}
       initial={{ opacity: 0, y: 24, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: 1.1, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}

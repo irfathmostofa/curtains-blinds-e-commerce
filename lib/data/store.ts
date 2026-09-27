@@ -97,6 +97,11 @@ export function getStore(): Store {
   if (!Array.isArray(g.__mdStore.chatLeads)) g.__mdStore.chatLeads = [];
   g.__mdStore.settings.homepage = mergeHomepage(g.__mdStore.settings.homepage);
   g.__mdStore.settings.seo = { ...DEFAULT_SETTINGS.seo, ...g.__mdStore.settings.seo };
+  g.__mdStore.settings.gtm_id = g.__mdStore.settings.gtm_id || DEFAULT_SETTINGS.gtm_id;
+  g.__mdStore.settings.meta_pixel_id = g.__mdStore.settings.meta_pixel_id || DEFAULT_SETTINGS.meta_pixel_id;
+  g.__mdStore.settings.instagram_pixel_id =
+    g.__mdStore.settings.instagram_pixel_id || DEFAULT_SETTINGS.instagram_pixel_id;
+  g.__mdStore.settings.tiktok_pixel_id = g.__mdStore.settings.tiktok_pixel_id || DEFAULT_SETTINGS.tiktok_pixel_id;
   g.__mdStore.settings.homepage.hero.image_url =
     repairBrokenHero(g.__mdStore.settings.homepage.hero.image_url) ||
     DEFAULT_SETTINGS.homepage.hero.image_url;

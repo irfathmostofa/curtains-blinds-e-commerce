@@ -173,6 +173,10 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       seo: { ...DEFAULT_SETTINGS.seo, ...((map.seo as SiteSettings["seo"]) || {}) },
       gtm_id: (map.general as SiteSettings | undefined)?.gtm_id || DEFAULT_SETTINGS.gtm_id,
       meta_pixel_id: (map.general as SiteSettings | undefined)?.meta_pixel_id || DEFAULT_SETTINGS.meta_pixel_id,
+      instagram_pixel_id:
+        (map.general as SiteSettings | undefined)?.instagram_pixel_id || DEFAULT_SETTINGS.instagram_pixel_id,
+      tiktok_pixel_id:
+        (map.general as SiteSettings | undefined)?.tiktok_pixel_id || DEFAULT_SETTINGS.tiktok_pixel_id,
       homepage: mergeHomepage(
         (map.homepage as SiteSettings["homepage"]) ||
           (typeof map.general === "object" && map.general

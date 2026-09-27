@@ -65,6 +65,38 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
 
         <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
           <div>
+            <h2 className="font-serif text-xl">Analytics & pixels</h2>
+            <p className="text-xs text-muted-foreground">
+              Client-side tags load after cookie consent. Server-side Facebook, Instagram and TikTok conversions use the matching access tokens in environment variables.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="gtm">Google Tag Manager ID</Label>
+              <Input id="gtm" placeholder="GTM-XXXXXXX" value={settings.gtm_id} onChange={(e) => patch({ gtm_id: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="meta-pixel">Facebook pixel ID</Label>
+              <Input id="meta-pixel" placeholder="1234567890" value={settings.meta_pixel_id} onChange={(e) => patch({ meta_pixel_id: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ig-pixel">Instagram pixel ID</Label>
+              <Input
+                id="ig-pixel"
+                placeholder="Same Meta dataset or dedicated IG pixel"
+                value={settings.instagram_pixel_id}
+                onChange={(e) => patch({ instagram_pixel_id: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tt-pixel">TikTok pixel ID</Label>
+              <Input id="tt-pixel" placeholder="CXXXXXXXXXXXX" value={settings.tiktok_pixel_id} onChange={(e) => patch({ tiktok_pixel_id: e.target.value })} />
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
+          <div>
             <h2 className="font-serif text-xl">SEO metadata</h2>
             <p className="text-xs text-muted-foreground">Default title, description, keywords and social share image for the public site.</p>
           </div>

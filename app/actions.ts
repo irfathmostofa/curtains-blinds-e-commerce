@@ -1,10 +1,20 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { bookingSchema, chatLeadSchema, estimateSchema } from "@/lib/validations";
 import { createClient } from "@/lib/supabase/server";
 import { getStore } from "@/lib/data/store";
 import type { Booking, ChatLead, Lead } from "@/lib/types";
+import { trackServerEvent } from "@/lib/analytics/server";
+import { newEventId } from "@/lib/analytics/events";
+import { SITE_URL } from "@/lib/site";
+
+function sourceUrl(path: string) {
+  const host = headers().get("x-forwarded-host") || headers().get("host");
+  const proto = headers().get("x-forwarded-proto") || "https";
+  if (host) return `${proto}://${host}${path}`;
+  return `${SITE_URL}${path}`;
+}
 
 const rateKey = "form_submits";
 
@@ -20,7 +30,7 @@ function rateLimited() {
 export async function submitEstimate(input: unknown) {
   const parsed = estimateSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message || "Invalid form" };
-  if (parsed.data.company) return { ok: true };
+  if (parsed.data.company) return { ok: true as const };
   if (rateLimited()) return { ok: false, error: "Please wait before submitting again." };
 
   const payload = {
@@ -47,13 +57,23 @@ export async function submitEstimate(input: unknown) {
   }
 
   cookies().set("estimate_draft", "", { maxAge: 0, path: "/" });
-  return { ok: true };
+  const eventId = newEventId();
+  await trackServerEvent({
+    name: "Lead",
+    eventId,
+    sourceUrl: sourceUrl("/get-estimate"),
+    contentName: parsed.data.productType,
+    contentType: "lead",
+    user: { email: parsed.data.email, phone: parsed.data.phone, name: parsed.data.name },
+    extra: { rooms: parsed.data.rooms, budget: parsed.data.budget, source: "get-estimate" },
+  });
+  return { ok: true, eventId };
 }
 
 export async function submitBooking(input: unknown) {
   const parsed = bookingSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message || "Invalid form" };
-  if (parsed.data.company) return { ok: true };
+  if (parsed.data.company) return { ok: true as const };
   if (rateLimited()) return { ok: false, error: "Please wait before submitting again." };
 
   const payload = {
@@ -64,6 +84,7 @@ export async function submitBooking(input: unknown) {
     address: parsed.data.address,
     preferred_date: parsed.data.preferredDate,
     preferred_time_slot: parsed.data.preferredTime,
+    notes: parsed.data.notes || "",
     status: "new",
   };
 
@@ -80,7 +101,17 @@ export async function submitBooking(input: unknown) {
   }
 
   cookies().set("estimate_draft", "", { maxAge: 0, path: "/" });
-  return { ok: true };
+  const eventId = newEventId();
+  await trackServerEvent({
+    name: "Schedule",
+    eventId,
+    sourceUrl: sourceUrl("/book"),
+    contentName: "Free measuring visit",
+    contentType: "booking",
+    user: { email: parsed.data.email, phone: parsed.data.phone, name: parsed.data.name },
+    extra: { location: parsed.data.location, preferred_date: parsed.data.preferredDate },
+  });
+  return { ok: true, eventId };
 }
 
 export async function saveDraft(data: Record<string, string>) {
@@ -123,7 +154,25 @@ export async function submitChatLead(input: unknown) {
     } as ChatLead);
   }
 
-  return { ok: true };
+  const eventId = newEventId();
+  const booked = Boolean(payload.booking_date && payload.booking_time);
+  await trackServerEvent({
+    name: booked ? "Schedule" : "Lead",
+    eventId,
+    sourceUrl: sourceUrl("/"),
+    contentName: payload.product_interest,
+    contentType: "chat_lead",
+    value: payload.estimate_max,
+    currency: "AED",
+    user: { email: payload.email, phone: payload.phone, name: payload.name },
+    extra: {
+      rooms: payload.rooms,
+      location: payload.location,
+      source: "ai-chatbot",
+      booked: booked ? 1 : 0,
+    },
+  });
+  return { ok: true, eventId };
 }
 
 export async function rememberProduct(slug: string) {

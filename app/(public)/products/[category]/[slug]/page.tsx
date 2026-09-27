@@ -6,6 +6,7 @@ import { ImageGallery } from "@/components/image-gallery";
 import { ProductCard } from "@/components/product-card";
 import { ProductOptions } from "@/components/product-options";
 import { RememberProduct } from "@/components/remember-product";
+import { ProductViewTracker } from "@/components/product-view-tracker";
 import {
   getFaqs,
   getProductBySlug,
@@ -55,6 +56,7 @@ export default async function ProductPage({ params }: { params: { category: stri
   return (
     <main className="container space-y-12 py-10">
       <RememberProduct slug={product.slug} />
+      <ProductViewTracker name={product.name} slug={product.slug} price={product.base_price} />
       <JsonLd
         data={productJsonLd({
           name: product.name,

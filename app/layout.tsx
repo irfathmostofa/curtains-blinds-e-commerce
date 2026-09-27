@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Cinzel, Josefin_Sans, Noto_Naskh_Arabic } from "next/font/google";
 import "./globals.css";
 import { AnalyticsScripts } from "@/components/analytics-scripts";
@@ -59,7 +60,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang={locale} dir={localeDir(locale)} className={locale === "ar" ? "locale-ar" : undefined}>
       <body className={`${serif.variable} ${sans.variable} ${arabic.variable} font-sans`}>
-        <AnalyticsScripts />
+        <Suspense fallback={null}>
+          <AnalyticsScripts />
+        </Suspense>
         <LocaleProvider initial={locale}>{children}</LocaleProvider>
       </body>
     </html>

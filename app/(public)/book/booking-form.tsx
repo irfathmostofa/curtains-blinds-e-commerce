@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { bookingSchema, type BookingInput } from "@/lib/validations";
 import { saveDraft, submitBooking } from "@/app/actions";
+import { trackClientEvent } from "@/lib/analytics/client";
 import { DatePicker } from "@/components/date-picker";
 
 const slots = ["09:00–11:00", "10:00–12:00", "12:00–14:00", "16:00–18:00", "18:00–20:00"];
@@ -55,6 +56,16 @@ export function BookingForm() {
     if (!result.ok) {
       setError(result.error || "Something went wrong");
       return;
+    }
+    const values = form.getValues();
+    if (result.eventId) {
+      trackClientEvent({
+        name: "Schedule",
+        eventId: result.eventId,
+        contentName: "Free measuring visit",
+        contentType: "booking",
+        extra: { location: values.location, preferred_date: values.preferredDate },
+      });
     }
     setDone(true);
   }

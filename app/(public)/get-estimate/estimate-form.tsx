@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { estimateSchema, type EstimateInput } from "@/lib/validations";
 import { saveDraft, submitEstimate } from "@/app/actions";
+import { trackClientEvent } from "@/lib/analytics/client";
 
 const rooms = ["1–2 rooms", "3–4 rooms", "Whole villa / 5+"];
 const types = [
@@ -64,6 +65,16 @@ export function EstimateForm() {
     if (!result.ok) {
       setError(result.error || "Something went wrong");
       return;
+    }
+    const values = form.getValues();
+    if (result.eventId) {
+      trackClientEvent({
+        name: "Lead",
+        eventId: result.eventId,
+        contentName: values.productType,
+        contentType: "lead",
+        extra: { rooms: values.rooms, budget: values.budget, source: "get-estimate" },
+      });
     }
     setDone(true);
   }

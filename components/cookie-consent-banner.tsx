@@ -52,6 +52,7 @@ export function CookieConsentBanner() {
                 onClick={() => {
                   setConsent("accepted");
                   setVisible(false);
+                  window.location.reload();
                 }}
               >
                 {t("Accept")}

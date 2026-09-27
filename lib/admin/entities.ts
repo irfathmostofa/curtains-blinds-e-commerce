@@ -173,6 +173,7 @@ export const entities: Record<string, EntityConfig> = {
       { key: "status", label: "Status" },
     ],
     fields: [
+      { name: "notes", label: "Notes", type: "textarea" },
       { name: "status", label: "Status", type: "select", options: [
         { label: "New", value: "new" },
         { label: "Confirmed", value: "confirmed" },

@@ -18,7 +18,8 @@ create table if not exists public.categories (
   parent_id uuid references public.categories (id) on delete set null,
   sort_order int not null default 0,
   seo_title text not null default '',
-  seo_description text not null default ''
+  seo_description text not null default '',
+  seo_keywords text not null default ''
 );
 
 create table if not exists public.products (
@@ -34,6 +35,7 @@ create table if not exists public.products (
   is_active boolean not null default true,
   seo_title text not null default '',
   seo_description text not null default '',
+  seo_keywords text not null default '',
   created_at timestamptz not null default now()
 );
 
@@ -85,6 +87,7 @@ create table if not exists public.bookings (
   address text not null,
   preferred_date date not null,
   preferred_time_slot text not null,
+  notes text not null default '',
   status text not null default 'new' check (status in ('new', 'confirmed', 'completed', 'cancelled')),
   created_at timestamptz not null default now()
 );
@@ -110,7 +113,8 @@ create table if not exists public.blog_posts (
   author text not null default 'Maison Drape Studio',
   published_at timestamptz,
   seo_title text not null default '',
-  seo_description text not null default ''
+  seo_description text not null default '',
+  seo_keywords text not null default ''
 );
 
 create table if not exists public.faqs (
@@ -142,6 +146,19 @@ create table if not exists public.cms_pages (
   seo_description text not null default ''
 );
 
+create table if not exists public.analytics_events (
+  id uuid primary key default gen_random_uuid(),
+  event_name text not null,
+  event_id text not null unique,
+  event_source_url text not null default '',
+  source text not null default 'server' check (source in ('client', 'server')),
+  platform text not null check (platform in ('meta', 'tiktok', 'gtm', 'internal')),
+  payload jsonb not null default '{}'::jsonb,
+  status text not null default 'queued' check (status in ('queued', 'sent', 'failed', 'skipped')),
+  error text not null default '',
+  created_at timestamptz not null default now()
+);
+
 alter table public.admin_users enable row level security;
 alter table public.categories enable row level security;
 alter table public.products enable row level security;
@@ -155,6 +172,7 @@ alter table public.faqs enable row level security;
 alter table public.partners enable row level security;
 alter table public.site_settings enable row level security;
 alter table public.cms_pages enable row level security;
+alter table public.analytics_events enable row level security;
 
 create or replace function public.is_admin()
 returns boolean
@@ -207,6 +225,34 @@ create policy "admin write settings" on public.site_settings for all using (publ
 
 create policy "public read cms" on public.cms_pages for select using (true);
 create policy "admin write cms" on public.cms_pages for all using (public.is_admin()) with check (public.is_admin());
+
+create policy "admin read analytics_events" on public.analytics_events for select using (public.is_admin());
+create policy "admin write analytics_events" on public.analytics_events for all using (public.is_admin()) with check (public.is_admin());
+
+create index if not exists categories_slug_idx on public.categories (slug);
+create index if not exists categories_parent_id_idx on public.categories (parent_id);
+create index if not exists products_slug_idx on public.products (slug);
+create index if not exists products_category_id_idx on public.products (category_id);
+create index if not exists products_is_active_idx on public.products (is_active);
+create index if not exists products_is_bestseller_idx on public.products (is_bestseller);
+create index if not exists product_variants_product_id_idx on public.product_variants (product_id);
+create index if not exists leads_created_at_idx on public.leads (created_at desc);
+create index if not exists leads_status_idx on public.leads (status);
+create index if not exists chat_leads_created_at_idx on public.chat_leads (created_at desc);
+create index if not exists chat_leads_status_idx on public.chat_leads (status);
+create index if not exists bookings_created_at_idx on public.bookings (created_at desc);
+create index if not exists bookings_status_idx on public.bookings (status);
+create index if not exists bookings_preferred_date_idx on public.bookings (preferred_date);
+create index if not exists blog_posts_slug_idx on public.blog_posts (slug);
+create index if not exists blog_posts_published_at_idx on public.blog_posts (published_at desc);
+create index if not exists faqs_sort_order_idx on public.faqs (sort_order);
+create index if not exists analytics_events_created_at_idx on public.analytics_events (created_at desc);
+create index if not exists analytics_events_event_name_idx on public.analytics_events (event_name);
+
+alter table public.categories add column if not exists seo_keywords text not null default '';
+alter table public.products add column if not exists seo_keywords text not null default '';
+alter table public.blog_posts add column if not exists seo_keywords text not null default '';
+alter table public.bookings add column if not exists notes text not null default '';
 
 create policy "admin read admin_users" on public.admin_users for select using (public.is_admin());
 create policy "admin write admin_users" on public.admin_users for all using (public.is_admin()) with check (public.is_admin());

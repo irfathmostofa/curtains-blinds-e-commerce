@@ -90,6 +90,7 @@ export type Booking = {
   address: string;
   preferred_date: string;
   preferred_time_slot: string;
+  notes?: string;
   status: "new" | "confirmed" | "completed" | "cancelled";
   created_at: string;
 };
@@ -224,6 +225,8 @@ export type SiteSettings = {
   };
   gtm_id: string;
   meta_pixel_id: string;
+  instagram_pixel_id: string;
+  tiktok_pixel_id: string;
   homepage: HomepageContent;
 };
 

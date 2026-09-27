@@ -60,6 +60,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   },
   gtm_id: process.env.NEXT_PUBLIC_GTM_ID || "",
   meta_pixel_id: process.env.NEXT_PUBLIC_META_PIXEL_ID || "",
+  instagram_pixel_id: process.env.NEXT_PUBLIC_INSTAGRAM_PIXEL_ID || "",
+  tiktok_pixel_id: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID || "",
   homepage: {
     hero: {
       badge: "Dubai · Abu Dhabi · Trade programme",
