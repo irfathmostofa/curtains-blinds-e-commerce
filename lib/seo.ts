@@ -67,6 +67,12 @@ export function buildMetadata(config: SeoConfig, settings?: SiteSettings): Metad
       images: [image],
       site: seo.twitter_handle || undefined,
     },
+    verification: {
+      google: seo.google_site_verification || undefined,
+      other: seo.bing_site_verification
+        ? { "msvalidate.01": seo.bing_site_verification }
+        : undefined,
+    },
   };
 }
 

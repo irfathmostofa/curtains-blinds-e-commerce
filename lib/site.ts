@@ -57,6 +57,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     keywords:
       "curtains Dubai, custom curtains Dubai, blackout curtains Dubai, sheer curtains Dubai, blinds Abu Dhabi, roller blinds Dubai, motorised curtains UAE, motorized curtain tracks Dubai, window treatments Dubai, made to measure curtains UAE, Palm Jumeirah curtains, Dubai Marina blinds",
     twitter_handle: "@maisondrape",
+    google_site_verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",
+    bing_site_verification: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || "",
   },
   gtm_id: process.env.NEXT_PUBLIC_GTM_ID || "",
   meta_pixel_id: process.env.NEXT_PUBLIC_META_PIXEL_ID || "",
