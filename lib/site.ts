@@ -25,7 +25,6 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     { label: "About", href: "/about-us" },
     { label: "FAQs", href: "/faqs" },
     { label: "Blog", href: "/blog" },
-    { label: "Partnerships", href: "/partnerships" },
   ],
   locations: [
     {

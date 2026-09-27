@@ -9,7 +9,6 @@ const ar: Record<string, string> = {
   About: "من نحن",
   FAQs: "الأسئلة",
   Blog: "المدونة",
-  Partnerships: "الشراكات",
   "Get estimate": "اطلب عرض سعر",
   "Book a free visit": "احجز زيارة مجانية",
   "Browse collections": "تصفح المجموعات",
