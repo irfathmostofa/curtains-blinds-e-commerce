@@ -21,6 +21,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     path: `/blog/${post.slug}`,
     image: post.cover_image_url,
     type: "article",
+    keywords: post.seo_keywords || post.title,
   });
 }
 

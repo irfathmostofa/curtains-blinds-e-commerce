@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MultiStepForm } from "@/components/multi-step-form";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { bookingSchema, type BookingInput } from "@/lib/validations";
 import { saveDraft, submitBooking } from "@/app/actions";
+import { DatePicker } from "@/components/date-picker";
 
 const slots = ["09:00–11:00", "10:00–12:00", "12:00–14:00", "16:00–18:00", "18:00–20:00"];
 
@@ -93,7 +95,11 @@ export function BookingForm() {
               <div className="grid gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="date">Preferred date</Label>
-                  <Input id="date" type="date" {...form.register("preferredDate")} />
+                  <DatePicker
+                    id="date"
+                    value={form.watch("preferredDate")}
+                    onChange={(value) => form.setValue("preferredDate", value, { shouldValidate: true })}
+                  />
                 </div>
                 <fieldset className="grid gap-2">
                   <legend className="mb-2 text-sm font-medium">Time slot</legend>

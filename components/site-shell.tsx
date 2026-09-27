@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { AiChatbot } from "@/components/ai-chatbot";
+import { BackToTop } from "@/components/back-to-top";
 import { Footer } from "@/components/footer";
 import { Navbar } from "@/components/navbar";
 import { WhatsAppFloatingButton } from "@/components/whatsapp-floating-button";
@@ -18,6 +20,8 @@ export function SiteShell({
       {children}
       <Footer settings={settings} />
       <WhatsAppFloatingButton phone={settings.whatsapp} />
+      <BackToTop />
+      <AiChatbot />
       <CookieConsentBanner />
     </>
   );

@@ -54,9 +54,12 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       "Bespoke curtains, blinds and motorised window treatments with free in-home measuring across Dubai and Abu Dhabi.",
     og_image:
       "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80",
-    keywords: "curtains Dubai, blinds Abu Dhabi, motorised curtains UAE, blackout drapes",
+    keywords:
+      "curtains Dubai, custom curtains Dubai, blackout curtains Dubai, sheer curtains Dubai, blinds Abu Dhabi, roller blinds Dubai, motorised curtains UAE, motorized curtain tracks Dubai, window treatments Dubai, made to measure curtains UAE, Palm Jumeirah curtains, Dubai Marina blinds",
     twitter_handle: "@maisondrape",
   },
+  gtm_id: process.env.NEXT_PUBLIC_GTM_ID || "",
+  meta_pixel_id: process.env.NEXT_PUBLIC_META_PIXEL_ID || "",
   homepage: {
     hero: {
       badge: "Dubai · Abu Dhabi · Trade programme",
@@ -70,6 +73,47 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       image_url:
         "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1600&q=80",
       image_alt: "Floor-to-ceiling linen drapes in a bright Dubai living room",
+      express_label: "Express",
+      express_detail: "1–3 day installation",
+    },
+    marquee: [
+      "Free Doorstep Visit",
+      "Instant Estimate Calculator",
+      "1–3 Day Express Installation",
+      "Blackout & Sheer Curtains",
+      "Smart Motorized Tracks",
+      "Downtown Dubai",
+      "Palm Jumeirah",
+      "Dubai Marina",
+      "Business Bay",
+    ],
+    how_it_works: {
+      eyebrow: "How it works",
+      title: "Elegant curtains, delivered in four effortless steps.",
+      subtitle:
+        "From the first click to perfectly hung curtains — every step is taken care of by the Reef Deco team. No showroom visit required.",
+      steps: [
+        {
+          number: "01",
+          title: "Book a free site visit",
+          body: "Pick a time slot — our specialist comes to your home, office or hotel at zero cost.",
+        },
+        {
+          number: "02",
+          title: "Samples & exact measurement",
+          body: "We bring fabric swatches to your doorstep and measure each window precisely.",
+        },
+        {
+          number: "03",
+          title: "Select your curtain type",
+          body: "Choose between blackout, sheer, motorized or roller blinds — or let our experts advise.",
+        },
+        {
+          number: "04",
+          title: "Installation in 1–3 days",
+          body: "Our team produces and installs your custom curtains within 1 to 3 working days.",
+        },
+      ],
     },
     features: [
       { icon: "ruler", title: "Free measuring visit", body: "Consultants bring fabric books to your villa or apartment." },
@@ -123,6 +167,14 @@ export function mergeHomepage(saved?: Partial<HomepageContent> | null): Homepage
   if (!saved) return structuredClone(base);
   return {
     hero: { ...base.hero, ...saved.hero },
+    marquee: saved.marquee?.length ? saved.marquee : [...base.marquee],
+    how_it_works: {
+      ...base.how_it_works,
+      ...saved.how_it_works,
+      steps: saved.how_it_works?.steps?.length
+        ? saved.how_it_works.steps
+        : base.how_it_works.steps.map((s) => ({ ...s })),
+    },
     features: saved.features?.length ? saved.features : base.features.map((f) => ({ ...f })),
     collections: { ...base.collections, ...saved.collections },
     bestsellers: { ...base.bestsellers, ...saved.bestsellers },

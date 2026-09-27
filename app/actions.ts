@@ -1,10 +1,10 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { bookingSchema, estimateSchema } from "@/lib/validations";
+import { bookingSchema, chatLeadSchema, estimateSchema } from "@/lib/validations";
 import { createClient } from "@/lib/supabase/server";
 import { getStore } from "@/lib/data/store";
-import type { Booking, Lead } from "@/lib/types";
+import type { Booking, ChatLead, Lead } from "@/lib/types";
 
 const rateKey = "form_submits";
 
@@ -88,6 +88,42 @@ export async function saveDraft(data: Record<string, string>) {
     maxAge: 60 * 60 * 6,
     path: "/",
   });
+}
+
+export async function submitChatLead(input: unknown) {
+  const parsed = chatLeadSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message || "Invalid form" };
+  if (rateLimited()) return { ok: false, error: "Please wait before submitting again." };
+
+  const payload = {
+    name: parsed.data.name,
+    phone: parsed.data.phone,
+    email: parsed.data.email,
+    product_interest: parsed.data.product_interest,
+    rooms: parsed.data.rooms,
+    location: parsed.data.location,
+    estimate_min: parsed.data.estimate_min,
+    estimate_max: parsed.data.estimate_max,
+    booking_date: parsed.data.booking_date || "",
+    booking_time: parsed.data.booking_time || "",
+    transcript: parsed.data.transcript,
+    source: "ai-chatbot",
+    status: "new" as const,
+  };
+
+  const supabase = createClient();
+  if (supabase) {
+    const { error } = await supabase.from("chat_leads").insert(payload);
+    if (error) return { ok: false, error: error.message };
+  } else {
+    getStore().chatLeads.unshift({
+      id: crypto.randomUUID(),
+      ...payload,
+      created_at: new Date().toISOString(),
+    } as ChatLead);
+  }
+
+  return { ok: true };
 }
 
 export async function rememberProduct(slug: string) {

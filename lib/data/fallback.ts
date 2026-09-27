@@ -31,6 +31,7 @@ export const categories: Category[] = [
     seo_title: "Custom Curtains & Drapes in Dubai & Abu Dhabi | Maison Drape",
     seo_description:
       "Bespoke curtains and drapes with blackout linings, sheers and designer fabrics. Free in-home measuring in Dubai and Abu Dhabi.",
+    seo_keywords: "custom curtains Dubai, blackout drapes Dubai, sheer curtains UAE, pinch pleat curtains, S-wave drapes",
   },
   {
     id: "cat-blinds",
@@ -45,6 +46,7 @@ export const categories: Category[] = [
     seo_title: "Blinds & Shades Dubai | Roller, Zebra, Roman | Maison Drape",
     seo_description:
       "Heat-ready roller, zebra, roman and Venetian blinds with blackout and sunscreen fabrics. Same-week installation across the UAE.",
+    seo_keywords: "roller blinds Dubai, zebra blinds UAE, roman shades Abu Dhabi, sunscreen blinds, blackout blinds Dubai",
   },
   {
     id: "cat-motorized",
@@ -59,6 +61,7 @@ export const categories: Category[] = [
     seo_title: "Motorized Curtains & Blinds UAE | Smart Home Ready",
     seo_description:
       "Silent motorised curtains and blinds with smart-home pairing. Professional installation in Dubai and Abu Dhabi.",
+    seo_keywords: "motorized curtains Dubai, motorised tracks UAE, smart blinds Dubai, Lutron curtains, battery roller motors",
   },
 ];
 
@@ -94,6 +97,7 @@ export const products: Product[] = [
     seo_title: "Belgian Linen Pinch-Pleat Drapes Dubai | From AED 890",
     seo_description:
       "Custom Belgian linen pinch-pleat drapes with blackout lining. Free measuring visit in Dubai and Abu Dhabi.",
+    seo_keywords: "Belgian linen curtains Dubai, pinch pleat drapes UAE, linen blackout curtains, villa curtains Dubai",
     created_at: "2026-01-12T00:00:00.000Z",
   },
   {
@@ -114,6 +118,7 @@ export const products: Product[] = [
     seo_title: "S-Wave Sheer Curtains Dubai | Light-Filtering Voile",
     seo_description:
       "S-fold sheer voile curtains for villas and apartments. Pair with blackout drapes. From AED 420.",
+    seo_keywords: "sheer curtains Dubai, S-wave voile, light filtering curtains UAE, wave fold sheers",
     created_at: "2026-02-02T00:00:00.000Z",
   },
   {
@@ -134,6 +139,7 @@ export const products: Product[] = [
     seo_title: "Blackout Curtains Dubai | Triple-Weave Heat Control",
     seo_description:
       "Triple-weave blackout drapes for UAE bedrooms. Heat and glare control with a tailored finish. From AED 560.",
+    seo_keywords: "blackout curtains Dubai, bedroom blackout drapes, heat control curtains UAE, triple weave blackout",
     created_at: "2026-03-08T00:00:00.000Z",
   },
   {
@@ -154,6 +160,7 @@ export const products: Product[] = [
     seo_title: "Sunscreen Roller Blinds Dubai | UV & Glare Control",
     seo_description:
       "Solar sunscreen roller blinds for UAE apartments and offices. UV protection with a view. From AED 380.",
+    seo_keywords: "sunscreen roller blinds Dubai, UV blinds UAE, solar mesh blinds, glare control blinds",
     created_at: "2026-01-20T00:00:00.000Z",
   },
   {
@@ -174,6 +181,7 @@ export const products: Product[] = [
     seo_title: "Zebra Blinds Dubai | Dual-Layer Day & Night Shades",
     seo_description:
       "Dual-layer zebra blinds with day and night control. Fast installation in Dubai and Abu Dhabi. From AED 340.",
+    seo_keywords: "zebra blinds Dubai, day night blinds UAE, dual layer shades, kitchen zebra blinds",
     created_at: "2026-02-18T00:00:00.000Z",
   },
   {
@@ -194,6 +202,7 @@ export const products: Product[] = [
     seo_title: "Roman Shades Dubai | Soft-Fold Custom Fabric Blinds",
     seo_description:
       "Custom roman shades with blackout options. Soft folds, precise stacking. From AED 640 in the UAE.",
+    seo_keywords: "roman shades Dubai, fabric roman blinds UAE, blackout roman shade, bedroom roman blinds",
     created_at: "2026-04-01T00:00:00.000Z",
   },
   {
@@ -214,6 +223,7 @@ export const products: Product[] = [
     seo_title: "Motorized Curtain Tracks Dubai | Silent Smart Home",
     seo_description:
       "Silent motorised curtain tracks with smart-home integration. Professional fitting in Dubai and Abu Dhabi. From AED 1,450.",
+    seo_keywords: "motorized curtain track Dubai, silent curtain motor UAE, smart home drapes, Lutron curtain track",
     created_at: "2026-03-15T00:00:00.000Z",
   },
   {
@@ -234,6 +244,7 @@ export const products: Product[] = [
     seo_title: "Battery Motor Roller Blinds UAE | Wire-Free Automation",
     seo_description:
       "Rechargeable motorised roller blinds without electrical chasing. Smart control. From AED 980.",
+    seo_keywords: "battery motor roller blinds Dubai, wire free blinds UAE, rechargeable roller motor, solar roller blinds",
     created_at: "2026-04-12T00:00:00.000Z",
   },
 ];
@@ -395,6 +406,7 @@ export const blogPosts: BlogPost[] = [
     seo_title: "Blackout Curtains for Dubai Bedrooms | Buying Guide",
     seo_description:
       "Choose the right blackout curtains for UAE heat, glare and sliding doors. Lining types, tracks and motorisation explained.",
+    seo_keywords: "blackout curtains Dubai bedrooms, UAE heat curtains, bedroom blackout guide, sliding door curtains Dubai",
   },
   {
     id: "b2",
@@ -412,23 +424,24 @@ export const blogPosts: BlogPost[] = [
     seo_title: "Sunscreen vs Blackout Roller Blinds in Abu Dhabi",
     seo_description:
       "Compare sunscreen and blackout roller blinds for UAE apartments. Dual cassettes, motors and fit notes for large glass.",
+    seo_keywords: "sunscreen vs blackout blinds, Abu Dhabi roller blinds, dual cassette blinds UAE, UV roller blinds",
   },
-  {
-    id: "b3",
-    title: "Motorised curtains: what interior designers specify in 2026",
-    slug: "motorised-curtains-interior-designers-2026",
-    excerpt:
-      "Tracks, curves, smart-home protocols and the quiet motors that now ship as standard on villa projects.",
-    content: `<p>Designers no longer treat motors as a luxury add-on. On 4m sliding stacks they are the only way a client will actually close the drape every evening. Specify a quiet motor, overlapping masters, and a track that can take a gentle curve around a bay.</p>
-<p>Integration is simpler than it used to be. Dry-contact or RS485 into Control4, HomeKit bridges for Apple households, and RF remotes as a fallback for guests. We document scenes — sunset close, cinema blackout, cleaning open — so the hand-over is clean.</p>`,
-    cover_image_url: img("photo-1600566753190-17f0baa2a6c3", "Automated drapes in a luxury living room").url,
-    cover_image_alt: "Motorised drapes in a luxury living room",
-    author: "Maison Drape Studio",
-    published_at: "2026-08-21T00:00:00.000Z",
-    seo_title: "Motorised Curtains for Interior Designers in the UAE",
-    seo_description:
-      "What to specify for motorised curtains in 2026: tracks, smart-home protocols and quiet motors for villa projects.",
-  },
+//   {
+//     id: "b3",
+//     title: "Motorised curtains: what interior designers specify in 2026",
+//     slug: "motorised-curtains-interior-designers-2026",
+//     excerpt:
+//       "Tracks, curves, smart-home protocols and the quiet motors that now ship as standard on villa projects.",
+//     content: `<p>Designers no longer treat motors as a luxury add-on. On 4m sliding stacks they are the only way a client will actually close the drape every evening. Specify a quiet motor, overlapping masters, and a track that can take a gentle curve around a bay.</p>
+// <p>Integration is simpler than it used to be. Dry-contact or RS485 into Control4, HomeKit bridges for Apple households, and RF remotes as a fallback for guests. We document scenes — sunset close, cinema blackout, cleaning open — so the hand-over is clean.</p>`,
+//     cover_image_url: img("photo-1600566753190-17f0baa2a6c3", "Automated drapes in a luxury living room").url,
+//     cover_image_alt: "Motorised drapes in a luxury living room",
+//     author: "Maison Drape Studio",
+//     published_at: "2026-08-21T00:00:00.000Z",
+//     seo_title: "Motorised Curtains for Interior Designers in the UAE",
+//     seo_description:
+//       "What to specify for motorised curtains in 2026: tracks, smart-home protocols and quiet motors for villa projects.",
+//   },
 ];
 
 export const cmsPages: CmsPage[] = [

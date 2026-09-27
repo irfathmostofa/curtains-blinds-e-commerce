@@ -1,11 +1,14 @@
 export type FieldType =
   | "text"
   | "textarea"
+  | "richtext"
   | "number"
   | "checkbox"
   | "select"
   | "image"
   | "json"
+  | "tags"
+  | "slug"
   | "date";
 
 export type FieldConfig = {
@@ -23,7 +26,7 @@ export type EntityConfig = {
   title: string;
   description: string;
   href: string;
-  storeKey: "products" | "categories" | "leads" | "bookings" | "testimonials" | "posts" | "faqs" | "partners" | "users";
+  storeKey: "products" | "categories" | "leads" | "chatLeads" | "bookings" | "testimonials" | "posts" | "faqs" | "partners" | "users";
   columns: { key: string; label: string }[];
   fields: FieldConfig[];
   creatable?: boolean;
@@ -36,6 +39,7 @@ export const adminNav = [
   { href: "/admin/products", label: "Products" },
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/leads", label: "Leads" },
+  { href: "/admin/chat-leads", label: "Chat leads" },
   { href: "/admin/bookings", label: "Bookings" },
   { href: "/admin/testimonials", label: "Testimonials" },
   { href: "/admin/blog", label: "Blog" },
@@ -62,15 +66,16 @@ export const entities: Record<string, EntityConfig> = {
     ],
     fields: [
       { name: "name", label: "Name", type: "text", required: true, group: "content" },
-      { name: "slug", label: "Slug", type: "text", required: true, group: "content" },
-      { name: "category_id", label: "Category ID", type: "text", required: true, group: "content" },
+      { name: "slug", label: "Slug", type: "slug", required: true, group: "content", hint: "URL path. Auto-fills from the name." },
+      { name: "category_id", label: "Category", type: "select", required: true, group: "content" },
       { name: "base_price", label: "Base price (AED)", type: "number", required: true, group: "content" },
-      { name: "description", label: "Description", type: "textarea", group: "content" },
+      { name: "description", label: "Description", type: "richtext", group: "content" },
       { name: "is_bestseller", label: "Bestseller", type: "checkbox", group: "content" },
       { name: "is_active", label: "Active", type: "checkbox", group: "content" },
-      { name: "fabric_options", label: "Fabric options (comma separated)", type: "json", group: "content" },
+      { name: "fabric_options", label: "Fabric options", type: "tags", group: "content", hint: "Tap a suggestion or type a custom fabric and press Enter." },
       { name: "seo_title", label: "Meta title", type: "text", group: "seo", hint: "Shown in search results and browser tabs." },
       { name: "seo_description", label: "Meta description", type: "textarea", group: "seo", hint: "Aim for 140–160 characters." },
+      { name: "seo_keywords", label: "Keywords", type: "textarea", group: "seo", hint: "Comma-separated. Example: blackout curtains Dubai, linen drapes Palm Jumeirah." },
     ],
   },
   categories: {
@@ -87,13 +92,14 @@ export const entities: Record<string, EntityConfig> = {
     ],
     fields: [
       { name: "name", label: "Name", type: "text", required: true, group: "content" },
-      { name: "slug", label: "Slug", type: "text", required: true, group: "content" },
-      { name: "description", label: "Description", type: "textarea", group: "content" },
-      { name: "parent_id", label: "Parent ID", type: "text", group: "content" },
+      { name: "slug", label: "Slug", type: "slug", required: true, group: "content", hint: "URL path. Auto-fills from the name." },
+      { name: "description", label: "Description", type: "richtext", group: "content" },
+      { name: "parent_id", label: "Parent category", type: "select", group: "content" },
       { name: "sort_order", label: "Sort order", type: "number", group: "content" },
       { name: "image_alt", label: "Image alt text", type: "text", required: true, group: "media" },
       { name: "seo_title", label: "Meta title", type: "text", group: "seo" },
       { name: "seo_description", label: "Meta description", type: "textarea", group: "seo" },
+      { name: "seo_keywords", label: "Keywords", type: "textarea", group: "seo", hint: "Comma-separated search terms for this collection." },
     ],
   },
   leads: {
@@ -112,6 +118,39 @@ export const entities: Record<string, EntityConfig> = {
     ],
     fields: [
       { name: "name", label: "Name", type: "text" },
+      { name: "status", label: "Status", type: "select", options: [
+        { label: "New", value: "new" },
+        { label: "Contacted", value: "contacted" },
+        { label: "Converted", value: "converted" },
+      ] },
+    ],
+  },
+  chatLeads: {
+    key: "chatLeads",
+    title: "Chat leads",
+    description: "AI chatbot conversations, estimates and booking requests.",
+    href: "/admin/chat-leads",
+    storeKey: "chatLeads",
+    statusField: "status",
+    columns: [
+      { key: "name", label: "Name" },
+      { key: "phone", label: "Phone" },
+      { key: "email", label: "Email" },
+      { key: "product_interest", label: "Interest" },
+      { key: "location", label: "Location" },
+      { key: "status", label: "Status" },
+    ],
+    fields: [
+      { name: "name", label: "Name", type: "text" },
+      { name: "phone", label: "Phone", type: "text" },
+      { name: "email", label: "Email", type: "text" },
+      { name: "product_interest", label: "Interest", type: "text" },
+      { name: "rooms", label: "Rooms", type: "text" },
+      { name: "location", label: "Location", type: "text" },
+      { name: "estimate_min", label: "Estimate min (AED)", type: "number" },
+      { name: "estimate_max", label: "Estimate max (AED)", type: "number" },
+      { name: "booking_date", label: "Booking date", type: "date" },
+      { name: "booking_time", label: "Booking time", type: "text" },
       { name: "status", label: "Status", type: "select", options: [
         { label: "New", value: "new" },
         { label: "Contacted", value: "contacted" },
@@ -157,7 +196,7 @@ export const entities: Record<string, EntityConfig> = {
     fields: [
       { name: "customer_name", label: "Customer name", type: "text", required: true },
       { name: "rating", label: "Rating", type: "number", required: true },
-      { name: "review_text", label: "Review", type: "textarea", required: true },
+      { name: "review_text", label: "Review", type: "richtext", required: true },
       { name: "source", label: "Source", type: "text" },
       { name: "is_featured", label: "Featured", type: "checkbox" },
     ],
@@ -176,14 +215,15 @@ export const entities: Record<string, EntityConfig> = {
     ],
     fields: [
       { name: "title", label: "Title", type: "text", required: true, group: "content" },
-      { name: "slug", label: "Slug", type: "text", required: true, group: "content" },
+      { name: "slug", label: "Slug", type: "slug", required: true, group: "content", hint: "URL path. Auto-fills from the title." },
       { name: "excerpt", label: "Excerpt", type: "textarea", group: "content" },
-      { name: "content", label: "HTML content", type: "textarea", hint: "HTML is rendered on the public article page.", group: "content" },
+      { name: "content", label: "Content", type: "richtext", group: "content" },
       { name: "cover_image_alt", label: "Cover image alt", type: "text", required: true, group: "media" },
       { name: "author", label: "Author", type: "text", group: "content" },
       { name: "published_at", label: "Published at", type: "date", group: "content" },
       { name: "seo_title", label: "Meta title", type: "text", group: "seo" },
       { name: "seo_description", label: "Meta description", type: "textarea", group: "seo" },
+      { name: "seo_keywords", label: "Keywords", type: "textarea", group: "seo", hint: "Comma-separated search terms for this article." },
     ],
   },
   faqs: {
@@ -200,7 +240,7 @@ export const entities: Record<string, EntityConfig> = {
     ],
     fields: [
       { name: "question", label: "Question", type: "text", required: true },
-      { name: "answer", label: "Answer", type: "textarea", required: true },
+      { name: "answer", label: "Answer", type: "richtext", required: true },
       { name: "category", label: "Category", type: "text" },
       { name: "sort_order", label: "Sort order", type: "number" },
     ],

@@ -15,6 +15,7 @@ export type Category = {
   sort_order: number;
   seo_title: string;
   seo_description: string;
+  seo_keywords: string;
 };
 
 export type ProductVariant = {
@@ -38,6 +39,7 @@ export type Product = {
   is_active: boolean;
   seo_title: string;
   seo_description: string;
+  seo_keywords: string;
   created_at: string;
   category?: Category;
   variants?: ProductVariant[];
@@ -51,6 +53,29 @@ export type Lead = {
   product_interest: string;
   budget_range: string;
   message: string;
+  source: string;
+  status: "new" | "contacted" | "converted";
+  created_at: string;
+};
+
+export type ChatMessage = {
+  role: "bot" | "user";
+  text: string;
+};
+
+export type ChatLead = {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  product_interest: string;
+  rooms: string;
+  location: string;
+  estimate_min: number;
+  estimate_max: number;
+  booking_date: string;
+  booking_time: string;
+  transcript: ChatMessage[];
   source: string;
   status: "new" | "contacted" | "converted";
   created_at: string;
@@ -91,6 +116,7 @@ export type BlogPost = {
   published_at: string | null;
   seo_title: string;
   seo_description: string;
+  seo_keywords: string;
 };
 
 export type Faq = {
@@ -133,6 +159,12 @@ export type HomepageSectionCopy = {
   subtitle: string;
 };
 
+export type HowItWorksStep = {
+  number: string;
+  title: string;
+  body: string;
+};
+
 export type HomepageContent = {
   hero: {
     badge: string;
@@ -144,6 +176,15 @@ export type HomepageContent = {
     secondary_cta_href: string;
     image_url: string;
     image_alt: string;
+    express_label: string;
+    express_detail: string;
+  };
+  marquee: string[];
+  how_it_works: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    steps: HowItWorksStep[];
   };
   features: HomepageFeature[];
   collections: HomepageSectionCopy;
@@ -181,6 +222,8 @@ export type SiteSettings = {
     keywords: string;
     twitter_handle: string;
   };
+  gtm_id: string;
+  meta_pixel_id: string;
   homepage: HomepageContent;
 };
 
@@ -199,6 +242,7 @@ export type SeoConfig = {
   image?: string;
   type?: "website" | "article" | "product";
   noIndex?: boolean;
+  keywords?: string | string[];
 };
 
 export type AdminRole = "admin" | "editor";

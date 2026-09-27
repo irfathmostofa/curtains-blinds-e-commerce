@@ -7,6 +7,7 @@ export function HeroIntro({ children }: { children: ReactNode }) {
   const reduced = useReducedMotion();
   return (
     <motion.div
+      className="h-full"
       initial={reduced ? false : "hidden"}
       animate="visible"
       variants={{

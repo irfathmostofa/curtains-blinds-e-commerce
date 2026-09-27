@@ -30,5 +30,27 @@ export const loginSchema = z.object({
   password: z.string().min(6),
 });
 
+export const chatLeadSchema = z.object({
+  name: z.string().min(2, "Enter your name"),
+  phone: z.string().min(7, "Enter a valid phone"),
+  email: z.string().email("Enter a valid email"),
+  product_interest: z.string().min(1),
+  rooms: z.string().min(1),
+  location: z.string().min(1),
+  estimate_min: z.number().nonnegative(),
+  estimate_max: z.number().nonnegative(),
+  booking_date: z.string().optional().default(""),
+  booking_time: z.string().optional().default(""),
+  transcript: z
+    .array(
+      z.object({
+        role: z.enum(["bot", "user"]),
+        text: z.string(),
+      })
+    )
+    .default([]),
+});
+
 export type EstimateInput = z.infer<typeof estimateSchema>;
 export type BookingInput = z.infer<typeof bookingSchema>;
+export type ChatLeadInput = z.infer<typeof chatLeadSchema>;

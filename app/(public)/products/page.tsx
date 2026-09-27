@@ -14,6 +14,8 @@ export const metadata = buildMetadata({
   description:
     "Browse made-to-measure curtains, blinds and motorised window treatments. Filter by category and sort by price.",
   path: "/products",
+  keywords:
+    "buy curtains Dubai, custom blinds UAE, motorized tracks Dubai, blackout drapes, sheer curtains, roller blinds Dubai",
 });
 
 export default async function ProductsPage({

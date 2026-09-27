@@ -6,6 +6,7 @@ import type {
   BlogPost,
   Booking,
   Category,
+  ChatLead,
   CmsPage,
   Faq,
   Lead,
@@ -169,7 +170,9 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       locations: (map.locations as SiteSettings["locations"]) || DEFAULT_SETTINGS.locations,
       social_links: (map.social_links as SiteSettings["social_links"]) || DEFAULT_SETTINGS.social_links,
       trust: (map.trust as SiteSettings["trust"]) || DEFAULT_SETTINGS.trust,
-      seo: (map.seo as SiteSettings["seo"]) || DEFAULT_SETTINGS.seo,
+      seo: { ...DEFAULT_SETTINGS.seo, ...((map.seo as SiteSettings["seo"]) || {}) },
+      gtm_id: (map.general as SiteSettings | undefined)?.gtm_id || DEFAULT_SETTINGS.gtm_id,
+      meta_pixel_id: (map.general as SiteSettings | undefined)?.meta_pixel_id || DEFAULT_SETTINGS.meta_pixel_id,
       homepage: mergeHomepage(
         (map.homepage as SiteSettings["homepage"]) ||
           (typeof map.general === "object" && map.general
@@ -199,6 +202,15 @@ export async function getBookings(): Promise<Booking[]> {
     const { data } = await supabase.from("bookings").select("*").order("created_at", { ascending: false });
     return (data as Booking[] | null) ?? null;
   }, getStore().bookings);
+}
+
+export async function getChatLeads(): Promise<ChatLead[]> {
+  return fromSupabase(async () => {
+    const supabase = createClient();
+    if (!supabase) return null;
+    const { data } = await supabase.from("chat_leads").select("*").order("created_at", { ascending: false });
+    return (data as ChatLead[] | null) ?? null;
+  }, getStore().chatLeads);
 }
 
 export function getRecentlyViewedSlugs(): string[] {

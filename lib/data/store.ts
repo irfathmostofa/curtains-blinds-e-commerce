@@ -15,6 +15,7 @@ import type {
   BlogPost,
   Booking,
   Category,
+  ChatLead,
   CmsPage,
   Faq,
   Lead,
@@ -30,6 +31,7 @@ type Store = {
   products: Product[];
   variants: ProductVariant[];
   leads: Lead[];
+  chatLeads: ChatLead[];
   bookings: Booking[];
   testimonials: Testimonial[];
   posts: BlogPost[];
@@ -48,6 +50,30 @@ function seed(): Store {
     products: structuredClone(products),
     variants: structuredClone(productVariants),
     leads: structuredClone(leads),
+    chatLeads: [
+      {
+        id: "cl1",
+        name: "Lina Haddad",
+        phone: "+971 50 888 4411",
+        email: "lina@example.com",
+        product_interest: "curtains-and-drapes",
+        rooms: "3–4 rooms",
+        location: "Palm Jumeirah",
+        estimate_min: 3346,
+        estimate_max: 5222,
+        booking_date: "2026-09-28",
+        booking_time: "10:00–12:00",
+        transcript: [
+          { role: "bot", text: "Hello — I can suggest an estimate and book a free visit. What is your name?" },
+          { role: "user", text: "Lina Haddad" },
+          { role: "bot", text: "Suggested estimate for Palm Jumeirah: AED 3,346–5,222." },
+          { role: "user", text: "2026-09-28 10:00–12:00" },
+        ],
+        source: "ai-chatbot",
+        status: "new",
+        created_at: "2026-09-18T11:00:00.000Z",
+      },
+    ],
     bookings: structuredClone(bookings),
     testimonials: structuredClone(testimonials),
     posts: structuredClone(blogPosts),
@@ -68,6 +94,7 @@ function repairBrokenHero(url?: string) {
 
 export function getStore(): Store {
   if (!g.__mdStore) g.__mdStore = seed();
+  if (!Array.isArray(g.__mdStore.chatLeads)) g.__mdStore.chatLeads = [];
   g.__mdStore.settings.homepage = mergeHomepage(g.__mdStore.settings.homepage);
   g.__mdStore.settings.seo = { ...DEFAULT_SETTINGS.seo, ...g.__mdStore.settings.seo };
   g.__mdStore.settings.homepage.hero.image_url =

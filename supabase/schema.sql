@@ -58,6 +58,24 @@ create table if not exists public.leads (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.chat_leads (
+  id uuid primary key default gen_random_uuid(),
+  name text not null default '',
+  phone text not null default '',
+  email text not null default '',
+  product_interest text not null default '',
+  rooms text not null default '',
+  location text not null default '',
+  estimate_min numeric not null default 0,
+  estimate_max numeric not null default 0,
+  booking_date text not null default '',
+  booking_time text not null default '',
+  transcript jsonb not null default '[]'::jsonb,
+  source text not null default 'ai-chatbot',
+  status text not null default 'new' check (status in ('new', 'contacted', 'converted')),
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.bookings (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -129,6 +147,7 @@ alter table public.categories enable row level security;
 alter table public.products enable row level security;
 alter table public.product_variants enable row level security;
 alter table public.leads enable row level security;
+alter table public.chat_leads enable row level security;
 alter table public.bookings enable row level security;
 alter table public.testimonials enable row level security;
 alter table public.blog_posts enable row level security;
@@ -162,6 +181,10 @@ create policy "admin write variants" on public.product_variants for all using (p
 create policy "public insert leads" on public.leads for insert with check (true);
 create policy "admin read leads" on public.leads for select using (public.is_admin());
 create policy "admin write leads" on public.leads for update using (public.is_admin());
+
+create policy "public insert chat_leads" on public.chat_leads for insert with check (true);
+create policy "admin read chat_leads" on public.chat_leads for select using (public.is_admin());
+create policy "admin write chat_leads" on public.chat_leads for update using (public.is_admin());
 
 create policy "public insert bookings" on public.bookings for insert with check (true);
 create policy "admin read bookings" on public.bookings for select using (public.is_admin());

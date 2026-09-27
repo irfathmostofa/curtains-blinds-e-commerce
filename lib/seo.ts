@@ -3,6 +3,8 @@ import { DEFAULT_SETTINGS, SITE_NAME, SITE_URL } from "@/lib/site";
 import { getStore } from "@/lib/data/store";
 import type { SeoConfig, SiteSettings } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
+import { stripHtml } from "./html";
+
 
 function siteDefaults(): SiteSettings {
   try {
@@ -10,6 +12,26 @@ function siteDefaults(): SiteSettings {
   } catch {
     return DEFAULT_SETTINGS;
   }
+}
+
+export function parseKeywords(value?: string | string[] | null) {
+  if (!value) return [];
+  const list = Array.isArray(value) ? value : value.split(",");
+  return list.map((k) => k.trim()).filter(Boolean);
+}
+
+export function mergeKeywords(...groups: Array<string | string[] | undefined | null>) {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const group of groups) {
+    for (const keyword of parseKeywords(group)) {
+      const key = keyword.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(keyword);
+    }
+  }
+  return out;
 }
 
 export function buildMetadata(config: SeoConfig, settings?: SiteSettings): Metadata {
@@ -22,11 +44,12 @@ export function buildMetadata(config: SeoConfig, settings?: SiteSettings): Metad
     config.image ||
     seo.og_image ||
     "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80";
+  const keywords = mergeKeywords(config.keywords, seo.keywords);
 
   return {
     title,
     description: config.description,
-    keywords: seo.keywords ? seo.keywords.split(",").map((k) => k.trim()).filter(Boolean) : undefined,
+    keywords: keywords.length ? keywords : undefined,
     alternates: { canonical: url },
     robots: config.noIndex ? { index: false, follow: false } : { index: true, follow: true },
     openGraph: {
@@ -98,7 +121,7 @@ export function faqJsonLd(items: { question: string; answer: string }[]) {
     mainEntity: items.map((item) => ({
       "@type": "Question",
       name: item.question,
-      acceptedAnswer: { "@type": "Answer", text: item.answer },
+      acceptedAnswer: { "@type": "Answer", text: stripHtml(item.answer) },
     })),
   };
 }
