@@ -1,13 +1,11 @@
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { ProductCard } from "@/components/product-card";
+import { ProductCatalog } from "@/components/product-catalog";
 import { SectionHeading } from "@/components/section-heading";
 import { getCategories, getCategoryBySlug, getProductsByCategory } from "@/lib/data/catalog";
 import { buildMetadata } from "@/lib/seo";
-import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import { stripHtml } from "@/lib/html";
 import { HtmlContent } from "@/components/html-content";
-
 
 export const revalidate = 3600;
 
@@ -28,13 +26,19 @@ export async function generateMetadata({ params }: { params: { category: string 
   });
 }
 
-export default async function CategoryPage({ params }: { params: { category: string } }) {
+export default async function CategoryPage({
+  params,
+  searchParams,
+}: {
+  params: { category: string };
+  searchParams: { sort?: string; page?: string; min?: string; max?: string; bestseller?: string };
+}) {
   const category = await getCategoryBySlug(params.category);
   if (!category) notFound();
-  const products = await getProductsByCategory(category.id);
+  const [products, categories] = await Promise.all([getProductsByCategory(category.id), getCategories()]);
 
   return (
-    <main className="container space-y-8 py-10">
+    <main className="container space-y-5 py-6 md:py-8">
       <Breadcrumbs
         items={[
           { name: "Home", path: "/" },
@@ -42,17 +46,13 @@ export default async function CategoryPage({ params }: { params: { category: str
           { name: category.name, path: `/products/${category.slug}` },
         ]}
       />
-      <div className="space-y-4">
+      <div className="space-y-3 [&_h1]:text-2xl [&_h1]:md:text-3xl">
         <SectionHeading as="h1" title={category.name} />
-        <HtmlContent html={category.description} />
+        <div className="max-w-3xl text-sm text-muted-foreground [&>p]:line-clamp-2">
+          <HtmlContent html={category.description} />
+        </div>
       </div>
-      <Stagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {products.map((p) => (
-          <StaggerItem key={p.id}>
-            <ProductCard product={p} />
-          </StaggerItem>
-        ))}
-      </Stagger>
+      <ProductCatalog products={products} categories={categories} query={searchParams} lockedCategory={category.slug} />
     </main>
   );
 }

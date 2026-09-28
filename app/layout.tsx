@@ -7,6 +7,7 @@ import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { getSiteSettings } from "@/lib/data/catalog";
 import { cookies } from "next/headers";
 import { LocaleProvider } from "@/components/locale-provider";
+import { NavigationProgress } from "@/components/navigation-progress";
 import { localeDir, type Locale } from "@/lib/i18n";
 
 const serif = Cinzel({
@@ -83,7 +84,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Suspense fallback={null}>
           <AnalyticsScripts />
         </Suspense>
-        <LocaleProvider initial={locale}>{children}</LocaleProvider>
+        <LocaleProvider initial={locale}>
+          <Suspense fallback={null}>
+            <NavigationProgress />
+          </Suspense>
+          {children}
+        </LocaleProvider>
       </body>
     </html>
   );

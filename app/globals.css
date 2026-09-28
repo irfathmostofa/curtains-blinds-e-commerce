@@ -77,8 +77,60 @@
   pointer-events: none;
 }
 
+.nav-progress-bar {
+  box-shadow: 0 0 10px hsl(var(--accent) / 0.85), 0 0 2px hsl(var(--accent));
+}
+
+.nav-progress-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 96px;
+  background: linear-gradient(90deg, transparent, hsl(36 40% 98% / 0.7), transparent);
+  animation: nav-glint 0.9s ease-in-out infinite;
+}
+
+.nav-spinner {
+  border-radius: 9999px;
+  border: 1.5px solid hsl(var(--border));
+  border-top-color: hsl(var(--accent));
+  border-right-color: hsl(var(--primary));
+  animation: nav-spin 0.85s linear infinite;
+}
+
+.nav-spinner::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 9999px;
+  border: 1.5px solid transparent;
+  border-bottom-color: hsl(var(--accent));
+  animation: nav-spin 1.4s linear infinite reverse;
+}
+
+@keyframes nav-glint {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+
+@keyframes nav-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee {
+    animation: none !important;
+  }
+
+  .nav-progress-bar::after,
+  .nav-spinner,
+  .nav-spinner::after {
     animation: none !important;
   }
 }
