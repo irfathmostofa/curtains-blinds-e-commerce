@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronRight, MessageCircle, Minus, Send, Sparkles } from "lucide-react";
+import { Check, ChevronRight, Minus, Send, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { submitChatLead } from "@/app/actions";
@@ -275,29 +275,39 @@ export function AiChatbot() {
           <motion.button
             type="button"
             aria-label={t("AI assistant")}
-            className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 z-30 flex items-center gap-3 rounded-full bg-primary px-2 py-2 pr-4 text-primary-foreground shadow-[0_12px_40px_rgba(28,25,22,0.28)] sm:bottom-5 sm:left-5 rtl:left-auto rtl:right-4 rtl:pl-4 rtl:pr-2"
+            className="group fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 z-30 flex items-center gap-0 rounded-full bg-primary p-0 text-primary-foreground shadow-[0_12px_40px_rgba(28,25,22,0.28)] transition-shadow hover:shadow-[0_16px_48px_rgba(28,25,22,0.34)] sm:bottom-5 sm:left-5 sm:gap-3 sm:py-2 sm:pl-2 sm:pr-4 rtl:left-auto rtl:right-4 rtl:sm:pl-4 rtl:sm:pr-2"
             initial={{ opacity: 0, y: 24, scale: 0.94 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.94 }}
             transition={{ delay: 1.05, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => {
               setOpen(true);
               if (step === "welcome") setStep("name");
             }}
           >
-            <span className="relative flex h-11 w-11 items-center justify-center rounded-full bg-accent text-accent-foreground">
-              <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-primary" />
-              <Sparkles className="h-4 w-4" />
+            {/* Icon bubble — pulsing halo replaces the old ring-dot badge */}
+            <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-primary text-accent sm:h-11 sm:w-11 sm:bg-accent sm:text-accent-foreground">
+              {/* Soft pulse ring behind the icon to signal "online / live" */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 animate-ping rounded-full bg-emerald-400/25 [animation-duration:2.4s]"
+              />
+              {/* Subtle emerald glow */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-emerald-400/40"
+              />
+              <Sparkles className="relative h-5 w-5 sm:h-4 sm:w-4" />
             </span>
+
             <span className="hidden text-left sm:block">
               <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-foreground/70">
                 {t("Studio concierge")}
               </span>
               <span className="block text-sm font-medium leading-tight">{t("Need an estimate?")}</span>
             </span>
-            <MessageCircle className="h-4 w-4 sm:hidden" />
           </motion.button>
         ) : null}
       </AnimatePresence>
