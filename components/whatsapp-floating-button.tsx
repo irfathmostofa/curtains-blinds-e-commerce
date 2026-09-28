@@ -22,7 +22,7 @@ export function WhatsAppFloatingButton({ phone }: { phone: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom,0px))] right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg sm:bottom-5 sm:right-5 sm:h-14 sm:w-14 rtl:left-4 rtl:right-auto"
+      className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] right-4 z-30 flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg sm:bottom-5 sm:right-5 sm:h-14 sm:w-14 rtl:left-4 rtl:right-auto"
       aria-label={t("Chat on WhatsApp")}
       onClick={() => trackClientEvent({ name: "Contact", contentName: "WhatsApp" })}
       initial={{ opacity: 0, y: 24, scale: 0.9 }}

@@ -275,7 +275,7 @@ export function AiChatbot() {
           <motion.button
             type="button"
             aria-label={t("AI assistant")}
-            className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom,0px))] left-4 z-30 flex items-center gap-3 rounded-full bg-primary px-2 py-2 pr-4 text-primary-foreground shadow-[0_12px_40px_rgba(28,25,22,0.28)] sm:bottom-5 sm:left-5 rtl:left-auto rtl:right-4 rtl:pl-4 rtl:pr-2"
+            className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 z-30 flex items-center gap-3 rounded-full bg-primary px-2 py-2 pr-4 text-primary-foreground shadow-[0_12px_40px_rgba(28,25,22,0.28)] sm:bottom-5 sm:left-5 rtl:left-auto rtl:right-4 rtl:pl-4 rtl:pr-2"
             initial={{ opacity: 0, y: 24, scale: 0.94 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.94 }}
@@ -307,7 +307,7 @@ export function AiChatbot() {
           <motion.div
             role="dialog"
             aria-label={t("AI assistant")}
-            className="fixed bottom-[calc(12.5rem+env(safe-area-inset-bottom,0px))] left-4 z-40 flex h-[min(38rem,70dvh)] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[1.6rem] border border-primary/10 bg-card shadow-[0_24px_80px_rgba(28,25,22,0.22)] sm:bottom-1 sm:left-5 sm:h-[min(38rem,78dvh)] rtl:left-auto rtl:right-4"
+            className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 z-40 flex h-[min(38rem,70dvh)] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[1.6rem] border border-primary/10 bg-card shadow-[0_24px_80px_rgba(28,25,22,0.22)] sm:bottom-1 sm:left-5 sm:h-[min(38rem,78dvh)] rtl:left-auto rtl:right-4"
             initial={{ opacity: 0, y: 18, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 18, scale: 0.96 }}
