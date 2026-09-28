@@ -65,7 +65,7 @@ export function HomeView({
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-accent/10 blur-3xl" />
         <div className="pointer-events-none absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-brass/10 blur-3xl" />
-        <div className="container grid min-h-[calc(100dvh-4.25rem)] items-center gap-10 py-8 pb-14 sm:gap-12 sm:py-16 sm:pb-20 lg:grid-cols-2 lg:py-20">
+        <div className="container grid min-h-[calc(100dvh-4.25rem)] items-center gap-10 py-8 pb-14 sm:gap-12 sm:py-8 sm:pb-20 lg:grid-cols-2 lg:py-6">
           <HeroIntro>
             <div className="flex h-full flex-col justify-center pb-4 lg:pb-8">
               <HeroItem>
