@@ -1,4 +1,10 @@
-import type { HomepageContent, SiteSettings } from "@/lib/types";
+import type {
+  HeroSlide,
+  HomepageContent,
+  HomepageSectionId,
+  HomepageSectionLayout,
+  SiteSettings,
+} from "@/lib/types";
 
 export const SITE_NAME =
   process.env.NEXT_PUBLIC_SITE_NAME || "Maison Drape";
@@ -65,6 +71,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   tiktok_pixel_id: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID || "",
   homepage: {
     hero: {
+      variant: "classic",
+      autoplay_ms: 6500,
       badge: "Dubai · Abu Dhabi · Trade programme",
       title: "Curtains and blinds that actually belong in a Gulf home.",
       subtitle:
@@ -79,6 +87,53 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       express_label: "Express",
       express_detail: "1–3 day installation",
     },
+    hero_slides: [
+      {
+        badge: "Dubai · Abu Dhabi · Trade programme",
+        title: "Curtains and blinds that actually belong in a Gulf home.",
+        subtitle:
+          "Made-to-measure drapes, sheers, rollers and silent motors. One complimentary visit, a written estimate, installation that respects your floors.",
+        primary_cta_label: "Book a free visit",
+        primary_cta_href: "/book",
+        secondary_cta_label: "Browse collections",
+        secondary_cta_href: "/products",
+        image_url:
+          "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1600&q=80",
+        image_alt: "Floor-to-ceiling linen drapes in a bright Dubai living room",
+        express_label: "Express",
+        express_detail: "1–3 day installation",
+      },
+      {
+        badge: "Blackout specialists",
+        title: "Sleep through Gulf glare without losing the view.",
+        subtitle:
+          "Layered blackout and sheer stacks specified for floor-to-ceiling glass. Quiet tracks, clean returns, no light leaks at the edges.",
+        primary_cta_label: "See blackout drapes",
+        primary_cta_href: "/products",
+        secondary_cta_label: "Book a visit",
+        secondary_cta_href: "/book",
+        image_url:
+          "https://images.unsplash.com/photo-1615874959474-d609969a20ed?auto=format&fit=crop&w=1600&q=80",
+        image_alt: "Layered blackout curtains in a contemporary bedroom",
+        express_label: "Quiet motors",
+        express_detail: "Silent tracks available",
+      },
+      {
+        badge: "Smart window treatments",
+        title: "Motorised tracks that disappear into the architecture.",
+        subtitle:
+          "App, switch or scene control for villas and hotels. We specify, install and commission so the fabric and the motor arrive as one system.",
+        primary_cta_label: "Explore motors",
+        primary_cta_href: "/products",
+        secondary_cta_label: "Get an estimate",
+        secondary_cta_href: "/get-estimate",
+        image_url:
+          "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1600&q=80",
+        image_alt: "Motorised sheer curtains in a sunlit living room",
+        express_label: "Trade ready",
+        express_detail: "Designer programme",
+      },
+    ],
     marquee: [
       "Free Doorstep Visit",
       "Instant Estimate Calculator",
@@ -129,6 +184,14 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       title: "Window treatments for every elevation",
       subtitle: "Curtains, blinds and motors specified for villas, apartments and commercial interiors.",
     },
+    filtered_products: {
+      eyebrow: "Shop by type",
+      title: "Filter the collection",
+      subtitle: "Switch category to see pieces without leaving the homepage.",
+      limit: 8,
+      show_all_tab: true,
+      show_bestsellers_tab: true,
+    },
     bestsellers: {
       eyebrow: "Bestsellers",
       title: "Pieces clients reorder",
@@ -162,14 +225,85 @@ export const DEFAULT_SETTINGS: SiteSettings = {
         "Looking for custom curtains in Dubai, heat-ready blinds in Abu Dhabi, or smart motorised window treatments? Book a visit or request an estimate. Interior designers can join our trade programme.",
       ],
     },
+    section_order: [
+      { id: "hero", enabled: true },
+      { id: "marquee", enabled: true },
+      { id: "how_it_works", enabled: true },
+      { id: "features", enabled: false },
+      { id: "collections", enabled: true },
+      { id: "filtered_products", enabled: true },
+      { id: "bestsellers", enabled: true },
+      { id: "reviews", enabled: true },
+      { id: "cta", enabled: true },
+      { id: "partners", enabled: true },
+      { id: "faqs", enabled: true },
+      { id: "story", enabled: true },
+    ],
   },
 };
+
+export const HOMEPAGE_SECTION_LABELS: Record<HomepageSectionId, string> = {
+  hero: "Hero",
+  marquee: "Marquee",
+  how_it_works: "How it works",
+  features: "Feature cards",
+  collections: "Collections",
+  filtered_products: "Filter products",
+  bestsellers: "Bestsellers",
+  reviews: "Reviews",
+  cta: "Estimate CTA",
+  partners: "Partners",
+  faqs: "FAQs",
+  story: "Story / SEO copy",
+};
+
+export const DEFAULT_SECTION_ORDER: HomepageSectionLayout[] = DEFAULT_SETTINGS.homepage.section_order;
+
+function slideFromHero(hero: HomepageContent["hero"]): HeroSlide {
+  return {
+    badge: hero.badge,
+    title: hero.title,
+    subtitle: hero.subtitle,
+    primary_cta_label: hero.primary_cta_label,
+    primary_cta_href: hero.primary_cta_href,
+    secondary_cta_label: hero.secondary_cta_label,
+    secondary_cta_href: hero.secondary_cta_href,
+    image_url: hero.image_url,
+    image_alt: hero.image_alt,
+    express_label: hero.express_label,
+    express_detail: hero.express_detail,
+  };
+}
+
+function mergeSectionOrder(saved?: HomepageSectionLayout[] | null): HomepageSectionLayout[] {
+  const defaults = baseSectionOrder();
+  if (!saved?.length) return defaults;
+  const known = new Set<HomepageSectionId>(defaults.map((s) => s.id));
+  const fromSaved = saved.filter((s) => known.has(s.id)).map((s) => ({ id: s.id, enabled: s.enabled !== false }));
+  const seen = new Set(fromSaved.map((s) => s.id));
+  const missing = defaults.filter((s) => !seen.has(s.id));
+  return [...fromSaved, ...missing];
+}
+
+function baseSectionOrder(): HomepageSectionLayout[] {
+  return DEFAULT_SETTINGS.homepage.section_order.map((s) => ({ ...s }));
+}
 
 export function mergeHomepage(saved?: Partial<HomepageContent> | null): HomepageContent {
   const base = DEFAULT_SETTINGS.homepage;
   if (!saved) return structuredClone(base);
+  const hero = {
+    ...base.hero,
+    ...saved.hero,
+    variant: saved.hero?.variant === "carousel" ? "carousel" : saved.hero?.variant === "classic" ? "classic" : base.hero.variant,
+    autoplay_ms: Number(saved.hero?.autoplay_ms) > 0 ? Number(saved.hero?.autoplay_ms) : base.hero.autoplay_ms,
+  };
+  const slides = saved.hero_slides?.length
+    ? saved.hero_slides.map((slide) => ({ ...base.hero_slides[0], ...slide }))
+    : [slideFromHero(hero), ...base.hero_slides.slice(1).map((s) => ({ ...s }))];
   return {
-    hero: { ...base.hero, ...saved.hero },
+    hero,
+    hero_slides: slides,
     marquee: saved.marquee?.length ? saved.marquee : [...base.marquee],
     how_it_works: {
       ...base.how_it_works,
@@ -180,6 +314,13 @@ export function mergeHomepage(saved?: Partial<HomepageContent> | null): Homepage
     },
     features: saved.features?.length ? saved.features : base.features.map((f) => ({ ...f })),
     collections: { ...base.collections, ...saved.collections },
+    filtered_products: {
+      ...base.filtered_products,
+      ...saved.filtered_products,
+      limit: Number(saved.filtered_products?.limit) > 0 ? Number(saved.filtered_products?.limit) : base.filtered_products.limit,
+      show_all_tab: saved.filtered_products?.show_all_tab ?? base.filtered_products.show_all_tab,
+      show_bestsellers_tab: saved.filtered_products?.show_bestsellers_tab ?? base.filtered_products.show_bestsellers_tab,
+    },
     bestsellers: { ...base.bestsellers, ...saved.bestsellers },
     reviews: { ...base.reviews, ...saved.reviews },
     cta: { ...base.cta, ...saved.cta },
@@ -190,5 +331,6 @@ export function mergeHomepage(saved?: Partial<HomepageContent> | null): Homepage
       ...saved.story,
       paragraphs: saved.story?.paragraphs?.length ? saved.story.paragraphs : [...base.story.paragraphs],
     },
+    section_order: mergeSectionOrder(saved.section_order),
   };
 }

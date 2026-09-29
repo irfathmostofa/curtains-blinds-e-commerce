@@ -4,6 +4,7 @@ import {
   getCategories,
   getFaqs,
   getPartners,
+  getProducts,
   getSiteSettings,
   getTestimonials,
 } from "@/lib/data/catalog";
@@ -21,9 +22,10 @@ export const metadata = buildMetadata({
 });
 
 export default async function HomePage() {
-  const [settings, categories, bestsellers, testimonials, partners, faqs] = await Promise.all([
+  const [settings, categories, products, bestsellers, testimonials, partners, faqs] = await Promise.all([
     getSiteSettings(),
     getCategories(),
+    getProducts(),
     getBestsellers(),
     getTestimonials(),
     getPartners(),
@@ -34,6 +36,7 @@ export default async function HomePage() {
     <HomeView
       settings={settings}
       categories={categories}
+      products={products}
       bestsellers={bestsellers}
       testimonials={testimonials}
       partners={partners}

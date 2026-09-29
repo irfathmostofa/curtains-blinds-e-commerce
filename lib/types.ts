@@ -166,20 +166,47 @@ export type HowItWorksStep = {
   body: string;
 };
 
+export type HeroVariant = "classic" | "carousel";
+
+export type HeroSlide = {
+  badge: string;
+  title: string;
+  subtitle: string;
+  primary_cta_label: string;
+  primary_cta_href: string;
+  secondary_cta_label: string;
+  secondary_cta_href: string;
+  image_url: string;
+  image_alt: string;
+  express_label: string;
+  express_detail: string;
+};
+
+export type HomepageSectionId =
+  | "hero"
+  | "marquee"
+  | "how_it_works"
+  | "features"
+  | "collections"
+  | "filtered_products"
+  | "bestsellers"
+  | "reviews"
+  | "cta"
+  | "partners"
+  | "faqs"
+  | "story";
+
+export type HomepageSectionLayout = {
+  id: HomepageSectionId;
+  enabled: boolean;
+};
+
 export type HomepageContent = {
-  hero: {
-    badge: string;
-    title: string;
-    subtitle: string;
-    primary_cta_label: string;
-    primary_cta_href: string;
-    secondary_cta_label: string;
-    secondary_cta_href: string;
-    image_url: string;
-    image_alt: string;
-    express_label: string;
-    express_detail: string;
+  hero: HeroSlide & {
+    variant: HeroVariant;
+    autoplay_ms: number;
   };
+  hero_slides: HeroSlide[];
   marquee: string[];
   how_it_works: {
     eyebrow: string;
@@ -189,6 +216,11 @@ export type HomepageContent = {
   };
   features: HomepageFeature[];
   collections: HomepageSectionCopy;
+  filtered_products: HomepageSectionCopy & {
+    limit: number;
+    show_all_tab: boolean;
+    show_bestsellers_tab: boolean;
+  };
   bestsellers: HomepageSectionCopy;
   reviews: HomepageSectionCopy;
   cta: {
@@ -203,6 +235,7 @@ export type HomepageContent = {
     title: string;
     paragraphs: string[];
   };
+  section_order: HomepageSectionLayout[];
 };
 
 export type SiteSettings = {

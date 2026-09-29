@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { type ReactNode } from "react";
 import { CategoryCard } from "@/components/category-card";
 import { CTABanner } from "@/components/cta-banner";
 import { FAQAccordion } from "@/components/faq-accordion";
@@ -12,14 +10,15 @@ import { SectionHeading } from "@/components/section-heading";
 import { TestimonialCarousel } from "@/components/testimonial-carousel";
 import { JsonLd } from "@/components/json-ld";
 import { ShieldCheck, Ruler, Sparkles, Clock } from "lucide-react";
-import { HeroIntro, HeroItem } from "@/components/hero-intro";
-import { HeroVisual } from "@/components/hero-visual";
+import { HeroClassic } from "@/components/hero-classic";
+import { HeroCarousel } from "@/components/hero-carousel";
 import { HowItWorks } from "./how-it-works";
 import { MarqueeStrip } from "./marquee-strip";
 import { Reveal, SectionFrame, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { HtmlContent } from "./html-content";
+import { FilteredProducts } from "@/components/filtered-products";
 import { useLocale } from "./locale-provider";
-import type { HomepageFeature } from "@/lib/types";
+import type { HomepageFeature, HomepageSectionId } from "@/lib/types";
 import type { Category, Faq, Partner, Product, SiteSettings, Testimonial } from "@/lib/types";
 
 const featureIcons: Record<HomepageFeature["icon"], typeof Ruler> = {
@@ -32,6 +31,7 @@ const featureIcons: Record<HomepageFeature["icon"], typeof Ruler> = {
 export function HomeView({
   settings,
   categories,
+  products,
   bestsellers,
   testimonials,
   partners,
@@ -42,6 +42,7 @@ export function HomeView({
 }: {
   settings: SiteSettings;
   categories: Category[];
+  products: Product[];
   bestsellers: Product[];
   testimonials: Testimonial[];
   partners: Partner[];
@@ -53,66 +54,35 @@ export function HomeView({
   const { t } = useLocale();
   const home = settings.homepage;
   const hero = home.hero;
+  const classicSlide = {
+    badge: hero.badge,
+    title: hero.title,
+    subtitle: hero.subtitle,
+    primary_cta_label: hero.primary_cta_label,
+    primary_cta_href: hero.primary_cta_href,
+    secondary_cta_label: hero.secondary_cta_label,
+    secondary_cta_href: hero.secondary_cta_href,
+    image_url: hero.image_url,
+    image_alt: hero.image_alt,
+    express_label: hero.express_label,
+    express_detail: hero.express_detail,
+  };
 
-  return (
-    <main className="overflow-x-hidden">
-      <JsonLd data={orgJson} />
-      {localJson.map((node, i) => (
-        <JsonLd key={i} data={node} />
-      ))}
-      <JsonLd data={faqJson} />
-
-      <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-accent/10 blur-3xl" />
-        <div className="pointer-events-none absolute -right-16 bottom-0 h-80 w-80 rounded-full bg-brass/10 blur-3xl" />
-        <div className="container grid min-h-[calc(100dvh-4.25rem)] items-center gap-10 py-8 pb-14 sm:gap-12 sm:py-8 sm:pb-20 lg:grid-cols-2 lg:py-6">
-          <HeroIntro>
-            <div className="flex h-full flex-col justify-center pb-4 lg:pb-8">
-              <HeroItem>
-                <Badge>{t(hero.badge)}</Badge>
-              </HeroItem>
-              <HeroItem className="mt-4 sm:mt-6">
-                <h1 className="text-balance font-serif text-[1.85rem] leading-[1.15] sm:text-4xl md:text-6xl">
-                  {t(hero.title)}
-                </h1>
-              </HeroItem>
-              <HeroItem className="mt-4 sm:mt-6">
-                <HtmlContent html={t(hero.subtitle)} className="max-w-xl text-base sm:text-lg" />
-              </HeroItem>
-              <HeroItem className="mt-5 sm:mt-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                  <Button asChild size="lg" className="w-full sm:w-auto">
-                    <Link href={hero.primary_cta_href}>{t(hero.primary_cta_label)}</Link>
-                  </Button>
-                  <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-                    <Link href={hero.secondary_cta_href}>{t(hero.secondary_cta_label)}</Link>
-                  </Button>
-                </div>
-              </HeroItem>
-              <HeroItem className="mt-4 sm:mt-6">
-                <p className="text-sm text-muted-foreground">
-                  {t("Rated")} {settings.trust.rating}/5 {t("from")} {settings.trust.reviews.toLocaleString()} {t("reviews")} ·{" "}
-                  {t(settings.trust.warranty)}
-                </p>
-              </HeroItem>
-            </div>
-          </HeroIntro>
-          <HeroVisual
-            src={hero.image_url}
-            alt={t(hero.image_alt)}
-            expressLabel={hero.express_label}
-            expressDetail={hero.express_detail}
-          />
-        </div>
-      </section>
-
-      <MarqueeStrip items={home.marquee} />
-
+  const sections: Record<HomepageSectionId, ReactNode> = {
+    hero:
+      hero.variant === "carousel" ? (
+        <HeroCarousel slides={home.hero_slides} settings={settings} autoplayMs={hero.autoplay_ms} />
+      ) : (
+        <HeroClassic slide={classicSlide} settings={settings} />
+      ),
+    marquee: <MarqueeStrip items={home.marquee} />,
+    how_it_works: (
       <SectionFrame className="py-14 sm:py-16">
         <HowItWorks content={home.how_it_works} />
       </SectionFrame>
-
-      {/* <SectionFrame className="container py-8 sm:py-12">
+    ),
+    features: (
+      <SectionFrame className="container py-8 sm:py-12">
         <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {home.features.map((f) => {
             const Icon = featureIcons[f.icon] || Ruler;
@@ -127,8 +97,9 @@ export function HomeView({
             );
           })}
         </Stagger>
-      </SectionFrame> */}
-
+      </SectionFrame>
+    ),
+    collections: (
       <SectionFrame tone="tint" className="py-14 sm:py-16">
         <div className="container space-y-10">
           <Reveal>
@@ -147,7 +118,13 @@ export function HomeView({
           </Stagger>
         </div>
       </SectionFrame>
-
+    ),
+    filtered_products: (
+      <SectionFrame>
+        <FilteredProducts copy={home.filtered_products} categories={categories} products={products} />
+      </SectionFrame>
+    ),
+    bestsellers: (
       <SectionFrame className="container space-y-10 py-14 sm:py-16">
         <Reveal direction="left">
           <SectionHeading
@@ -164,7 +141,8 @@ export function HomeView({
           ))}
         </Stagger>
       </SectionFrame>
-
+    ),
+    reviews: (
       <SectionFrame tone="tint" className="py-14 sm:py-16">
         <div className="container space-y-10">
           <Reveal direction="right">
@@ -179,7 +157,8 @@ export function HomeView({
           </Reveal>
         </div>
       </SectionFrame>
-
+    ),
+    cta: (
       <SectionFrame className="container py-10">
         <Reveal direction="scale">
           <CTABanner
@@ -190,7 +169,8 @@ export function HomeView({
           />
         </Reveal>
       </SectionFrame>
-
+    ),
+    partners: (
       <SectionFrame className="container space-y-10 py-14 sm:py-16">
         <Reveal>
           <SectionHeading
@@ -202,7 +182,8 @@ export function HomeView({
         </Reveal>
         <PartnerLogosStrip logos={partners} />
       </SectionFrame>
-
+    ),
+    faqs: (
       <SectionFrame tone="tint" className="py-14 sm:py-16">
         <div className="container grid gap-10 lg:grid-cols-2">
           <Reveal direction="left">
@@ -217,7 +198,8 @@ export function HomeView({
           </Reveal>
         </div>
       </SectionFrame>
-
+    ),
+    story: (
       <SectionFrame className="container max-w-3xl space-y-4 py-14 sm:py-16">
         <Reveal>
           <h2 className="font-serif text-3xl">{t(home.story.title)}</h2>
@@ -228,6 +210,22 @@ export function HomeView({
           </Reveal>
         ))}
       </SectionFrame>
+    ),
+  };
+
+  return (
+    <main className="overflow-x-hidden">
+      <JsonLd data={orgJson} />
+      {localJson.map((node, i) => (
+        <JsonLd key={i} data={node} />
+      ))}
+      <JsonLd data={faqJson} />
+
+      {home.section_order
+        .filter((section) => section.enabled)
+        .map((section) => (
+          <div key={section.id}>{sections[section.id]}</div>
+        ))}
     </main>
   );
 }
