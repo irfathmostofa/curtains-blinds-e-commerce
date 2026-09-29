@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useLocale } from "@/components/locale-provider";
 import type { HeroSlide } from "@/lib/types";
 
@@ -50,7 +49,7 @@ export function HeroCarousel({
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="relative h-[min(88dvh,52rem)] w-full min-h-[22rem]">
+      <div className="relative h-[300px] w-full sm:h-[min(70dvh,40rem)] lg:h-[min(88dvh,52rem)]">
         <AnimatePresence mode="wait" custom={dir}>
           <motion.div
             key={`${index}-${slide.image_url}`}
@@ -79,26 +78,22 @@ export function HeroCarousel({
 
         {items.length > 1 ? (
           <>
-            <Button
+            <button
               type="button"
-              variant="outline"
-              size="icon"
               aria-label={t("Previous slide")}
-              className="absolute left-4 top-1/2 z-10 -translate-y-1/2 border-white/40 bg-card/90 shadow-md sm:left-6"
+              className="absolute left-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-card/90 shadow-md sm:left-6"
               onClick={() => go(index - 1, -1)}
             >
               <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
-              variant="outline"
-              size="icon"
               aria-label={t("Next slide")}
-              className="absolute right-4 top-1/2 z-10 -translate-y-1/2 border-white/40 bg-card/90 shadow-md sm:right-6"
+              className="absolute right-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-card/90 shadow-md sm:right-6"
               onClick={() => go(index + 1, 1)}
             >
               <ChevronRight className="h-4 w-4" />
-            </Button>
+            </button>
             <div
               className="absolute inset-x-0 bottom-6 z-10 flex items-center justify-center gap-2"
               role="tablist"
