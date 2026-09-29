@@ -1,21 +1,33 @@
 import Link from "next/link";
-import { getStore } from "@/lib/data/store";
 import { SectionHeading } from "@/components/section-heading";
+import {
+  getBlogPosts,
+  getBookings,
+  getChatLeads,
+  getLeads,
+  getProducts,
+} from "@/lib/data/catalog";
 
 export const dynamic = "force-dynamic";
 
-export default function AdminDashboardPage() {
-  const store = getStore();
+export default async function AdminDashboardPage() {
+  const [products, leads, bookings, posts, chatLeads] = await Promise.all([
+    getProducts({ includeInactive: true }),
+    getLeads(),
+    getBookings(),
+    getBlogPosts({ includeDrafts: true }),
+    getChatLeads(),
+  ]);
   const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const bookingsWeek = store.bookings.filter((b) => new Date(b.created_at).getTime() > weekAgo).length;
-  const newLeads = store.leads.filter((l) => l.status === "new").length;
-  const top = store.products.filter((p) => p.is_bestseller);
+  const bookingsWeek = bookings.filter((b) => new Date(b.created_at).getTime() > weekAgo).length;
+  const newLeads = leads.filter((l) => l.status === "new").length + chatLeads.filter((l) => l.status === "new").length;
+  const top = products.filter((p) => p.is_bestseller);
 
   const cards = [
     { label: "Open leads", value: newLeads, href: "/admin/leads" },
     { label: "Bookings this week", value: bookingsWeek, href: "/admin/bookings" },
-    { label: "Active products", value: store.products.filter((p) => p.is_active).length, href: "/admin/products" },
-    { label: "Published posts", value: store.posts.filter((p) => p.published_at).length, href: "/admin/blog" },
+    { label: "Active products", value: products.filter((p) => p.is_active).length, href: "/admin/products" },
+    { label: "Published posts", value: posts.filter((p) => p.published_at).length, href: "/admin/blog" },
   ];
 
   return (
@@ -40,6 +52,7 @@ export default function AdminDashboardPage() {
               <span>From AED {p.base_price}</span>
             </li>
           ))}
+          {!top.length ? <li className="px-4 py-6 text-sm text-muted-foreground">No bestsellers yet.</li> : null}
         </ul>
       </section>
     </main>

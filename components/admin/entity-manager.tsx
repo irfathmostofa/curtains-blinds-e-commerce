@@ -71,7 +71,7 @@ export function EntityManager({
           className="sm:max-w-xs"
         />
         {config.key === "leads" || config.key === "bookings" || config.key === "chatLeads" ? (
-          <form className="flex flex-col gap-3 text-sm sm:flex-row sm:flex-wrap sm:items-center">
+          <form method="get" action={config.href} className="flex flex-col gap-3 text-sm sm:flex-row sm:flex-wrap sm:items-center">
             <label className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
               Status
               <select name="status" defaultValue={status || ""} className="h-10 min-w-0 flex-1 rounded-xl border px-3 sm:w-auto">
@@ -116,7 +116,7 @@ export function EntityManager({
         <DialogContent className="max-h-[92dvh] w-[min(96vw,52rem)] max-w-3xl overflow-y-auto p-4 sm:p-6">
           <h2 className="pr-8 font-serif text-2xl">{editing ? `Edit ${config.title}` : `New ${config.title}`}</h2>
           <FormBuilder
-            key={String(editing?.id || "new")}
+            key={String(editing?.id || editing?.slug || "new")}
             config={config}
             initial={editing || undefined}
             categories={categories}

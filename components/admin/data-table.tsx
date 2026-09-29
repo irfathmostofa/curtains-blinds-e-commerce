@@ -3,6 +3,15 @@
 import { Button } from "@/components/ui/button";
 import type { EntityConfig } from "@/lib/admin/entities";
 
+function displayValue(value: unknown) {
+  if (value === true) return "Yes";
+  if (value === false) return "No";
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "number") return String(value);
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+  return String(value);
+}
+
 export function DataTable({
   config,
   rows,
@@ -27,11 +36,11 @@ export function DataTable({
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr key={String(row.id)} className="border-t">
+            {rows.map((row, i) => (
+              <tr key={String(row.id || row.slug || i)} className="border-t">
                 {config.columns.map((col) => (
                   <td key={col.key} className="max-w-[220px] truncate px-4 py-3">
-                    {String(row[col.key] ?? "")}
+                    {displayValue(row[col.key])}
                   </td>
                 ))}
                 <td className="px-4 py-3">
@@ -46,13 +55,13 @@ export function DataTable({
         {!rows.length ? <p className="p-6 text-sm text-muted-foreground">No rows.</p> : null}
       </div>
       <ul className="grid gap-3 md:hidden">
-        {rows.map((row) => (
-          <li key={String(row.id)} className="rounded-2xl border bg-card p-4">
+        {rows.map((row, i) => (
+          <li key={String(row.id || row.slug || i)} className="rounded-2xl border bg-card p-4">
             <dl className="space-y-2 text-sm">
               {config.columns.map((col) => (
                 <div key={col.key} className="flex justify-between gap-3">
                   <dt className="text-muted-foreground">{col.label}</dt>
-                  <dd className="truncate font-medium">{String(row[col.key] ?? "")}</dd>
+                  <dd className="truncate font-medium">{displayValue(row[col.key])}</dd>
                 </div>
               ))}
             </dl>

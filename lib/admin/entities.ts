@@ -9,7 +9,9 @@ export type FieldType =
   | "json"
   | "tags"
   | "slug"
-  | "date";
+  | "date"
+  | "email"
+  | "tel";
 
 export type FieldConfig = {
   name: string;
@@ -18,7 +20,7 @@ export type FieldConfig = {
   required?: boolean;
   options?: { label: string; value: string }[];
   hint?: string;
-  group?: "content" | "seo" | "media";
+  group?: "content" | "seo" | "media" | "variants";
 };
 
 export type EntityConfig = {
@@ -26,36 +28,78 @@ export type EntityConfig = {
   title: string;
   description: string;
   href: string;
-  storeKey: "products" | "categories" | "leads" | "chatLeads" | "bookings" | "testimonials" | "posts" | "faqs" | "partners" | "users";
+  storeKey:
+    | "products"
+    | "categories"
+    | "leads"
+    | "chatLeads"
+    | "bookings"
+    | "testimonials"
+    | "posts"
+    | "faqs"
+    | "partners"
+    | "pages"
+    | "users";
+  table: string;
   columns: { key: string; label: string }[];
   fields: FieldConfig[];
   creatable?: boolean;
   statusField?: string;
+  idField?: "id" | "slug";
 };
 
 export const adminNav = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/homepage", label: "Homepage" },
-  { href: "/admin/products", label: "Products" },
-  { href: "/admin/categories", label: "Categories" },
-  { href: "/admin/leads", label: "Leads" },
-  { href: "/admin/chat-leads", label: "Chat leads" },
-  { href: "/admin/bookings", label: "Bookings" },
-  { href: "/admin/testimonials", label: "Testimonials" },
-  { href: "/admin/blog", label: "Blog" },
-  { href: "/admin/faqs", label: "FAQs" },
-  { href: "/admin/partners", label: "Partners" },
-  { href: "/admin/settings", label: "Site settings" },
-  { href: "/admin/users", label: "Users" },
+  { href: "/admin", label: "Dashboard", group: "Overview" },
+  { href: "/admin/homepage", label: "Homepage", group: "Content" },
+  { href: "/admin/products", label: "Products", group: "Catalogue" },
+  { href: "/admin/categories", label: "Categories", group: "Catalogue" },
+  { href: "/admin/leads", label: "Leads", group: "Inbox" },
+  { href: "/admin/chat-leads", label: "Chat leads", group: "Inbox" },
+  { href: "/admin/bookings", label: "Bookings", group: "Inbox" },
+  { href: "/admin/testimonials", label: "Testimonials", group: "Content" },
+  { href: "/admin/blog", label: "Blog", group: "Content" },
+  { href: "/admin/faqs", label: "FAQs", group: "Content" },
+  { href: "/admin/partners", label: "Partners", group: "Content" },
+  { href: "/admin/pages", label: "Pages", group: "Content" },
+  { href: "/admin/settings", label: "Site settings", group: "System" },
+  { href: "/admin/users", label: "Users", group: "System" },
+] as const;
+
+export const slugMap: Record<string, string> = {
+  products: "products",
+  categories: "categories",
+  leads: "leads",
+  "chat-leads": "chatLeads",
+  bookings: "bookings",
+  testimonials: "testimonials",
+  blog: "posts",
+  faqs: "faqs",
+  partners: "partners",
+  pages: "pages",
+  users: "users",
+};
+
+const leadStatus = [
+  { label: "New", value: "new" },
+  { label: "Contacted", value: "contacted" },
+  { label: "Converted", value: "converted" },
+];
+
+const bookingStatus = [
+  { label: "New", value: "new" },
+  { label: "Confirmed", value: "confirmed" },
+  { label: "Completed", value: "completed" },
+  { label: "Cancelled", value: "cancelled" },
 ];
 
 export const entities: Record<string, EntityConfig> = {
   products: {
     key: "products",
     title: "Products",
-    description: "Catalogue, pricing, images and SEO fields.",
+    description: "Catalogue, pricing, images, variants and SEO fields.",
     href: "/admin/products",
     storeKey: "products",
+    table: "products",
     creatable: true,
     columns: [
       { key: "name", label: "Name" },
@@ -84,6 +128,7 @@ export const entities: Record<string, EntityConfig> = {
     description: "Nested collections and SEO.",
     href: "/admin/categories",
     storeKey: "categories",
+    table: "categories",
     creatable: true,
     columns: [
       { key: "name", label: "Name" },
@@ -108,6 +153,8 @@ export const entities: Record<string, EntityConfig> = {
     description: "Estimate inbox.",
     href: "/admin/leads",
     storeKey: "leads",
+    table: "leads",
+    creatable: true,
     statusField: "status",
     columns: [
       { key: "name", label: "Name" },
@@ -117,12 +164,14 @@ export const entities: Record<string, EntityConfig> = {
       { key: "status", label: "Status" },
     ],
     fields: [
-      { name: "name", label: "Name", type: "text" },
-      { name: "status", label: "Status", type: "select", options: [
-        { label: "New", value: "new" },
-        { label: "Contacted", value: "contacted" },
-        { label: "Converted", value: "converted" },
-      ] },
+      { name: "name", label: "Name", type: "text", required: true },
+      { name: "phone", label: "Phone", type: "tel", required: true },
+      { name: "email", label: "Email", type: "email", required: true },
+      { name: "product_interest", label: "Interest", type: "text" },
+      { name: "budget_range", label: "Budget range", type: "text" },
+      { name: "message", label: "Message", type: "textarea" },
+      { name: "source", label: "Source", type: "text" },
+      { name: "status", label: "Status", type: "select", options: leadStatus },
     ],
   },
   chatLeads: {
@@ -131,6 +180,7 @@ export const entities: Record<string, EntityConfig> = {
     description: "AI chatbot conversations, estimates and booking requests.",
     href: "/admin/chat-leads",
     storeKey: "chatLeads",
+    table: "chat_leads",
     statusField: "status",
     columns: [
       { key: "name", label: "Name" },
@@ -142,8 +192,8 @@ export const entities: Record<string, EntityConfig> = {
     ],
     fields: [
       { name: "name", label: "Name", type: "text" },
-      { name: "phone", label: "Phone", type: "text" },
-      { name: "email", label: "Email", type: "text" },
+      { name: "phone", label: "Phone", type: "tel" },
+      { name: "email", label: "Email", type: "email" },
       { name: "product_interest", label: "Interest", type: "text" },
       { name: "rooms", label: "Rooms", type: "text" },
       { name: "location", label: "Location", type: "text" },
@@ -151,11 +201,7 @@ export const entities: Record<string, EntityConfig> = {
       { name: "estimate_max", label: "Estimate max (AED)", type: "number" },
       { name: "booking_date", label: "Booking date", type: "date" },
       { name: "booking_time", label: "Booking time", type: "text" },
-      { name: "status", label: "Status", type: "select", options: [
-        { label: "New", value: "new" },
-        { label: "Contacted", value: "contacted" },
-        { label: "Converted", value: "converted" },
-      ] },
+      { name: "status", label: "Status", type: "select", options: leadStatus },
     ],
   },
   bookings: {
@@ -164,6 +210,8 @@ export const entities: Record<string, EntityConfig> = {
     description: "Visit diary.",
     href: "/admin/bookings",
     storeKey: "bookings",
+    table: "bookings",
+    creatable: true,
     statusField: "status",
     columns: [
       { key: "name", label: "Name" },
@@ -173,13 +221,18 @@ export const entities: Record<string, EntityConfig> = {
       { key: "status", label: "Status" },
     ],
     fields: [
-      { name: "notes", label: "Notes", type: "textarea" },
-      { name: "status", label: "Status", type: "select", options: [
-        { label: "New", value: "new" },
-        { label: "Confirmed", value: "confirmed" },
-        { label: "Completed", value: "completed" },
-        { label: "Cancelled", value: "cancelled" },
+      { name: "name", label: "Name", type: "text", required: true },
+      { name: "phone", label: "Phone", type: "tel", required: true },
+      { name: "email", label: "Email", type: "email", required: true },
+      { name: "location", label: "Location", type: "select", required: true, options: [
+        { label: "Dubai", value: "Dubai" },
+        { label: "Abu Dhabi", value: "Abu Dhabi" },
       ] },
+      { name: "address", label: "Address", type: "textarea", required: true },
+      { name: "preferred_date", label: "Preferred date", type: "date", required: true },
+      { name: "preferred_time_slot", label: "Time slot", type: "text", required: true },
+      { name: "notes", label: "Notes", type: "textarea" },
+      { name: "status", label: "Status", type: "select", options: bookingStatus },
     ],
   },
   testimonials: {
@@ -188,6 +241,7 @@ export const entities: Record<string, EntityConfig> = {
     description: "Reviews shown on the homepage.",
     href: "/admin/testimonials",
     storeKey: "testimonials",
+    table: "testimonials",
     creatable: true,
     columns: [
       { key: "customer_name", label: "Name" },
@@ -196,7 +250,7 @@ export const entities: Record<string, EntityConfig> = {
     ],
     fields: [
       { name: "customer_name", label: "Customer name", type: "text", required: true },
-      { name: "rating", label: "Rating", type: "number", required: true },
+      { name: "rating", label: "Rating", type: "number", required: true, hint: "1 to 5." },
       { name: "review_text", label: "Review", type: "richtext", required: true },
       { name: "source", label: "Source", type: "text" },
       { name: "is_featured", label: "Featured", type: "checkbox" },
@@ -208,6 +262,7 @@ export const entities: Record<string, EntityConfig> = {
     description: "SEO articles.",
     href: "/admin/blog",
     storeKey: "posts",
+    table: "blog_posts",
     creatable: true,
     columns: [
       { key: "title", label: "Title" },
@@ -233,6 +288,7 @@ export const entities: Record<string, EntityConfig> = {
     description: "Crawlable Q&A.",
     href: "/admin/faqs",
     storeKey: "faqs",
+    table: "faqs",
     creatable: true,
     columns: [
       { key: "question", label: "Question" },
@@ -242,7 +298,14 @@ export const entities: Record<string, EntityConfig> = {
     fields: [
       { name: "question", label: "Question", type: "text", required: true },
       { name: "answer", label: "Answer", type: "richtext", required: true },
-      { name: "category", label: "Category", type: "text" },
+      { name: "category", label: "Category", type: "select", options: [
+        { label: "General", value: "general" },
+        { label: "Products", value: "products" },
+        { label: "Orders", value: "orders" },
+        { label: "Motorized", value: "motorized" },
+        { label: "Visits", value: "visits" },
+        { label: "Trade", value: "trade" },
+      ] },
       { name: "sort_order", label: "Sort order", type: "number" },
     ],
   },
@@ -252,6 +315,7 @@ export const entities: Record<string, EntityConfig> = {
     description: "Logo strip.",
     href: "/admin/partners",
     storeKey: "partners",
+    table: "partners",
     creatable: true,
     columns: [
       { key: "name", label: "Name" },
@@ -263,19 +327,42 @@ export const entities: Record<string, EntityConfig> = {
       { name: "sort_order", label: "Sort order", type: "number" },
     ],
   },
+  pages: {
+    key: "pages",
+    title: "Pages",
+    description: "CMS pages such as privacy and terms.",
+    href: "/admin/pages",
+    storeKey: "pages",
+    table: "cms_pages",
+    creatable: true,
+    idField: "slug",
+    columns: [
+      { key: "title", label: "Title" },
+      { key: "slug", label: "Slug" },
+    ],
+    fields: [
+      { name: "title", label: "Title", type: "text", required: true, group: "content" },
+      { name: "slug", label: "Slug", type: "slug", required: true, group: "content" },
+      { name: "content", label: "Content", type: "richtext", group: "content" },
+      { name: "seo_title", label: "Meta title", type: "text", group: "seo" },
+      { name: "seo_description", label: "Meta description", type: "textarea", group: "seo" },
+    ],
+  },
   users: {
     key: "users",
     title: "Users",
     description: "Admin accounts.",
     href: "/admin/users",
     storeKey: "users",
+    table: "admin_users",
     creatable: true,
     columns: [
       { key: "email", label: "Email" },
       { key: "role", label: "Role" },
     ],
     fields: [
-      { name: "email", label: "Email", type: "text", required: true },
+      { name: "id", label: "Auth user ID", type: "text", required: true, hint: "Must match an existing Auth user UUID." },
+      { name: "email", label: "Email", type: "email", required: true },
       { name: "role", label: "Role", type: "select", options: [
         { label: "Admin", value: "admin" },
         { label: "Editor", value: "editor" },
@@ -283,3 +370,95 @@ export const entities: Record<string, EntityConfig> = {
     ],
   },
 };
+
+export function entityAllowedColumns(key: string): string[] {
+  const columns: Record<string, string[]> = {
+    products: [
+      "id",
+      "category_id",
+      "name",
+      "slug",
+      "description",
+      "base_price",
+      "images",
+      "fabric_options",
+      "is_bestseller",
+      "is_active",
+      "seo_title",
+      "seo_description",
+      "seo_keywords",
+    ],
+    categories: [
+      "id",
+      "name",
+      "slug",
+      "description",
+      "image_url",
+      "image_alt",
+      "parent_id",
+      "sort_order",
+      "seo_title",
+      "seo_description",
+      "seo_keywords",
+    ],
+    leads: [
+      "id",
+      "name",
+      "phone",
+      "email",
+      "product_interest",
+      "budget_range",
+      "message",
+      "source",
+      "status",
+    ],
+    chatLeads: [
+      "id",
+      "name",
+      "phone",
+      "email",
+      "product_interest",
+      "rooms",
+      "location",
+      "estimate_min",
+      "estimate_max",
+      "booking_date",
+      "booking_time",
+      "transcript",
+      "source",
+      "status",
+    ],
+    bookings: [
+      "id",
+      "name",
+      "phone",
+      "email",
+      "location",
+      "address",
+      "preferred_date",
+      "preferred_time_slot",
+      "notes",
+      "status",
+    ],
+    testimonials: ["id", "customer_name", "rating", "review_text", "source", "is_featured"],
+    posts: [
+      "id",
+      "title",
+      "slug",
+      "excerpt",
+      "content",
+      "cover_image_url",
+      "cover_image_alt",
+      "author",
+      "published_at",
+      "seo_title",
+      "seo_description",
+      "seo_keywords",
+    ],
+    faqs: ["id", "question", "answer", "category", "sort_order"],
+    partners: ["id", "name", "logo_url", "logo_alt", "sort_order"],
+    pages: ["slug", "title", "content", "seo_title", "seo_description"],
+    users: ["id", "email", "role"],
+  };
+  return columns[key] || [];
+}

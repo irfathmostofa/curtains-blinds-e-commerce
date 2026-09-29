@@ -50,19 +50,18 @@ export async function getCategoryBySlug(slug: string): Promise<Category | undefi
   return all.find((c) => c.slug === slug);
 }
 
-export async function getProducts(): Promise<Product[]> {
+export async function getProducts(opts?: { includeInactive?: boolean }): Promise<Product[]> {
   const categories = await getCategories();
   const variants = await getVariants();
+  const includeInactive = Boolean(opts?.includeInactive);
   const products = await fromSupabase(async () => {
     const supabase = createClient();
     if (!supabase) return null;
-    const { data } = await supabase
-      .from("products")
-      .select("*")
-      .eq("is_active", true)
-      .order("created_at", { ascending: false });
+    let query = supabase.from("products").select("*").order("created_at", { ascending: false });
+    if (!includeInactive) query = query.eq("is_active", true);
+    const { data } = await query;
     return (data as Product[] | null)?.length ? (data as Product[]) : null;
-  }, getStore().products.filter((p) => p.is_active));
+  }, includeInactive ? getStore().products : getStore().products.filter((p) => p.is_active));
   return products.map((p) => hydrate(p, categories, variants));
 }
 
@@ -95,17 +94,16 @@ export async function getRelatedProducts(product: Product, limit = 3): Promise<P
   return products.filter((p) => p.category_id === product.category_id && p.id !== product.id).slice(0, limit);
 }
 
-export async function getTestimonials(): Promise<Testimonial[]> {
+export async function getTestimonials(opts?: { includeHidden?: boolean }): Promise<Testimonial[]> {
+  const includeHidden = Boolean(opts?.includeHidden);
   return fromSupabase(async () => {
     const supabase = createClient();
     if (!supabase) return null;
-    const { data } = await supabase
-      .from("testimonials")
-      .select("*")
-      .eq("is_featured", true)
-      .order("created_at", { ascending: false });
+    let query = supabase.from("testimonials").select("*").order("created_at", { ascending: false });
+    if (!includeHidden) query = query.eq("is_featured", true);
+    const { data } = await query;
     return (data as Testimonial[] | null)?.length ? (data as Testimonial[]) : null;
-  }, getStore().testimonials.filter((t) => t.is_featured));
+  }, includeHidden ? getStore().testimonials : getStore().testimonials.filter((t) => t.is_featured));
 }
 
 export async function getPartners(): Promise<Partner[]> {
@@ -127,18 +125,17 @@ export async function getFaqs(category?: string): Promise<Faq[]> {
   return category ? all.filter((f) => f.category === category) : all;
 }
 
-export async function getBlogPosts(): Promise<BlogPost[]> {
+export async function getBlogPosts(opts?: { includeDrafts?: boolean }): Promise<BlogPost[]> {
+  const includeDrafts = Boolean(opts?.includeDrafts);
   const posts = await fromSupabase(async () => {
     const supabase = createClient();
     if (!supabase) return null;
-    const { data } = await supabase
-      .from("blog_posts")
-      .select("*")
-      .not("published_at", "is", null)
-      .order("published_at", { ascending: false });
+    let query = supabase.from("blog_posts").select("*").order("published_at", { ascending: false });
+    if (!includeDrafts) query = query.not("published_at", "is", null);
+    const { data } = await query;
     return (data as BlogPost[] | null)?.length ? (data as BlogPost[]) : null;
   }, getStore().posts);
-  return posts.filter((p) => p.published_at);
+  return includeDrafts ? posts : posts.filter((p) => p.published_at);
 }
 
 export async function getBlogPost(slug: string): Promise<BlogPost | undefined> {
@@ -215,6 +212,26 @@ export async function getChatLeads(): Promise<ChatLead[]> {
     const { data } = await supabase.from("chat_leads").select("*").order("created_at", { ascending: false });
     return (data as ChatLead[] | null) ?? null;
   }, getStore().chatLeads);
+}
+
+export async function getCmsPages(): Promise<CmsPage[]> {
+  return fromSupabase(async () => {
+    const supabase = createClient();
+    if (!supabase) return null;
+    const { data } = await supabase.from("cms_pages").select("*").order("slug");
+    return (data as CmsPage[] | null)?.length ? (data as CmsPage[]) : null;
+  }, getStore().pages);
+}
+
+export async function getAdminUsers() {
+  return fromSupabase(async () => {
+    const supabase = createClient();
+    if (!supabase) return null;
+    const { data } = await supabase.from("admin_users").select("id, email, role").order("email");
+    return (data as { id: string; email: string; role: string }[] | null)?.length
+      ? (data as { id: string; email: string; role: string }[])
+      : null;
+  }, getStore().users);
 }
 
 export function getRecentlyViewedSlugs(): string[] {

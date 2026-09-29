@@ -11,6 +11,8 @@ import { loginSchema } from "@/lib/validations";
 import { getStore } from "@/lib/data/store";
 import { processImage } from "@/lib/images/process";
 import { slugify } from "@/lib/utils";
+import { entities } from "@/lib/admin/entities";
+import { isUuid, sanitizeEntityPayload, sanitizeVariants } from "@/lib/admin/payload";
 
 const DEMO_COOKIE = "md_admin_session";
 
@@ -48,74 +50,120 @@ export async function adminLogout() {
 }
 
 export async function upsertEntity(entity: string, payload: Record<string, unknown>) {
-  const store = getStore();
-  const id = String(payload.id || crypto.randomUUID());
-  const row: Record<string, unknown> = { ...payload, id };
-  if (!row.slug && (row.name || row.title)) {
-    row.slug = slugify(String(row.name || row.title));
-  }
+  const config = entities[entity];
+  if (!config) return { error: "Unknown entity" };
 
-  const list = (store as Record<string, unknown>)[entity];
+  const store = getStore();
+  const list = (store as Record<string, unknown>)[config.storeKey];
   if (!Array.isArray(list)) return { error: "Unknown entity" };
 
-  const idx = list.findIndex((item: { id?: string }) => item.id === id);
+  const idField = config.idField || "id";
+  const incomingId = payload.id ?? payload.slug;
+  const needsUuid = idField === "id";
+  let id = incomingId
+    ? String(incomingId)
+    : needsUuid
+      ? crypto.randomUUID()
+      : String(payload.slug || crypto.randomUUID());
+  if (needsUuid && !isUuid(id) && isSupabaseConfigured()) {
+    id = crypto.randomUUID();
+  }
+
+  const row = sanitizeEntityPayload(entity, {
+    ...payload,
+    ...(idField === "id" ? { id } : { slug: id }),
+  });
+  const variants = entity === "products" ? sanitizeVariants(String(row.id || id), payload.variants) : [];
+  const lookupId = incomingId ? String(incomingId) : id;
+
+  const idx = list.findIndex((item: { id?: string; slug?: string }) =>
+    idField === "slug" ? item.slug === lookupId : item.id === lookupId
+  );
   if (idx >= 0) list[idx] = { ...list[idx], ...row };
   else list.unshift(row);
+
+  if (entity === "products") {
+    store.variants = store.variants.filter((v) => v.product_id !== lookupId && v.product_id !== id).concat(variants);
+  }
 
   if (isSupabaseConfigured()) {
     const supabase = createWriteClient();
     if (supabase) {
-      const { error } = await supabase.from(mapTable(entity)).upsert(row);
+      const { error } = await supabase.from(config.table).upsert(row);
       if (error) return { error: error.message };
+      if (entity === "products") {
+        await supabase.from("product_variants").delete().eq("product_id", id);
+        if (variants.length) {
+          const { error: variantError } = await supabase.from("product_variants").insert(variants);
+          if (variantError) return { error: variantError.message };
+        }
+      }
     }
   }
   return { ok: true, id };
 }
 
 export async function deleteEntity(entity: string, id: string) {
+  const config = entities[entity];
+  if (!config) return { error: "Unknown entity" };
   const store = getStore();
-  const list = (store as Record<string, unknown>)[entity];
+  const list = (store as Record<string, unknown>)[config.storeKey];
+  const idField = config.idField || "id";
   if (Array.isArray(list)) {
-    const idx = list.findIndex((item: { id?: string }) => item.id === id);
+    const idx = list.findIndex((item: { id?: string; slug?: string }) =>
+      idField === "slug" ? item.slug === id : item.id === id
+    );
     if (idx >= 0) list.splice(idx, 1);
+  }
+  if (entity === "products") {
+    store.variants = store.variants.filter((v) => v.product_id !== id);
   }
   if (isSupabaseConfigured()) {
     const supabase = createWriteClient();
-    await supabase?.from(mapTable(entity)).delete().eq("id", id);
+    if (supabase) {
+      const { error } = await supabase.from(config.table).delete().eq(idField, id);
+      if (error) return { error: error.message };
+    }
   }
   return { ok: true };
 }
 
 export async function updateLeadStatus(id: string, status: string) {
-  const store = getStore();
-  const lead = store.leads.find((l) => l.id === id);
-  if (lead) lead.status = status as typeof lead.status;
-  if (isSupabaseConfigured()) {
-    await createClient()?.from("leads").update({ status }).eq("id", id);
-  }
-  return { ok: true };
+  return upsertEntity("leads", { id, status });
 }
 
 export async function updateBookingStatus(id: string, status: string) {
-  const store = getStore();
-  const row = store.bookings.find((l) => l.id === id);
-  if (row) row.status = status as typeof row.status;
-  if (isSupabaseConfigured()) {
-    await createClient()?.from("bookings").update({ status }).eq("id", id);
-  }
-  return { ok: true };
+  return upsertEntity("bookings", { id, status });
 }
 
 export async function saveSettings(settings: Record<string, unknown>) {
   const store = getStore();
   store.settings = { ...store.settings, ...settings } as typeof store.settings;
+  const next = store.settings;
+  const general = {
+    company_name: next.company_name,
+    tagline: next.tagline,
+    phone: next.phone,
+    email: next.email,
+    whatsapp: next.whatsapp,
+    gtm_id: next.gtm_id,
+    meta_pixel_id: next.meta_pixel_id,
+    instagram_pixel_id: next.instagram_pixel_id,
+    tiktok_pixel_id: next.tiktok_pixel_id,
+  };
   if (isSupabaseConfigured()) {
     const supabase = createWriteClient();
-    await supabase?.from("site_settings").upsert([
-      { key: "general", value: settings },
-      { key: "seo", value: (settings as { seo?: unknown }).seo || store.settings.seo },
-      { key: "homepage", value: (settings as { homepage?: unknown }).homepage || store.settings.homepage },
+    if (!supabase) return { ok: true };
+    const { error } = await supabase.from("site_settings").upsert([
+      { key: "general", value: general },
+      { key: "nav_links", value: next.nav_links },
+      { key: "locations", value: next.locations },
+      { key: "social_links", value: next.social_links },
+      { key: "trust", value: next.trust },
+      { key: "seo", value: next.seo },
+      { key: "homepage", value: next.homepage },
     ]);
+    if (error) return { error: error.message };
   }
   return { ok: true };
 }
@@ -173,21 +221,4 @@ async function saveLocalImage(
 function allowedBucket(folder: string) {
   const buckets = ["product-images", "blog-images", "partner-logos"];
   return buckets.includes(folder) ? folder : "product-images";
-}
-
-function mapTable(entity: string) {
-  const map: Record<string, string> = {
-    products: "products",
-    categories: "categories",
-    leads: "leads",
-    chatLeads: "chat_leads",
-    bookings: "bookings",
-    testimonials: "testimonials",
-    posts: "blog_posts",
-    faqs: "faqs",
-    partners: "partners",
-    pages: "cms_pages",
-    users: "admin_users",
-  };
-  return map[entity] || entity;
 }

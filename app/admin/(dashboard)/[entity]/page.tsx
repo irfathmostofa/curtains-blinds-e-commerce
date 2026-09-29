@@ -1,24 +1,12 @@
 import { notFound } from "next/navigation";
 import { EntityManager } from "@/components/admin/entity-manager";
-import { entities } from "@/lib/admin/entities";
-import { getStore } from "@/lib/data/store";
+import { entities, slugMap } from "@/lib/admin/entities";
+import { loadEntityRows } from "@/lib/admin/load";
+import { getCategories } from "@/lib/data/catalog";
 
 export const dynamic = "force-dynamic";
 
-const slugMap: Record<string, string> = {
-  products: "products",
-  categories: "categories",
-  leads: "leads",
-  "chat-leads": "chatLeads",
-  bookings: "bookings",
-  testimonials: "testimonials",
-  blog: "posts",
-  faqs: "faqs",
-  partners: "partners",
-  users: "users",
-};
-
-export default function EntityListPage({
+export default async function EntityListPage({
   params,
   searchParams,
 }: {
@@ -28,16 +16,17 @@ export default function EntityListPage({
   const key = slugMap[params.entity];
   const config = key ? entities[key] : undefined;
   if (!config) notFound();
-  const store = getStore();
-  let rows = store[config.storeKey] as unknown as Record<string, unknown>[];
-  if (searchParams.status) rows = rows.filter((r) => r.status === searchParams.status);
-  if (searchParams.location) rows = rows.filter((r) => r.location === searchParams.location);
+
+  const [rows, categories] = await Promise.all([loadEntityRows(config.key), getCategories()]);
+  let list = rows;
+  if (searchParams.status) list = list.filter((r) => r.status === searchParams.status);
+  if (searchParams.location) list = list.filter((r) => r.location === searchParams.location);
 
   return (
     <EntityManager
       config={config}
-      rows={rows}
-      categories={store.categories.map((c) => ({ id: c.id, name: c.name }))}
+      rows={list}
+      categories={categories.map((c) => ({ id: c.id, name: c.name }))}
       status={searchParams.status}
       location={searchParams.location}
     />

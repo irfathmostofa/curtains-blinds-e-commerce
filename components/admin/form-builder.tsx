@@ -128,12 +128,28 @@ function FieldControl({
       />
     );
   }
+  const inputType =
+    field.type === "number"
+      ? "number"
+      : field.type === "date"
+        ? "date"
+        : field.type === "email"
+          ? "email"
+          : field.type === "tel"
+            ? "tel"
+            : "text";
+  const raw = String(values[field.name] ?? "");
+  const value = field.type === "date" && raw ? raw.slice(0, 10) : raw;
   return (
     <Input
       id={field.name}
-      type={field.type === "number" ? "number" : field.type === "date" ? "date" : "text"}
+      type={inputType}
       required={field.required}
-      value={String(values[field.name] ?? "")}
+      min={field.name === "rating" ? 1 : undefined}
+      max={field.name === "rating" ? 5 : undefined}
+      step={field.type === "number" ? "any" : undefined}
+      readOnly={field.name === "id" && Boolean(values.id)}
+      value={value}
       onChange={(e) => setField(field.name, e.target.value)}
     />
   );
@@ -156,6 +172,15 @@ export function FormBuilder({
   const [slugLocked, setSlugLocked] = useState(Boolean(initial?.slug));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [variants, setVariants] = useState<{ id?: string; size_label: string; price: string; sku: string }[]>(() => {
+    if (!Array.isArray(initial?.variants)) return [];
+    return (initial.variants as { id?: string; size_label?: string; price?: number; sku?: string }[]).map((v) => ({
+      id: v.id,
+      size_label: String(v.size_label || ""),
+      price: String(v.price ?? ""),
+      sku: String(v.sku || ""),
+    }));
+  });
   const [images, setImages] = useState<{ url: string; alt: string; thumbnailUrl?: string }[]>(() => {
     if (Array.isArray(initial?.images)) return initial?.images as { url: string; alt: string }[];
     if (initial?.cover_image_url) {
@@ -181,6 +206,7 @@ export function FormBuilder({
   }
 
   const contentFields = config.fields.filter((f) => (f.group || "content") === "content");
+  const mediaFields = config.fields.filter((f) => f.group === "media");
   const seoFields = config.fields.filter((f) => f.group === "seo");
   const showMedia = ["products", "categories", "posts", "partners"].includes(config.key);
   const seoTitle = String(values.seo_title || values.name || values.title || "");
@@ -202,29 +228,30 @@ export function FormBuilder({
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
+    setError(null);
     const payload: Record<string, unknown> = { ...values };
     if (!payload.slug) payload.slug = slugify(String(payload.name || payload.title || ""));
-    if (payload.base_price) payload.base_price = Number(payload.base_price);
-    if (payload.sort_order) payload.sort_order = Number(payload.sort_order);
-    if (payload.rating) payload.rating = Number(payload.rating);
-    if (payload.estimate_min !== undefined) payload.estimate_min = Number(payload.estimate_min || 0);
-    if (payload.estimate_max !== undefined) payload.estimate_max = Number(payload.estimate_max || 0);
     if (payload.parent_id === "") payload.parent_id = null;
+    if (payload.category_id === "") payload.category_id = null;
     payload.fabric_options = asTags(payload.fabric_options);
-    if (config.key === "products") payload.images = images;
+    if (config.key === "products") {
+      payload.images = images;
+      payload.variants = variants.filter((v) => v.size_label.trim());
+    }
     if (config.key === "categories" && images[0]) {
       payload.image_url = images[0].url;
-      payload.image_alt = images[0].alt;
+      payload.image_alt = images[0].alt || payload.image_alt;
     }
     if (config.key === "posts" && images[0]) {
       payload.cover_image_url = images[0].url;
-      payload.cover_image_alt = images[0].alt;
+      payload.cover_image_alt = images[0].alt || payload.cover_image_alt;
     }
     if (config.key === "partners" && images[0]) {
       payload.logo_url = images[0].url;
-      payload.logo_alt = images[0].alt;
+      payload.logo_alt = images[0].alt || payload.logo_alt;
     }
-    const result = await upsertEntity(config.storeKey, payload);
+    if (config.idField === "slug") delete payload.id;
+    const result = await upsertEntity(config.key, payload);
     setSaving(false);
     if ("error" in result && result.error) {
       setError(result.error);
@@ -261,9 +288,75 @@ export function FormBuilder({
         ))}
       </section>
 
+      {config.key === "products" ? (
+        <section className="space-y-3 rounded-2xl border p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-serif text-lg">Variants</h3>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setVariants((rows) => [...rows, { size_label: "", price: "", sku: "" }])}
+            >
+              Add size
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">Optional SKUs stored in product_variants.</p>
+          {variants.length ? (
+            <div className="grid gap-3">
+              {variants.map((row, i) => (
+                <div key={row.id || i} className="grid gap-2 sm:grid-cols-[1.4fr_0.8fr_1fr_auto]">
+                  <Input
+                    placeholder="Size label"
+                    value={row.size_label}
+                    onChange={(e) =>
+                      setVariants((rows) => rows.map((item, idx) => (idx === i ? { ...item, size_label: e.target.value } : item)))
+                    }
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Price"
+                    value={row.price}
+                    onChange={(e) =>
+                      setVariants((rows) => rows.map((item, idx) => (idx === i ? { ...item, price: e.target.value } : item)))
+                    }
+                  />
+                  <Input
+                    placeholder="SKU"
+                    value={row.sku}
+                    onChange={(e) =>
+                      setVariants((rows) => rows.map((item, idx) => (idx === i ? { ...item, sku: e.target.value } : item)))
+                    }
+                  />
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setVariants((rows) => rows.filter((_, idx) => idx !== i))}>
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No variants yet. Base price still shows on the product card.</p>
+          )}
+        </section>
+      ) : null}
+
       {showMedia ? (
         <section className="space-y-3 rounded-2xl border p-4">
           <h3 className="font-serif text-lg">Images</h3>
+          {mediaFields.map((field) => (
+            <div key={field.name} className="space-y-2">
+              <Label htmlFor={field.name}>{field.label}</Label>
+              <FieldControl
+                field={field}
+                values={values}
+                setField={setField}
+                slugLocked={slugLocked}
+                setSlugLocked={setSlugLocked}
+                options={fieldOptions(field)}
+              />
+              {field.hint ? <p className="text-xs text-muted-foreground">{field.hint}</p> : null}
+            </div>
+          ))}
           <ImageUploader
             folder={config.key === "posts" ? "blog-images" : config.key === "partners" ? "partner-logos" : "product-images"}
             suggestedAlt={`${String(values.name || values.title || "Maison Drape")} ${config.title.toLowerCase()}`}
@@ -352,12 +445,17 @@ export function FormBuilder({
         <Button type="submit" disabled={saving} className="min-w-28">
           {saving ? "Saving…" : "Save"}
         </Button>
-        {initial?.id ? (
+        {initial && (initial.id || initial.slug) ? (
           <Button
             type="button"
             variant="outline"
             onClick={async () => {
-              await deleteEntity(config.storeKey, String(initial.id));
+              const id = String(config.idField === "slug" ? initial.slug : initial.id);
+              const result = await deleteEntity(config.key, id);
+              if ("error" in result && result.error) {
+                setError(result.error);
+                return;
+              }
               onDone?.();
             }}
           >
