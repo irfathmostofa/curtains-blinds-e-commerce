@@ -16,13 +16,13 @@ export function CategoryCard({ category }: { category: Category }) {
             src={category.image_url}
             alt={t(category.image_alt) || category.image_alt}
             fill
-            sizes="(min-width: 768px) 33vw, 100vw"
+            sizes="(min-width: 768px) 33vw, 50vw"
             className="object-cover transition duration-700 ease-out group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/15 to-transparent transition duration-500 group-hover:from-ink/85" />
-          <div className="absolute bottom-0 p-5 text-ivory transition duration-500 group-hover:translate-y-[-4px]">
-            <h3 className="font-serif text-2xl">{t(category.name)}</h3>
-            <p className="mt-1 line-clamp-2 text-sm text-ivory/80">{stripHtml(t(category.description))}</p>
+          <div className="absolute bottom-0 p-3 text-ivory transition duration-500 group-hover:translate-y-[-4px] sm:p-5">
+            <h3 className="font-serif text-lg sm:text-2xl">{t(category.name)}</h3>
+            <p className="mt-1 line-clamp-2 hidden text-sm text-ivory/80 sm:block">{stripHtml(t(category.description))}</p>
           </div>
         </div>
       </Link>

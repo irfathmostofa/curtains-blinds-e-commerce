@@ -109,9 +109,9 @@ export function HomeView({
               subtitle={home.collections.subtitle || undefined}
             />
           </Reveal>
-          <Stagger className="grid gap-6 md:grid-cols-3">
+          <Stagger className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6">
             {categories.map((c) => (
-              <StaggerItem key={c.id}>
+              <StaggerItem key={c.id} className="min-w-0">
                 <CategoryCard category={c} />
               </StaggerItem>
             ))}
@@ -133,10 +133,10 @@ export function HomeView({
             subtitle={home.bestsellers.subtitle || undefined}
           />
         </Reveal>
-        <Stagger className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4" delay={0.07}>
+        <Stagger className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6" delay={0.07}>
           {bestsellers.map((p) => (
-            <StaggerItem key={p.id}>
-              <ProductCard product={p} />
+            <StaggerItem key={p.id} className="min-w-0">
+              <ProductCard product={p} compact />
             </StaggerItem>
           ))}
         </Stagger>
