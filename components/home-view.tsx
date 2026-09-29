@@ -71,7 +71,7 @@ export function HomeView({
   const sections: Record<HomepageSectionId, ReactNode> = {
     hero:
       hero.variant === "carousel" ? (
-        <HeroCarousel slides={home.hero_slides} settings={settings} autoplayMs={hero.autoplay_ms} />
+        <HeroCarousel slides={home.hero_slides} autoplayMs={hero.autoplay_ms} />
       ) : (
         <HeroClassic slide={classicSlide} settings={settings} />
       ),
