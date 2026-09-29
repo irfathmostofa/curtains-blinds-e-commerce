@@ -5,7 +5,12 @@ import { getPublicPixelConfig, META_PIXEL_IDS } from "@/lib/analytics/config";
 import { AnalyticsPageView } from "@/components/analytics-page-view";
 
 export async function AnalyticsScripts() {
-  const consent = cookies().get("cookie_consent")?.value;
+  let consent: string | undefined;
+  try {
+    consent = cookies().get("cookie_consent")?.value;
+  } catch {
+    consent = undefined;
+  }
   if (consent !== "accepted") return null;
 
   const settings = await getSiteSettings();

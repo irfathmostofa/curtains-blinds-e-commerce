@@ -76,8 +76,16 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+function readLocale(): Locale {
+  try {
+    return cookies().get("md_locale")?.value === "ar" ? "ar" : "en";
+  } catch {
+    return "en";
+  }
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const locale = (cookies().get("md_locale")?.value === "ar" ? "ar" : "en") as Locale;
+  const locale = readLocale();
   return (
     <html lang={locale} dir={localeDir(locale)} className={locale === "ar" ? "locale-ar" : undefined}>
       <body className={`${serif.variable} ${sans.variable} ${arabic.variable} font-sans`}>

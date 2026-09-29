@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { DEFAULT_SETTINGS, mergeHomepage } from "@/lib/site";
 import type {
   BlogPost,
@@ -24,8 +24,12 @@ function hydrate(product: Product, categories: Category[], variants: ProductVari
   };
 }
 
-async function queryRows<T>(fn: (client: NonNullable<ReturnType<typeof createClient>>) => Promise<T[] | null>): Promise<T[]> {
-  const supabase = createClient();
+function catalogClient() {
+  return createPublicClient();
+}
+
+async function queryRows<T>(fn: (client: NonNullable<ReturnType<typeof catalogClient>>) => Promise<T[] | null>): Promise<T[]> {
+  const supabase = catalogClient();
   if (!supabase) return [];
   try {
     const data = await fn(supabase);
@@ -134,7 +138,7 @@ export async function getCmsPage(slug: string): Promise<CmsPage | undefined> {
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
-  const supabase = createClient();
+  const supabase = catalogClient();
   if (!supabase) return { ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) };
   try {
     const { data } = await supabase.from("site_settings").select("key, value");
