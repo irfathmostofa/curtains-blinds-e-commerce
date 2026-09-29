@@ -19,7 +19,7 @@ import { JsonLd } from "@/components/json-ld";
 import { HtmlContent } from "@/components/html-content";
 import { stripHtml } from "@/lib/html";
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 export async function generateStaticParams() {
   const products = await getProducts();
@@ -46,7 +46,7 @@ export default async function ProductPage({ params }: { params: { category: stri
   if (!product || product.category?.slug !== params.category) notFound();
 
   const [related, faqs, settings] = await Promise.all([
-    getRelatedProducts(product),
+    getRelatedProducts(product.id, product.category_id, 3),
     getFaqs("products"),
     getSiteSettings(),
   ]);

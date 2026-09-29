@@ -23,8 +23,15 @@ export function LocaleProvider({ initial, children }: { initial: Locale; childre
   const [locale, setLocaleState] = useState<Locale>(initial);
 
   useEffect(() => {
-    persist(locale);
-  }, [locale]);
+    const match = document.cookie.split("; ").find((c) => c.startsWith(`${LOCALE_COOKIE}=`));
+    const stored = match?.split("=")[1];
+    if (stored === "ar" || stored === "en") {
+      setLocaleState(stored);
+      persist(stored);
+      return;
+    }
+    persist(initial);
+  }, [initial]);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);

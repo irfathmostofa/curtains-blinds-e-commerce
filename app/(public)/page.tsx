@@ -9,7 +9,7 @@ import {
 } from "@/lib/data/catalog";
 import { buildMetadata, faqJsonLd, localBusinessJsonLd, organizationJsonLd } from "@/lib/seo";
 
-export const revalidate = 0;
+export const revalidate = 60;
 
 export const metadata = buildMetadata({
   title: "Bespoke Curtains & Blinds in Dubai & Abu Dhabi",

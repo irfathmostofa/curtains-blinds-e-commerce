@@ -34,7 +34,6 @@ export function NavigationProgress() {
   const { t, dir } = useLocale();
   const reduced = useReducedMotion();
   const [visible, setVisible] = useState(false);
-  const [overlay, setOverlay] = useState(false);
   const [progress, setProgress] = useState(0);
   const active = useRef(false);
   const routeKey = `${pathname}?${searchParams.toString()}`;
@@ -51,7 +50,6 @@ export function NavigationProgress() {
     active.current = false;
     clearTimers();
     setProgress(100);
-    setOverlay(false);
     timers.current.push(
       window.setTimeout(() => {
         setVisible(false);
@@ -66,11 +64,9 @@ export function NavigationProgress() {
     } else {
       active.current = true;
       setVisible(true);
-      setOverlay(false);
       setProgress(12);
     }
     clearTimers();
-    timers.current.push(window.setTimeout(() => setOverlay(true), 320));
     const bump = (delay: number, to: number) => {
       timers.current.push(
         window.setTimeout(() => {
@@ -148,24 +144,6 @@ export function NavigationProgress() {
               animate={{ width: `${progress}%` }}
               transition={reduced ? { duration: 0 } : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
             />
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {overlay ? (
-          <motion.div
-            className="pointer-events-none fixed inset-0 z-[80] flex items-center justify-center bg-background/55 backdrop-blur-[3px]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: reduced ? 0 : 0.22 }}
-          >
-            <div className="flex flex-col items-center gap-4 rounded-2xl border border-border/80 bg-card/90 px-8 py-7 shadow-xl">
-              <span className="nav-spinner relative h-11 w-11" aria-hidden="true" />
-              <p className="font-serif text-sm tracking-[0.18em] text-foreground">{t("Loading")}</p>
-              <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">{t("Preparing page")}</p>
-            </div>
           </motion.div>
         ) : null}
       </AnimatePresence>

@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Script from "next/script";
 import { Cinzel, Josefin_Sans, Noto_Naskh_Arabic } from "next/font/google";
 import "./globals.css";
 import { AnalyticsScripts } from "@/components/analytics-scripts";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { getSiteSettings } from "@/lib/data/catalog";
-import { cookies } from "next/headers";
 import { LocaleProvider } from "@/components/locale-provider";
 import { NavigationProgress } from "@/components/navigation-progress";
-import { localeDir, type Locale } from "@/lib/i18n";
+import { localeDir } from "@/lib/i18n";
 
 const serif = Cinzel({
   subsets: ["latin"],
@@ -76,19 +76,18 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-function readLocale(): Locale {
-  try {
-    return cookies().get("md_locale")?.value === "ar" ? "ar" : "en";
-  } catch {
-    return "en";
-  }
-}
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const locale = readLocale();
+  const locale = "en";
   return (
-    <html lang={locale} dir={localeDir(locale)} className={locale === "ar" ? "locale-ar" : undefined}>
+    <html lang={locale} dir={localeDir(locale)}>
       <body className={`${serif.variable} ${sans.variable} ${arabic.variable} font-sans`}>
+        <Script
+          id="locale-boot"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var m=document.cookie.match(/(?:^|; )md_locale=([^;]*)/);var l=m&&m[1]==="ar"?"ar":"en";document.documentElement.lang=l;document.documentElement.dir=l==="ar"?"rtl":"ltr";document.documentElement.classList.toggle("locale-ar",l==="ar");}catch(e){}})();`,
+          }}
+        />
         <Suspense fallback={null}>
           <AnalyticsScripts />
         </Suspense>

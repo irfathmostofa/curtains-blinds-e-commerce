@@ -3,13 +3,20 @@ import { createClient as createSupabaseJsClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { isSupabaseConfigured } from "@/lib/utils";
 
+let publicClient: ReturnType<typeof createSupabaseJsClient> | null | undefined;
+
 export function createPublicClient() {
-  if (!isSupabaseConfigured()) return null;
-  return createSupabaseJsClient(
+  if (publicClient !== undefined) return publicClient;
+  if (!isSupabaseConfigured()) {
+    publicClient = null;
+    return null;
+  }
+  publicClient = createSupabaseJsClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     { auth: { persistSession: false, autoRefreshToken: false } }
   );
+  return publicClient;
 }
 
 export function createClient() {

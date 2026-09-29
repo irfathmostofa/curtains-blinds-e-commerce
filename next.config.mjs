@@ -13,6 +13,7 @@ const nextConfig = {
       bodySizeLimit: "10mb",
     },
     allowedHosts: [".monkeycode-ai.live"],
+    optimizePackageImports: ["lucide-react", "framer-motion"],
   },
   allowedDevOrigins: [".monkeycode-ai.live"],
 };

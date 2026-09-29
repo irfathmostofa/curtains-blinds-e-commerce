@@ -1,3 +1,5 @@
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { createPublicClient } from "@/lib/supabase/server";
 import { DEFAULT_SETTINGS, mergeHomepage } from "@/lib/site";
@@ -15,6 +17,8 @@ import type {
   SiteSettings,
   Testimonial,
 } from "@/lib/types";
+
+const CATALOG_REVALIDATE = 60;
 
 function hydrate(product: Product, categories: Category[], variants: ProductVariant[]): Product {
   return {
@@ -39,105 +43,74 @@ async function queryRows<T>(fn: (client: NonNullable<ReturnType<typeof catalogCl
   }
 }
 
-export async function getCategories(): Promise<Category[]> {
-  return queryRows(async (supabase) => {
+function cached<T>(key: string, fn: () => Promise<T>) {
+  return unstable_cache(fn, [key], { revalidate: CATALOG_REVALIDATE, tags: ["catalog"] });
+}
+
+const fetchCategories = cached("catalog-categories", async () =>
+  queryRows(async (supabase) => {
     const { data } = await supabase.from("categories").select("*").order("sort_order");
     return data as Category[] | null;
-  });
-}
+  })
+);
 
-export async function getCategoryBySlug(slug: string): Promise<Category | undefined> {
-  const all = await getCategories();
-  return all.find((c) => c.slug === slug);
-}
-
-export async function getProducts(opts?: { includeInactive?: boolean }): Promise<Product[]> {
-  const categories = await getCategories();
-  const variants = await getVariants();
-  const includeInactive = Boolean(opts?.includeInactive);
-  const products = await queryRows(async (supabase) => {
-    let query = supabase.from("products").select("*").order("created_at", { ascending: false });
-    if (!includeInactive) query = query.eq("is_active", true);
-    const { data } = await query;
-    return data as Product[] | null;
-  });
-  return products.map((p) => hydrate(p, categories, variants));
-}
-
-export async function getVariants(): Promise<ProductVariant[]> {
-  return queryRows(async (supabase) => {
+const fetchVariants = cached("catalog-variants", async () =>
+  queryRows(async (supabase) => {
     const { data } = await supabase.from("product_variants").select("*");
     return data as ProductVariant[] | null;
-  });
-}
+  })
+);
 
-export async function getProductBySlug(slug: string): Promise<Product | undefined> {
-  const products = await getProducts();
-  return products.find((p) => p.slug === slug);
-}
+const fetchActiveProducts = cached("catalog-products-active", async () => {
+  const supabase = catalogClient();
+  if (!supabase) return [] as Product[];
+  const [catRes, varRes, prodRes] = await Promise.all([
+    supabase.from("categories").select("*").order("sort_order"),
+    supabase.from("product_variants").select("*"),
+    supabase.from("products").select("*").eq("is_active", true).order("created_at", { ascending: false }),
+  ]);
+  const categories = (catRes.data as Category[]) ?? [];
+  const variants = (varRes.data as ProductVariant[]) ?? [];
+  const products = (prodRes.data as Product[]) ?? [];
+  return products.map((p) => hydrate(p, categories, variants));
+});
 
-export async function getProductsByCategory(categoryId: string): Promise<Product[]> {
-  const products = await getProducts();
-  return products.filter((p) => p.category_id === categoryId);
-}
-
-export async function getBestsellers(): Promise<Product[]> {
-  const products = await getProducts();
-  return products.filter((p) => p.is_bestseller);
-}
-
-export async function getRelatedProducts(product: Product, limit = 3): Promise<Product[]> {
-  const products = await getProducts();
-  return products.filter((p) => p.category_id === product.category_id && p.id !== product.id).slice(0, limit);
-}
-
-export async function getTestimonials(opts?: { includeHidden?: boolean }): Promise<Testimonial[]> {
-  const includeHidden = Boolean(opts?.includeHidden);
-  return queryRows(async (supabase) => {
-    let query = supabase.from("testimonials").select("*").order("created_at", { ascending: false });
-    if (!includeHidden) query = query.eq("is_featured", true);
-    const { data } = await query;
-    return data as Testimonial[] | null;
-  });
-}
-
-export async function getPartners(): Promise<Partner[]> {
-  return queryRows(async (supabase) => {
-    const { data } = await supabase.from("partners").select("*").order("sort_order");
-    return data as Partner[] | null;
-  });
-}
-
-export async function getFaqs(category?: string): Promise<Faq[]> {
-  const all = await queryRows(async (supabase) => {
+const fetchFaqs = cached("catalog-faqs", async () =>
+  queryRows(async (supabase) => {
     const { data } = await supabase.from("faqs").select("*").order("sort_order");
     return data as Faq[] | null;
-  });
-  return category ? all.filter((f) => f.category === category) : all;
-}
+  })
+);
 
-export async function getBlogPosts(opts?: { includeDrafts?: boolean }): Promise<BlogPost[]> {
-  const includeDrafts = Boolean(opts?.includeDrafts);
-  const posts = await queryRows(async (supabase) => {
-    let query = supabase.from("blog_posts").select("*").order("published_at", { ascending: false });
-    if (!includeDrafts) query = query.not("published_at", "is", null);
-    const { data } = await query;
+const fetchPartners = cached("catalog-partners", async () =>
+  queryRows(async (supabase) => {
+    const { data } = await supabase.from("partners").select("*").order("sort_order");
+    return data as Partner[] | null;
+  })
+);
+
+const fetchFeaturedTestimonials = cached("catalog-testimonials-featured", async () =>
+  queryRows(async (supabase) => {
+    const { data } = await supabase.from("testimonials").select("*").eq("is_featured", true).order("created_at", { ascending: false });
+    return data as Testimonial[] | null;
+  })
+);
+
+const fetchPublishedPosts = cached("catalog-blog-published", async () =>
+  queryRows(async (supabase) => {
+    const { data } = await supabase.from("blog_posts").select("*").not("published_at", "is", null).order("published_at", { ascending: false });
     return data as BlogPost[] | null;
-  });
-  return includeDrafts ? posts : posts.filter((p) => p.published_at);
-}
+  })
+);
 
-export async function getBlogPost(slug: string): Promise<BlogPost | undefined> {
-  const posts = await getBlogPosts();
-  return posts.find((p) => p.slug === slug);
-}
+const fetchCmsPages = cached("catalog-cms-pages", async () =>
+  queryRows(async (supabase) => {
+    const { data } = await supabase.from("cms_pages").select("*").order("slug");
+    return data as CmsPage[] | null;
+  })
+);
 
-export async function getCmsPage(slug: string): Promise<CmsPage | undefined> {
-  const pages = await getCmsPages();
-  return pages.find((p) => p.slug === slug);
-}
-
-export async function getSiteSettings(): Promise<SiteSettings> {
+const fetchSiteSettings = cached("catalog-site-settings", async (): Promise<SiteSettings> => {
   const supabase = catalogClient();
   if (!supabase) return { ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) };
   try {
@@ -168,7 +141,96 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   } catch {
     return { ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) };
   }
+});
+
+export const getCategories = cache(fetchCategories);
+export const getVariants = cache(fetchVariants);
+
+export const getProducts = cache(async (opts?: { includeInactive?: boolean }): Promise<Product[]> => {
+  if (!opts?.includeInactive) return fetchActiveProducts();
+  const [categories, variants, products] = await Promise.all([
+    queryRows(async (supabase) => {
+      const { data } = await supabase.from("categories").select("*").order("sort_order");
+      return data as Category[] | null;
+    }),
+    queryRows(async (supabase) => {
+      const { data } = await supabase.from("product_variants").select("*");
+      return data as ProductVariant[] | null;
+    }),
+    queryRows(async (supabase) => {
+      const { data } = await supabase.from("products").select("*").order("created_at", { ascending: false });
+      return data as Product[] | null;
+    }),
+  ]);
+  return products.map((p) => hydrate(p, categories, variants));
+});
+
+export const getCategoryBySlug = cache(async (slug: string): Promise<Category | undefined> => {
+  const all = await getCategories();
+  return all.find((c) => c.slug === slug);
+});
+
+export const getProductBySlug = cache(async (slug: string): Promise<Product | undefined> => {
+  const products = await getProducts();
+  return products.find((p) => p.slug === slug);
+});
+
+export const getProductsByCategory = cache(async (categoryId: string): Promise<Product[]> => {
+  const products = await getProducts();
+  return products.filter((p) => p.category_id === categoryId);
+});
+
+export const getBestsellers = cache(async (): Promise<Product[]> => {
+  const products = await getProducts();
+  return products.filter((p) => p.is_bestseller);
+});
+
+export const getRelatedProducts = cache(async (productId: string, categoryId: string, limit = 3): Promise<Product[]> => {
+  const products = await getProducts();
+  return products.filter((p) => p.category_id === categoryId && p.id !== productId).slice(0, limit);
+});
+
+export async function getTestimonials(opts?: { includeHidden?: boolean }): Promise<Testimonial[]> {
+  if (opts?.includeHidden) {
+    return queryRows(async (supabase) => {
+      const { data } = await supabase.from("testimonials").select("*").order("created_at", { ascending: false });
+      return data as Testimonial[] | null;
+    });
+  }
+  return fetchFeaturedTestimonials();
 }
+
+export const getPartners = cache(fetchPartners);
+
+export const getFaqs = cache(async (category?: string): Promise<Faq[]> => {
+  const all = await fetchFaqs();
+  return category ? all.filter((f) => f.category === category) : all;
+});
+
+export async function getBlogPosts(opts?: { includeDrafts?: boolean }): Promise<BlogPost[]> {
+  if (opts?.includeDrafts) {
+    return queryRows(async (supabase) => {
+      const { data } = await supabase.from("blog_posts").select("*").order("published_at", { ascending: false });
+      return data as BlogPost[] | null;
+    });
+  }
+  const posts = await fetchPublishedPosts();
+  return posts.filter((p) => p.published_at);
+}
+
+export const getBlogPost = cache(async (slug: string): Promise<BlogPost | undefined> => {
+  const posts = await getBlogPosts();
+  return posts.find((p) => p.slug === slug);
+});
+
+export const getCmsPages = cache(fetchCmsPages);
+
+export const getCmsPage = cache(async (slug: string): Promise<CmsPage | undefined> => {
+  const pages = await getCmsPages();
+  return pages.find((p) => p.slug === slug);
+});
+
+export const getSiteSettings = cache(fetchSiteSettings);
 
 export async function getLeads(): Promise<Lead[]> {
   return queryRows(async (supabase) => {
@@ -188,13 +250,6 @@ export async function getChatLeads(): Promise<ChatLead[]> {
   return queryRows(async (supabase) => {
     const { data } = await supabase.from("chat_leads").select("*").order("created_at", { ascending: false });
     return data as ChatLead[] | null;
-  });
-}
-
-export async function getCmsPages(): Promise<CmsPage[]> {
-  return queryRows(async (supabase) => {
-    const { data } = await supabase.from("cms_pages").select("*").order("slug");
-    return data as CmsPage[] | null;
   });
 }
 

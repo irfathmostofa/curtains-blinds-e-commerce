@@ -5,10 +5,14 @@ import { isSupabaseConfigured } from "@/lib/utils";
 const DEMO_COOKIE = "md_admin_session";
 
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({ request });
-
   const isAdminPath = request.nextUrl.pathname.startsWith("/admin");
   const isLogin = request.nextUrl.pathname.startsWith("/admin/login");
+
+  if (!isAdminPath) {
+    return NextResponse.next();
+  }
+
+  let response = NextResponse.next({ request });
 
   if (!isSupabaseConfigured()) {
     const demo = request.cookies.get(DEMO_COOKIE)?.value === "1";
