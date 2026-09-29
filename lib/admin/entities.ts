@@ -166,7 +166,7 @@ export const entities: Record<string, EntityConfig> = {
     fields: [
       { name: "name", label: "Name", type: "text", required: true },
       { name: "phone", label: "Phone", type: "tel", required: true },
-      { name: "email", label: "Email", type: "email", required: true },
+      { name: "email", label: "Email", type: "email" },
       { name: "product_interest", label: "Interest", type: "text" },
       { name: "budget_range", label: "Budget range", type: "text" },
       { name: "message", label: "Message", type: "textarea" },
@@ -223,7 +223,7 @@ export const entities: Record<string, EntityConfig> = {
     fields: [
       { name: "name", label: "Name", type: "text", required: true },
       { name: "phone", label: "Phone", type: "tel", required: true },
-      { name: "email", label: "Email", type: "email", required: true },
+      { name: "email", label: "Email", type: "email" },
       { name: "location", label: "Location", type: "select", required: true, options: [
         { label: "Dubai", value: "Dubai" },
         { label: "Abu Dhabi", value: "Abu Dhabi" },

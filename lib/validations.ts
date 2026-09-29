@@ -2,13 +2,18 @@ import { z } from "zod";
 
 const honeypot = z.string().max(0).optional().or(z.literal(""));
 
+const optionalEmail = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value), "Enter a valid email");
+
 export const estimateSchema = z.object({
   rooms: z.string().min(1, "Select room count"),
   productType: z.string().min(1, "Select a product type"),
   budget: z.string().min(1, "Select a budget range"),
   name: z.string().min(2, "Enter your name"),
   phone: z.string().min(7, "Enter a valid phone"),
-  email: z.string().email("Enter a valid email"),
+  email: optionalEmail,
   message: z.string().max(2000),
   company: honeypot,
 });
@@ -20,7 +25,7 @@ export const bookingSchema = z.object({
   address: z.string().min(8, "Enter your address"),
   name: z.string().min(2, "Enter your name"),
   phone: z.string().min(7, "Enter a valid phone"),
-  email: z.string().email("Enter a valid email"),
+  email: optionalEmail,
   notes: z.string().max(2000),
   company: honeypot,
 });
@@ -33,7 +38,7 @@ export const loginSchema = z.object({
 export const chatLeadSchema = z.object({
   name: z.string().min(2, "Enter your name"),
   phone: z.string().min(7, "Enter a valid phone"),
-  email: z.string().email("Enter a valid email"),
+  email: optionalEmail,
   product_interest: z.string().min(1),
   rooms: z.string().min(1),
   location: z.string().min(1),

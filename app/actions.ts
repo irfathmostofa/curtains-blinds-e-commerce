@@ -2,7 +2,7 @@
 
 import { cookies, headers } from "next/headers";
 import { bookingSchema, chatLeadSchema, estimateSchema } from "@/lib/validations";
-import { createClient } from "@/lib/supabase/server";
+import { createWriteClient } from "@/lib/supabase/admin";
 import { getStore } from "@/lib/data/store";
 import type { Booking, ChatLead, Lead } from "@/lib/types";
 import { trackServerEvent } from "@/lib/analytics/server";
@@ -36,7 +36,7 @@ export async function submitEstimate(input: unknown) {
   const payload = {
     name: parsed.data.name,
     phone: parsed.data.phone,
-    email: parsed.data.email,
+    email: parsed.data.email || "",
     product_interest: parsed.data.productType,
     budget_range: parsed.data.budget,
     message: `Rooms: ${parsed.data.rooms}. ${parsed.data.message || ""}`.trim(),
@@ -44,7 +44,7 @@ export async function submitEstimate(input: unknown) {
     status: "new",
   };
 
-  const supabase = createClient();
+  const supabase = createWriteClient();
   if (supabase) {
     const { error } = await supabase.from("leads").insert(payload);
     if (error) return { ok: false, error: error.message };
@@ -79,7 +79,7 @@ export async function submitBooking(input: unknown) {
   const payload = {
     name: parsed.data.name,
     phone: parsed.data.phone,
-    email: parsed.data.email,
+    email: parsed.data.email || "",
     location: parsed.data.location,
     address: parsed.data.address,
     preferred_date: parsed.data.preferredDate,
@@ -88,7 +88,7 @@ export async function submitBooking(input: unknown) {
     status: "new",
   };
 
-  const supabase = createClient();
+  const supabase = createWriteClient();
   if (supabase) {
     const { error } = await supabase.from("bookings").insert(payload);
     if (error) return { ok: false, error: error.message };
@@ -129,7 +129,7 @@ export async function submitChatLead(input: unknown) {
   const payload = {
     name: parsed.data.name,
     phone: parsed.data.phone,
-    email: parsed.data.email,
+    email: parsed.data.email || "",
     product_interest: parsed.data.product_interest,
     rooms: parsed.data.rooms,
     location: parsed.data.location,
@@ -142,7 +142,7 @@ export async function submitChatLead(input: unknown) {
     status: "new" as const,
   };
 
-  const supabase = createClient();
+  const supabase = createWriteClient();
   if (supabase) {
     const { error } = await supabase.from("chat_leads").insert(payload);
     if (error) return { ok: false, error: error.message };

@@ -128,6 +128,11 @@ const ar: Record<string, string> = {
   "Other Dubai": "دبي أخرى",
   "Nice to meet you, {name}. What is the best mobile number?": "سررت بمعرفتك، {name}. ما أفضل رقم جوال؟",
   "And your email, so we can send the written estimate?": "وبريدك الإلكتروني لنرسل عرض السعر المكتوب؟",
+  "Email is optional — add it if you want a written estimate, or skip.":
+    "البريد الإلكتروني اختياري — أضفه إن أردت عرض السعر مكتوبًا، أو تخطَّه.",
+  "Email (optional)": "البريد الإلكتروني (اختياري)",
+  "Skip email": "تخطي البريد الإلكتروني",
+  Skip: "تخطي",
   "What are you considering?": "ماذا تفكر أن تطلب؟",
   "How many rooms should we include?": "كم غرفة نُدرج؟",
   "Which area should we visit?": "أي منطقة نزور؟",

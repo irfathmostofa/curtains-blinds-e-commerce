@@ -148,7 +148,7 @@ export function BookingForm() {
                   <Input id="bphone" {...form.register("phone")} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bemail">Email</Label>
+                  <Label htmlFor="bemail">Email (optional)</Label>
                   <Input id="bemail" type="email" {...form.register("email")} />
                 </div>
                 <div className="space-y-2">

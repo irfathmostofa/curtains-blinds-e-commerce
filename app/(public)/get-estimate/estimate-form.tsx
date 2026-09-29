@@ -150,7 +150,7 @@ export function EstimateForm() {
                   <Input id="phone" {...form.register("phone")} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Email (optional)</Label>
                   <Input id="email" type="email" {...form.register("email")} />
                 </div>
                 <div className="space-y-2">

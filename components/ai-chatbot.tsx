@@ -93,7 +93,7 @@ export function AiChatbot() {
   const prompt = useMemo(() => {
     if (step === "name") return t("Your full name");
     if (step === "phone") return t("Mobile number");
-    if (step === "email") return t("Email address");
+    if (step === "email") return t("Email (optional)");
     return t("Type a reply");
   }, [step, t]);
 
@@ -131,10 +131,25 @@ export function AiChatbot() {
     setStep("done");
   }
 
+  function continueAfterEmail(next: Draft, display: string) {
+    setDraft(next);
+    push("user", display);
+    setTyping(true);
+    window.setTimeout(() => {
+      setTyping(false);
+      push("bot", t("What are you considering?"));
+      setStep("product");
+    }, 420);
+  }
+
+  function skipEmail() {
+    continueAfterEmail({ ...draft, email: "" }, t("Skip"));
+  }
+
   async function onTextSubmit(e: FormEvent) {
     e.preventDefault();
     const value = input.trim();
-    if (!value) return;
+    if (step !== "email" && !value) return;
     setInput("");
     if (step === "name") {
       const next = { ...draft, name: value };
@@ -155,21 +170,13 @@ export function AiChatbot() {
       setTyping(true);
       window.setTimeout(() => {
         setTyping(false);
-        push("bot", t("And your email, so we can send the written estimate?"));
+        push("bot", t("Email is optional — add it if you want a written estimate, or skip."));
         setStep("email");
       }, 420);
       return;
     }
     if (step === "email") {
-      const next = { ...draft, email: value };
-      setDraft(next);
-      push("user", value);
-      setTyping(true);
-      window.setTimeout(() => {
-        setTyping(false);
-        push("bot", t("What are you considering?"));
-        setStep("product");
-      }, 420);
+      continueAfterEmail({ ...draft, email: value }, value || t("Skip"));
     }
   }
 
@@ -289,16 +296,6 @@ export function AiChatbot() {
           >
             {/* Icon bubble — pulsing halo replaces the old ring-dot badge */}
             <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-primary text-accent sm:h-11 sm:w-11 sm:bg-accent sm:text-accent-foreground">
-              {/* Soft pulse ring behind the icon to signal "online / live" */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute inset-0 animate-ping rounded-full bg-emerald-400/25 [animation-duration:2.4s]"
-              />
-              {/* Subtle emerald glow */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-emerald-400/40"
-              />
               <Sparkles className="relative h-5 w-5 sm:h-4 sm:w-4" />
             </span>
 
@@ -494,11 +491,16 @@ export function AiChatbot() {
                     autoComplete={step === "email" ? "email" : step === "phone" ? "tel" : "name"}
                     inputMode={step === "phone" ? "tel" : step === "email" ? "email" : "text"}
                   />
-                  <Button type="submit" size="icon" className="h-9 w-9 shrink-0" aria-label={t("Send")} disabled={!input.trim()}>
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </form>
+                    <Button type="submit" size="icon" className="h-9 w-9 shrink-0" aria-label={t("Send")} disabled={step !== "email" && !input.trim()}>
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {step === "email" ? (
+                    <button type="button" className="mt-2 w-full text-center text-xs text-muted-foreground underline-offset-2 hover:underline" onClick={skipEmail}>
+                      {t("Skip email")}
+                    </button>
+                  ) : null}
+                </form>
             ) : (
               <p className="border-t bg-card px-4 py-2 text-center text-[11px] text-muted-foreground">
                 {t("Estimates are indicative. Final quote after measuring.")}
