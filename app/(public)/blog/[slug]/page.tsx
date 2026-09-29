@@ -29,7 +29,7 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
   const post = await getBlogPost(params.slug);
   if (!post) notFound();
   return (
-    <main className="container space-y-8 py-10">
+    <main className="container space-y-6 pt-4 pb-10 md:pt-5">
       <JsonLd
         data={articleJsonLd({
           title: post.title,

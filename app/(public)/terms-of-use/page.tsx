@@ -16,7 +16,7 @@ export default async function TermsPage() {
   const page = await getCmsPage("terms-of-use");
   if (!page) notFound();
   return (
-    <main className="container space-y-8 py-10">
+    <main className="container space-y-6 pt-4 pb-10 md:pt-5">
       <Breadcrumbs items={[{ name: "Home", path: "/" }, { name: page.title, path: "/terms-of-use" }]} />
       <article className="prose prose-stone max-w-3xl">
         <h1>{page.title}</h1>

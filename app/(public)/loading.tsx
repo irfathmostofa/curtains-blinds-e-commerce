@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <main className="container py-12 sm:py-16" aria-busy="true" aria-live="polite">
+    <main className="container pt-4 pb-12 md:pt-5" aria-busy="true" aria-live="polite">
       <div className="mx-auto max-w-2xl space-y-4 text-center">
         <div className="mx-auto h-3 w-24 animate-pulse rounded-full bg-accent/20" />
         <div className="mx-auto h-10 w-64 max-w-full animate-pulse rounded bg-secondary" />

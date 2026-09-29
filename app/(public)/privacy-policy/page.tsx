@@ -16,7 +16,7 @@ export default async function PrivacyPage() {
   const page = await getCmsPage("privacy-policy");
   if (!page) notFound();
   return (
-    <main className="container space-y-8 py-10">
+    <main className="container space-y-6 pt-4 pb-10 md:pt-5">
       <Breadcrumbs items={[{ name: "Home", path: "/" }, { name: page.title, path: "/privacy-policy" }]} />
       <article className="prose prose-stone max-w-3xl">
         <h1>{page.title}</h1>

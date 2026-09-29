@@ -17,7 +17,7 @@ export const metadata = buildMetadata({
 export default async function BlogPage() {
   const posts = await getBlogPosts();
   return (
-    <main className="container space-y-8 py-10">
+    <main className="container space-y-6 pt-4 pb-10 md:pt-5">
       <Breadcrumbs items={[{ name: "Home", path: "/" }, { name: "Blog", path: "/blog" }]} />
       <SectionHeading as="h1" title="Journal" subtitle="Practical notes on fabric, heat and motors." />
       <Stagger className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">

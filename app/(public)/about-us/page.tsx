@@ -14,7 +14,7 @@ export const metadata = buildMetadata({
 export default async function AboutPage() {
   const settings = await getSiteSettings();
   return (
-    <main className="container space-y-10 py-10">
+    <main className="container space-y-6 pt-4 pb-10 md:pt-5">
       <Breadcrumbs items={[{ name: "Home", path: "/" }, { name: "About us", path: "/about-us" }]} />
       <SectionHeading
         as="h1"

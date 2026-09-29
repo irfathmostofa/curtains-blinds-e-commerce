@@ -54,7 +54,7 @@ export default async function ProductPage({ params }: { params: { category: stri
   const path = `/products/${params.category}/${product.slug}`;
 
   return (
-    <main className="container space-y-12 py-10">
+    <main className="container space-y-8 pt-4 pb-10 md:pt-5">
       <RememberProduct slug={product.slug} />
       <ProductViewTracker name={product.name} slug={product.slug} price={product.base_price} />
       <JsonLd

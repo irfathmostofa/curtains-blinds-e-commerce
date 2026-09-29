@@ -16,7 +16,7 @@ export const metadata = buildMetadata({
 export default async function FaqsPage() {
   const faqs = await getFaqs();
   return (
-    <main className="container space-y-8 py-10">
+    <main className="container space-y-6 pt-4 pb-10 md:pt-5">
       <JsonLd data={faqJsonLd(faqs)} />
       <Breadcrumbs items={[{ name: "Home", path: "/" }, { name: "FAQs", path: "/faqs" }]} />
       <SectionHeading as="h1" title="Frequently asked questions" subtitle="Answers rendered as real text so you — and search engines — can read them." />

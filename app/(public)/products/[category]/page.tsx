@@ -38,7 +38,7 @@ export default async function CategoryPage({
   const [products, categories] = await Promise.all([getProductsByCategory(category.id), getCategories()]);
 
   return (
-    <main className="container space-y-5 py-6 md:py-8">
+    <main className="container space-y-4 pt-4 pb-8 md:pt-5">
       <Breadcrumbs
         items={[
           { name: "Home", path: "/" },

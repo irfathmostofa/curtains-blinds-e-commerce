@@ -79,7 +79,7 @@ export function FilteredProducts({
   if (!catalog.length || !tabs.length) return null;
 
   return (
-    <div className="container space-y-8 py-14 sm:py-16">
+    <div className="container space-y-6 py-10 sm:py-12">
       <Reveal>
         <SectionHeading eyebrow={copy.eyebrow} title={copy.title} subtitle={copy.subtitle || undefined} />
       </Reveal>

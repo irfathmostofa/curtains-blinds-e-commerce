@@ -12,7 +12,7 @@ export const metadata = buildMetadata({
 
 export default function BookPage() {
   return (
-    <main className="container space-y-8 py-10">
+    <main className="container space-y-6 pt-4 pb-10 md:pt-5">
       <Breadcrumbs items={[{ name: "Home", path: "/" }, { name: "Book a visit", path: "/book" }]} />
       <SectionHeading
         as="h1"
