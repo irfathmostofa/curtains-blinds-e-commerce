@@ -91,7 +91,8 @@ export function sanitizeEntityPayload(entity: string, payload: Record<string, un
   }
 
   if (entity === "products") {
-    raw.category_id = asNullableString(raw.category_id);
+    const categoryId = asNullableString(raw.category_id);
+    raw.category_id = categoryId && isUuid(categoryId) ? categoryId : null;
     raw.base_price = asNumber(raw.base_price, 0);
     raw.is_bestseller = asBool(raw.is_bestseller);
     raw.is_active = raw.is_active === undefined ? true : asBool(raw.is_active);
@@ -104,7 +105,8 @@ export function sanitizeEntityPayload(entity: string, payload: Record<string, un
   }
 
   if (entity === "categories") {
-    raw.parent_id = asNullableString(raw.parent_id);
+    const parentId = asNullableString(raw.parent_id);
+    raw.parent_id = parentId && isUuid(parentId) ? parentId : null;
     raw.sort_order = asNumber(raw.sort_order, 0);
     raw.description = asString(raw.description);
     raw.image_url = asString(raw.image_url);

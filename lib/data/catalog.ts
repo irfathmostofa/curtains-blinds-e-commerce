@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { DEFAULT_SETTINGS, mergeHomepage } from "@/lib/site";
-import { getStore } from "@/lib/data/store";
 import type {
   BlogPost,
   Booking,
@@ -25,24 +24,22 @@ function hydrate(product: Product, categories: Category[], variants: ProductVari
   };
 }
 
-async function fromSupabase<T>(fn: () => Promise<T | null>, fallback: T): Promise<T> {
+async function queryRows<T>(fn: (client: NonNullable<ReturnType<typeof createClient>>) => Promise<T[] | null>): Promise<T[]> {
+  const supabase = createClient();
+  if (!supabase) return [];
   try {
-    const supabase = createClient();
-    if (!supabase) return fallback;
-    const data = await fn();
-    return data ?? fallback;
+    const data = await fn(supabase);
+    return data ?? [];
   } catch {
-    return fallback;
+    return [];
   }
 }
 
 export async function getCategories(): Promise<Category[]> {
-  return fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
+  return queryRows(async (supabase) => {
     const { data } = await supabase.from("categories").select("*").order("sort_order");
-    return (data as Category[] | null)?.length ? (data as Category[]) : null;
-  }, getStore().categories);
+    return data as Category[] | null;
+  });
 }
 
 export async function getCategoryBySlug(slug: string): Promise<Category | undefined> {
@@ -54,24 +51,20 @@ export async function getProducts(opts?: { includeInactive?: boolean }): Promise
   const categories = await getCategories();
   const variants = await getVariants();
   const includeInactive = Boolean(opts?.includeInactive);
-  const products = await fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
+  const products = await queryRows(async (supabase) => {
     let query = supabase.from("products").select("*").order("created_at", { ascending: false });
     if (!includeInactive) query = query.eq("is_active", true);
     const { data } = await query;
-    return (data as Product[] | null)?.length ? (data as Product[]) : null;
-  }, includeInactive ? getStore().products : getStore().products.filter((p) => p.is_active));
+    return data as Product[] | null;
+  });
   return products.map((p) => hydrate(p, categories, variants));
 }
 
 export async function getVariants(): Promise<ProductVariant[]> {
-  return fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
+  return queryRows(async (supabase) => {
     const { data } = await supabase.from("product_variants").select("*");
-    return (data as ProductVariant[] | null)?.length ? (data as ProductVariant[]) : null;
-  }, getStore().variants);
+    return data as ProductVariant[] | null;
+  });
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
@@ -96,45 +89,37 @@ export async function getRelatedProducts(product: Product, limit = 3): Promise<P
 
 export async function getTestimonials(opts?: { includeHidden?: boolean }): Promise<Testimonial[]> {
   const includeHidden = Boolean(opts?.includeHidden);
-  return fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
+  return queryRows(async (supabase) => {
     let query = supabase.from("testimonials").select("*").order("created_at", { ascending: false });
     if (!includeHidden) query = query.eq("is_featured", true);
     const { data } = await query;
-    return (data as Testimonial[] | null)?.length ? (data as Testimonial[]) : null;
-  }, includeHidden ? getStore().testimonials : getStore().testimonials.filter((t) => t.is_featured));
+    return data as Testimonial[] | null;
+  });
 }
 
 export async function getPartners(): Promise<Partner[]> {
-  return fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
+  return queryRows(async (supabase) => {
     const { data } = await supabase.from("partners").select("*").order("sort_order");
-    return (data as Partner[] | null)?.length ? (data as Partner[]) : null;
-  }, getStore().partners);
+    return data as Partner[] | null;
+  });
 }
 
 export async function getFaqs(category?: string): Promise<Faq[]> {
-  const all = await fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
+  const all = await queryRows(async (supabase) => {
     const { data } = await supabase.from("faqs").select("*").order("sort_order");
-    return (data as Faq[] | null)?.length ? (data as Faq[]) : null;
-  }, getStore().faqs);
+    return data as Faq[] | null;
+  });
   return category ? all.filter((f) => f.category === category) : all;
 }
 
 export async function getBlogPosts(opts?: { includeDrafts?: boolean }): Promise<BlogPost[]> {
   const includeDrafts = Boolean(opts?.includeDrafts);
-  const posts = await fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
+  const posts = await queryRows(async (supabase) => {
     let query = supabase.from("blog_posts").select("*").order("published_at", { ascending: false });
     if (!includeDrafts) query = query.not("published_at", "is", null);
     const { data } = await query;
-    return (data as BlogPost[] | null)?.length ? (data as BlogPost[]) : null;
-  }, getStore().posts);
+    return data as BlogPost[] | null;
+  });
   return includeDrafts ? posts : posts.filter((p) => p.published_at);
 }
 
@@ -144,21 +129,16 @@ export async function getBlogPost(slug: string): Promise<BlogPost | undefined> {
 }
 
 export async function getCmsPage(slug: string): Promise<CmsPage | undefined> {
-  const pages = await fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
-    const { data } = await supabase.from("cms_pages").select("*");
-    return (data as CmsPage[] | null)?.length ? (data as CmsPage[]) : null;
-  }, getStore().pages);
+  const pages = await getCmsPages();
   return pages.find((p) => p.slug === slug);
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
-  return fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
+  const supabase = createClient();
+  if (!supabase) return { ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) };
+  try {
     const { data } = await supabase.from("site_settings").select("key, value");
-    if (!data?.length) return null;
+    if (!data?.length) return { ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) };
     const map = Object.fromEntries(data.map((row: { key: string; value: unknown }) => [row.key, row.value]));
     return {
       ...DEFAULT_SETTINGS,
@@ -181,57 +161,44 @@ export async function getSiteSettings(): Promise<SiteSettings> {
             : undefined)
       ),
     } as SiteSettings;
-  }, (() => {
-    const settings = getStore().settings;
-    return { ...settings, homepage: mergeHomepage(settings.homepage) };
-  })());
+  } catch {
+    return { ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) };
+  }
 }
 
 export async function getLeads(): Promise<Lead[]> {
-  return fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
+  return queryRows(async (supabase) => {
     const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
-    return (data as Lead[] | null) ?? null;
-  }, getStore().leads);
+    return data as Lead[] | null;
+  });
 }
 
 export async function getBookings(): Promise<Booking[]> {
-  return fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
+  return queryRows(async (supabase) => {
     const { data } = await supabase.from("bookings").select("*").order("created_at", { ascending: false });
-    return (data as Booking[] | null) ?? null;
-  }, getStore().bookings);
+    return data as Booking[] | null;
+  });
 }
 
 export async function getChatLeads(): Promise<ChatLead[]> {
-  return fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
+  return queryRows(async (supabase) => {
     const { data } = await supabase.from("chat_leads").select("*").order("created_at", { ascending: false });
-    return (data as ChatLead[] | null) ?? null;
-  }, getStore().chatLeads);
+    return data as ChatLead[] | null;
+  });
 }
 
 export async function getCmsPages(): Promise<CmsPage[]> {
-  return fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
+  return queryRows(async (supabase) => {
     const { data } = await supabase.from("cms_pages").select("*").order("slug");
-    return (data as CmsPage[] | null)?.length ? (data as CmsPage[]) : null;
-  }, getStore().pages);
+    return data as CmsPage[] | null;
+  });
 }
 
 export async function getAdminUsers() {
-  return fromSupabase(async () => {
-    const supabase = createClient();
-    if (!supabase) return null;
+  return queryRows(async (supabase) => {
     const { data } = await supabase.from("admin_users").select("id, email, role").order("email");
-    return (data as { id: string; email: string; role: string }[] | null)?.length
-      ? (data as { id: string; email: string; role: string }[])
-      : null;
-  }, getStore().users);
+    return data as { id: string; email: string; role: string }[] | null;
+  });
 }
 
 export function getRecentlyViewedSlugs(): string[] {

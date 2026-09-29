@@ -1,17 +1,12 @@
 import type { Metadata } from "next";
 import { DEFAULT_SETTINGS, SITE_NAME, SITE_URL } from "@/lib/site";
-import { getStore } from "@/lib/data/store";
 import type { SeoConfig, SiteSettings } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
 import { stripHtml } from "./html";
 
 
 function siteDefaults(): SiteSettings {
-  try {
-    return getStore().settings;
-  } catch {
-    return DEFAULT_SETTINGS;
-  }
+  return DEFAULT_SETTINGS;
 }
 
 export function parseKeywords(value?: string | string[] | null) {

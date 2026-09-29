@@ -73,6 +73,9 @@ export async function upsertEntity(entity: string, payload: Record<string, unkno
     ...payload,
     ...(idField === "id" ? { id } : { slug: id }),
   });
+  if (entity === "products" && !isUuid(row.category_id)) {
+    return { error: "Choose a category from the list. Run supabase/migrations/20260929_seed_catalogue.sql if none appear." };
+  }
   const variants = entity === "products" ? sanitizeVariants(String(row.id || id), payload.variants) : [];
   const lookupId = incomingId ? String(incomingId) : id;
 

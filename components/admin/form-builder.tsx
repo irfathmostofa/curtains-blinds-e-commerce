@@ -215,11 +215,13 @@ export function FormBuilder({
   function fieldOptions(field: FieldConfig) {
     if (field.options?.length) return field.options;
     if (field.name === "category_id") {
-      return categories.map((c) => ({ label: c.name, value: c.id }));
+      return categories
+        .filter((c) => /^[0-9a-f-]{36}$/i.test(c.id))
+        .map((c) => ({ label: c.name, value: c.id }));
     }
     if (field.name === "parent_id") {
       return categories
-        .filter((c) => c.id !== values.id)
+        .filter((c) => c.id !== values.id && /^[0-9a-f-]{36}$/i.test(c.id))
         .map((c) => ({ label: c.name, value: c.id }));
     }
     return [];
