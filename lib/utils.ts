@@ -22,10 +22,10 @@ export function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-export function absoluteUrl(path = "/") {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+export function absoluteUrl(path = "/", baseUrl?: string) {
+  const base = (baseUrl || "http://localhost:3000").replace(/\/$/, "");
   if (path.startsWith("http")) return path;
-  return `${base.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 export function isSupabaseConfigured() {

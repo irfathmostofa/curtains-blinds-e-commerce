@@ -45,15 +45,22 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               <Input id="company" value={settings.company_name} onChange={(e) => patch({ company_name: e.target.value })} />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="site-url">Public site URL</Label>
+              <Input
+                id="site-url"
+                placeholder="https://maisondrape.ae"
+                value={settings.site_url}
+                onChange={(e) => patch({ site_url: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="phone">Phone</Label>
               <Input id="phone" value={settings.phone} onChange={(e) => patch({ phone: e.target.value })} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" value={settings.email} onChange={(e) => patch({ email: e.target.value })} />
-              <p className="text-xs text-muted-foreground">
-                New estimate, booking and chatbot leads are emailed here. Requires RESEND_API_KEY in environment.
-              </p>
+              <p className="text-xs text-muted-foreground">New estimate, booking and chatbot leads are emailed here.</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="wa">WhatsApp number</Label>
@@ -70,7 +77,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           <div>
             <h2 className="font-serif text-xl">Analytics & pixels</h2>
             <p className="text-xs text-muted-foreground">
-              Client-side tags load after cookie consent. Server-side Facebook, Instagram and TikTok conversions use the matching access tokens in environment variables.
+              Client-side tags load after cookie consent. Conversion API tokens stay admin-only and are not exposed on the public site.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -94,6 +101,83 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
             <div className="space-y-2">
               <Label htmlFor="tt-pixel">TikTok pixel ID</Label>
               <Input id="tt-pixel" placeholder="CXXXXXXXXXXXX" value={settings.tiktok_pixel_id} onChange={(e) => patch({ tiktok_pixel_id: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="meta-capi">Facebook CAPI access token</Label>
+              <Input
+                id="meta-capi"
+                type="password"
+                autoComplete="off"
+                value={settings.meta_capi_access_token}
+                onChange={(e) => patch({ meta_capi_access_token: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ig-capi">Instagram CAPI access token</Label>
+              <Input
+                id="ig-capi"
+                type="password"
+                autoComplete="off"
+                value={settings.instagram_capi_access_token}
+                onChange={(e) => patch({ instagram_capi_access_token: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tt-token">TikTok access token</Label>
+              <Input
+                id="tt-token"
+                type="password"
+                autoComplete="off"
+                value={settings.tiktok_access_token}
+                onChange={(e) => patch({ tiktok_access_token: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="meta-test">Meta test event code</Label>
+              <Input
+                id="meta-test"
+                value={settings.meta_capi_test_event_code}
+                onChange={(e) => patch({ meta_capi_test_event_code: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tt-test">TikTok test event code</Label>
+              <Input
+                id="tt-test"
+                value={settings.tiktok_test_event_code}
+                onChange={(e) => patch({ tiktok_test_event_code: e.target.value })}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
+          <div>
+            <h2 className="font-serif text-xl">Email delivery</h2>
+            <p className="text-xs text-muted-foreground">
+              Resend sends admin notifications for estimates, bookings and chatbot leads. The recipient is the contact email above.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="resend-key">Resend API key</Label>
+              <Input
+                id="resend-key"
+                type="password"
+                autoComplete="off"
+                placeholder="re_xxxxxxxx"
+                value={settings.resend_api_key}
+                onChange={(e) => patch({ resend_api_key: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="resend-from">From email</Label>
+              <Input
+                id="resend-from"
+                placeholder="Maison Drape &lt;hello@maisondrape.ae&gt;"
+                value={settings.resend_from_email}
+                onChange={(e) => patch({ resend_from_email: e.target.value })}
+              />
             </div>
           </div>
         </section>

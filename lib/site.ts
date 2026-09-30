@@ -6,18 +6,46 @@ import type {
   SiteSettings,
 } from "@/lib/types";
 
-export const SITE_NAME =
-  process.env.NEXT_PUBLIC_SITE_NAME || "Maison Drape";
+export const SITE_NAME = "Maison Drape";
 
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+export const SITE_URL = "http://localhost:3000";
+
+export const SECRET_SETTING_KEYS = [
+  "resend_api_key",
+  "resend_from_email",
+  "meta_capi_access_token",
+  "instagram_capi_access_token",
+  "tiktok_access_token",
+  "meta_capi_test_event_code",
+  "tiktok_test_event_code",
+] as const;
+
+export type SecretSettingKey = (typeof SECRET_SETTING_KEYS)[number];
+
+export function resolveSiteUrl(settings?: Pick<SiteSettings, "site_url"> | null) {
+  const raw = settings?.site_url?.trim() || SITE_URL;
+  return raw.replace(/\/$/, "") || SITE_URL;
+}
+
+export function resolveSiteName(settings?: Pick<SiteSettings, "company_name"> | null) {
+  return settings?.company_name?.trim() || SITE_NAME;
+}
+
+export function omitSecrets<T extends Partial<SiteSettings>>(settings: T): T {
+  const next = { ...settings };
+  for (const key of SECRET_SETTING_KEYS) {
+    (next as SiteSettings)[key] = "";
+  }
+  return next;
+}
 
 export const DEFAULT_SETTINGS: SiteSettings = {
   company_name: SITE_NAME,
+  site_url: SITE_URL,
   tagline: "Bespoke curtains, blinds and motorised window treatments across the UAE.",
-  phone: process.env.NEXT_PUBLIC_PHONE || "+971 4 555 1200",
-  email: process.env.NEXT_PUBLIC_EMAIL || "hello@maisondrape.ae",
-  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "971500000000",
+  phone: "+971 4 555 1200",
+  email: "hello@maisondrape.ae",
+  whatsapp: "971500000000",
   business_hours: "Saturday–Thursday, 9:00–20:00",
   social_links: [
     { label: "Instagram", href: "https://instagram.com/maisondrape" },
@@ -62,13 +90,20 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     keywords:
       "curtains Dubai, custom curtains Dubai, blackout curtains Dubai, sheer curtains Dubai, blinds Abu Dhabi, roller blinds Dubai, motorised curtains UAE, motorized curtain tracks Dubai, window treatments Dubai, made to measure curtains UAE, Palm Jumeirah curtains, Dubai Marina blinds",
     twitter_handle: "@maisondrape",
-    google_site_verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || "",
-    bing_site_verification: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || "",
+    google_site_verification: "",
+    bing_site_verification: "",
   },
-  gtm_id: process.env.NEXT_PUBLIC_GTM_ID || "",
-  meta_pixel_id: process.env.NEXT_PUBLIC_META_PIXEL_ID || "",
-  instagram_pixel_id: process.env.NEXT_PUBLIC_INSTAGRAM_PIXEL_ID || "",
-  tiktok_pixel_id: process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID || "",
+  gtm_id: "",
+  meta_pixel_id: "",
+  instagram_pixel_id: "",
+  tiktok_pixel_id: "",
+  resend_api_key: "",
+  resend_from_email: "",
+  meta_capi_access_token: "",
+  instagram_capi_access_token: "",
+  tiktok_access_token: "",
+  meta_capi_test_event_code: "",
+  tiktok_test_event_code: "",
   homepage: {
     hero: {
       variant: "classic",

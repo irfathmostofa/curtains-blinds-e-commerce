@@ -4,7 +4,7 @@ import Script from "next/script";
 import { Cinzel, Josefin_Sans, Noto_Naskh_Arabic } from "next/font/google";
 import "./globals.css";
 import { AnalyticsScripts } from "@/components/analytics-scripts";
-import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { resolveSiteName, resolveSiteUrl } from "@/lib/site";
 import { getSiteSettings } from "@/lib/data/catalog";
 import { LocaleProvider } from "@/components/locale-provider";
 import { NavigationProgress } from "@/components/navigation-progress";
@@ -31,19 +31,21 @@ const arabic = Noto_Naskh_Arabic({
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   const seo = settings.seo;
+  const siteUrl = resolveSiteUrl(settings);
+  const siteName = resolveSiteName(settings);
   return {
-    metadataBase: new URL(SITE_URL),
+    metadataBase: new URL(siteUrl),
     title: {
-      default: seo.default_title || `${SITE_NAME} | Curtains & Blinds in Dubai & Abu Dhabi`,
-      template: `%s | ${settings.company_name || SITE_NAME}`,
+      default: seo.default_title || `${siteName} | Curtains & Blinds in Dubai & Abu Dhabi`,
+      template: `%s | ${siteName}`,
     },
     description: seo.default_description,
     keywords: seo.keywords ? seo.keywords.split(",").map((k) => k.trim()) : undefined,
     openGraph: {
       title: seo.default_title,
       description: seo.default_description,
-      url: SITE_URL,
-      siteName: settings.company_name || SITE_NAME,
+      url: siteUrl,
+      siteName,
       images: seo.og_image ? [{ url: seo.og_image, width: 1200, height: 630 }] : undefined,
     },
     twitter: {
@@ -60,7 +62,7 @@ export async function generateMetadata(): Promise<Metadata> {
         : undefined,
     },
     alternates: {
-      canonical: SITE_URL,
+      canonical: siteUrl,
     },
     robots: {
       index: true,

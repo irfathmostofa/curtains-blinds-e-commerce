@@ -1,6 +1,6 @@
 import { Resend } from "resend";
-import { getSiteSettings } from "@/lib/data/catalog";
-import { SITE_NAME } from "@/lib/site";
+import { getAdminSiteSettings } from "@/lib/data/catalog";
+import { resolveSiteName } from "@/lib/site";
 
 type NotifyInput = {
   subject: string;
@@ -32,15 +32,13 @@ function buildHtml(heading: string, rows: { label: string; value: string }[], co
 }
 
 export async function notifyAdmin(input: NotifyInput) {
-  const apiKey = process.env.RESEND_API_KEY?.trim();
-  if (!apiKey) return;
-
-  const settings = await getSiteSettings();
+  const settings = await getAdminSiteSettings();
+  const apiKey = settings.resend_api_key?.trim();
   const to = settings.email?.trim();
-  if (!to) return;
+  if (!apiKey || !to) return;
 
-  const from = process.env.RESEND_FROM_EMAIL?.trim() || "Maison Drape <onboarding@resend.dev>";
-  const company = settings.company_name || SITE_NAME;
+  const company = resolveSiteName(settings);
+  const from = settings.resend_from_email?.trim() || `${company} <onboarding@resend.dev>`;
 
   try {
     const resend = new Resend(apiKey);

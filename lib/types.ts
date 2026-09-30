@@ -253,6 +253,7 @@ export type HomepageContent = {
 export type SiteSettings = {
   nav_links: NavLink[];
   company_name: string;
+  site_url: string;
   tagline: string;
   phone: string;
   email: string;
@@ -274,6 +275,13 @@ export type SiteSettings = {
   meta_pixel_id: string;
   instagram_pixel_id: string;
   tiktok_pixel_id: string;
+  resend_api_key: string;
+  resend_from_email: string;
+  meta_capi_access_token: string;
+  instagram_capi_access_token: string;
+  tiktok_access_token: string;
+  meta_capi_test_event_code: string;
+  tiktok_test_event_code: string;
   homepage: HomepageContent;
 };
 

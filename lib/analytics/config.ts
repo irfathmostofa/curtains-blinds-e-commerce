@@ -1,3 +1,5 @@
+import type { SiteSettings } from "@/lib/types";
+
 export type PixelConfig = {
   gtmId: string;
   metaPixelId: string;
@@ -5,31 +7,33 @@ export type PixelConfig = {
   tiktokPixelId: string;
 };
 
-export function getPublicPixelConfig(overrides?: Partial<PixelConfig>): PixelConfig {
+export function getPublicPixelConfig(settings?: Partial<SiteSettings> | Partial<PixelConfig>): PixelConfig {
+  const s = settings as Partial<SiteSettings> | undefined;
+  const p = settings as Partial<PixelConfig> | undefined;
   return {
-    gtmId: overrides?.gtmId || process.env.NEXT_PUBLIC_GTM_ID || "",
-    metaPixelId: overrides?.metaPixelId || process.env.NEXT_PUBLIC_META_PIXEL_ID || "",
-    instagramPixelId: overrides?.instagramPixelId || process.env.NEXT_PUBLIC_INSTAGRAM_PIXEL_ID || "",
-    tiktokPixelId: overrides?.tiktokPixelId || process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID || "",
+    gtmId: s?.gtm_id || p?.gtmId || "",
+    metaPixelId: s?.meta_pixel_id || p?.metaPixelId || "",
+    instagramPixelId: s?.instagram_pixel_id || p?.instagramPixelId || "",
+    tiktokPixelId: s?.tiktok_pixel_id || p?.tiktokPixelId || "",
   };
 }
 
-export function getServerPixelSecrets() {
+export function getServerPixelSecrets(settings?: Partial<SiteSettings>) {
   return {
     meta: {
-      pixelId: process.env.META_CAPI_PIXEL_ID || process.env.NEXT_PUBLIC_META_PIXEL_ID || "",
-      accessToken: process.env.META_CAPI_ACCESS_TOKEN || "",
-      testEventCode: process.env.META_CAPI_TEST_EVENT_CODE || "",
+      pixelId: settings?.meta_pixel_id || "",
+      accessToken: settings?.meta_capi_access_token || "",
+      testEventCode: settings?.meta_capi_test_event_code || "",
     },
     instagram: {
-      pixelId: process.env.INSTAGRAM_CAPI_PIXEL_ID || process.env.NEXT_PUBLIC_INSTAGRAM_PIXEL_ID || "",
-      accessToken: process.env.INSTAGRAM_CAPI_ACCESS_TOKEN || process.env.META_CAPI_ACCESS_TOKEN || "",
-      testEventCode: process.env.META_CAPI_TEST_EVENT_CODE || "",
+      pixelId: settings?.instagram_pixel_id || "",
+      accessToken: settings?.instagram_capi_access_token || settings?.meta_capi_access_token || "",
+      testEventCode: settings?.meta_capi_test_event_code || "",
     },
     tiktok: {
-      pixelId: process.env.TIKTOK_PIXEL_ID || process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID || "",
-      accessToken: process.env.TIKTOK_ACCESS_TOKEN || "",
-      testEventCode: process.env.TIKTOK_TEST_EVENT_CODE || "",
+      pixelId: settings?.tiktok_pixel_id || "",
+      accessToken: settings?.tiktok_access_token || "",
+      testEventCode: settings?.tiktok_test_event_code || "",
     },
   };
 }

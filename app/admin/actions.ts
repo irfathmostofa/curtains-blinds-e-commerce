@@ -11,8 +11,11 @@ import { loginSchema } from "@/lib/validations";
 import { getStore } from "@/lib/data/store";
 import { processImage } from "@/lib/images/process";
 import { slugify } from "@/lib/utils";
+import { revalidateTag } from "next/cache";
 import { entities } from "@/lib/admin/entities";
 import { isUuid, sanitizeEntityPayload, sanitizeVariants } from "@/lib/admin/payload";
+import { SECRET_SETTING_KEYS } from "@/lib/site";
+import type { SiteSettings } from "@/lib/types";
 
 const DEMO_COOKIE = "md_admin_session";
 
@@ -31,8 +34,8 @@ export async function adminLogin(_prev: { error: string }, formData: FormData) {
     redirect("/admin");
   }
 
-  const email = process.env.DEMO_ADMIN_EMAIL || "admin@maisondrape.ae";
-  const password = process.env.DEMO_ADMIN_PASSWORD || "admin123";
+  const email = "admin@maisondrape.ae";
+  const password = "admin123";
   if (parsed.data.email !== email || parsed.data.password !== password) {
     return { error: "Invalid credentials. Demo: admin@maisondrape.ae / admin123" };
   }
@@ -145,19 +148,29 @@ export async function saveSettings(settings: Record<string, unknown>) {
   const next = store.settings;
   const general = {
     company_name: next.company_name,
+    site_url: next.site_url,
     tagline: next.tagline,
     phone: next.phone,
     email: next.email,
     whatsapp: next.whatsapp,
+    business_hours: next.business_hours,
     gtm_id: next.gtm_id,
     meta_pixel_id: next.meta_pixel_id,
     instagram_pixel_id: next.instagram_pixel_id,
     tiktok_pixel_id: next.tiktok_pixel_id,
   };
+  const incomingHasSecrets = SECRET_SETTING_KEYS.some((key) => key in settings);
+  const secrets = Object.fromEntries(SECRET_SETTING_KEYS.map((key) => [key, next[key] || ""])) as Pick<
+    SiteSettings,
+    (typeof SECRET_SETTING_KEYS)[number]
+  >;
   if (isSupabaseConfigured()) {
     const supabase = createWriteClient();
-    if (!supabase) return { ok: true };
-    const { error } = await supabase.from("site_settings").upsert([
+    if (!supabase) {
+      revalidateTag("catalog");
+      return { ok: true };
+    }
+    const rows: { key: string; value: unknown }[] = [
       { key: "general", value: general },
       { key: "nav_links", value: next.nav_links },
       { key: "locations", value: next.locations },
@@ -165,9 +178,12 @@ export async function saveSettings(settings: Record<string, unknown>) {
       { key: "trust", value: next.trust },
       { key: "seo", value: next.seo },
       { key: "homepage", value: next.homepage },
-    ]);
+    ];
+    if (incomingHasSecrets) rows.push({ key: "secrets", value: secrets });
+    const { error } = await supabase.from("site_settings").upsert(rows);
     if (error) return { error: error.message };
   }
+  revalidateTag("catalog");
   return { ok: true };
 }
 

@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { createPublicClient } from "@/lib/supabase/server";
 import { createWriteClient } from "@/lib/supabase/admin";
 import { getStore } from "@/lib/data/store";
-import { DEFAULT_SETTINGS, mergeHomepage } from "@/lib/site";
+import { DEFAULT_SETTINGS, mergeHomepage, omitSecrets, SECRET_SETTING_KEYS } from "@/lib/site";
 import type {
   BlogPost,
   Booking,
@@ -127,38 +127,89 @@ const fetchCmsPages = cached("catalog-cms-pages", async () =>
   })
 );
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+function str(value: unknown, fallback = "") {
+  return typeof value === "string" ? value : fallback;
+}
+
+function assembleSettings(
+  map: Record<string, unknown>,
+  includeSecrets: boolean
+): SiteSettings {
+  const general = asRecord(map.general);
+  const secrets = asRecord(map.secrets);
+  const assembled: SiteSettings = {
+    ...DEFAULT_SETTINGS,
+    company_name: str(general.company_name, DEFAULT_SETTINGS.company_name),
+    site_url: str(general.site_url, DEFAULT_SETTINGS.site_url),
+    tagline: str(general.tagline, DEFAULT_SETTINGS.tagline),
+    phone: str(general.phone, DEFAULT_SETTINGS.phone),
+    email: str(general.email, DEFAULT_SETTINGS.email),
+    whatsapp: str(general.whatsapp, DEFAULT_SETTINGS.whatsapp),
+    business_hours: str(general.business_hours, DEFAULT_SETTINGS.business_hours),
+    nav_links: (map.nav_links as SiteSettings["nav_links"]) || DEFAULT_SETTINGS.nav_links,
+    locations: (map.locations as SiteSettings["locations"]) || DEFAULT_SETTINGS.locations,
+    social_links: (map.social_links as SiteSettings["social_links"]) || DEFAULT_SETTINGS.social_links,
+    trust: (map.trust as SiteSettings["trust"]) || DEFAULT_SETTINGS.trust,
+    seo: { ...DEFAULT_SETTINGS.seo, ...((map.seo as SiteSettings["seo"]) || {}) },
+    gtm_id: str(general.gtm_id),
+    meta_pixel_id: str(general.meta_pixel_id),
+    instagram_pixel_id: str(general.instagram_pixel_id),
+    tiktok_pixel_id: str(general.tiktok_pixel_id),
+    resend_api_key: "",
+    resend_from_email: "",
+    meta_capi_access_token: "",
+    instagram_capi_access_token: "",
+    tiktok_access_token: "",
+    meta_capi_test_event_code: "",
+    tiktok_test_event_code: "",
+    homepage: mergeHomepage(
+      (map.homepage as SiteSettings["homepage"]) || (general.homepage as SiteSettings["homepage"] | undefined)
+    ),
+  };
+  if (includeSecrets) {
+    for (const key of SECRET_SETTING_KEYS) {
+      assembled[key] = str(secrets[key]);
+    }
+  }
+  return assembled;
+}
+
 const fetchSiteSettings = cached("catalog-site-settings", async (): Promise<SiteSettings> => {
   const supabase = catalogClient();
-  if (!supabase) return { ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) };
+  if (!supabase) return omitSecrets({ ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) });
   try {
-    const { data } = await supabase.from("site_settings").select("key, value");
-    if (!data?.length) return { ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) };
+    const { data } = await supabase.from("site_settings").select("key, value").neq("key", "secrets");
+    if (!data?.length) return omitSecrets({ ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) });
     const map = Object.fromEntries(data.map((row: { key: string; value: unknown }) => [row.key, row.value]));
-    return {
-      ...DEFAULT_SETTINGS,
-      ...(typeof map.general === "object" && map.general ? map.general : {}),
-      nav_links: (map.nav_links as SiteSettings["nav_links"]) || DEFAULT_SETTINGS.nav_links,
-      locations: (map.locations as SiteSettings["locations"]) || DEFAULT_SETTINGS.locations,
-      social_links: (map.social_links as SiteSettings["social_links"]) || DEFAULT_SETTINGS.social_links,
-      trust: (map.trust as SiteSettings["trust"]) || DEFAULT_SETTINGS.trust,
-      seo: { ...DEFAULT_SETTINGS.seo, ...((map.seo as SiteSettings["seo"]) || {}) },
-      gtm_id: (map.general as SiteSettings | undefined)?.gtm_id || DEFAULT_SETTINGS.gtm_id,
-      meta_pixel_id: (map.general as SiteSettings | undefined)?.meta_pixel_id || DEFAULT_SETTINGS.meta_pixel_id,
-      instagram_pixel_id:
-        (map.general as SiteSettings | undefined)?.instagram_pixel_id || DEFAULT_SETTINGS.instagram_pixel_id,
-      tiktok_pixel_id:
-        (map.general as SiteSettings | undefined)?.tiktok_pixel_id || DEFAULT_SETTINGS.tiktok_pixel_id,
-      homepage: mergeHomepage(
-        (map.homepage as SiteSettings["homepage"]) ||
-          (typeof map.general === "object" && map.general
-            ? (map.general as SiteSettings).homepage
-            : undefined)
-      ),
-    } as SiteSettings;
+    return omitSecrets(assembleSettings(map, false));
   } catch {
-    return { ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) };
+    return omitSecrets({ ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) });
   }
 });
+
+export async function getAdminSiteSettings(): Promise<SiteSettings> {
+  const supabase = createWriteClient();
+  if (!supabase) {
+    const store = getStore();
+    return { ...store.settings, homepage: mergeHomepage(store.settings.homepage) };
+  }
+  try {
+    const { data } = await supabase.from("site_settings").select("key, value");
+    if (!data?.length) {
+      const store = getStore();
+      return { ...store.settings, homepage: mergeHomepage(store.settings.homepage) };
+    }
+    const map = Object.fromEntries(data.map((row: { key: string; value: unknown }) => [row.key, row.value]));
+    return assembleSettings(map, true);
+  } catch {
+    const store = getStore();
+    return { ...store.settings, homepage: mergeHomepage(store.settings.homepage) };
+  }
+}
 
 export const getCategories = cache(fetchCategories);
 export const getVariants = cache(fetchVariants);
@@ -247,7 +298,13 @@ export const getCmsPage = cache(async (slug: string): Promise<CmsPage | undefine
   return pages.find((p) => p.slug === slug);
 });
 
-export const getSiteSettings = cache(fetchSiteSettings);
+export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
+  if (!catalogClient()) {
+    const store = getStore();
+    return omitSecrets({ ...store.settings, homepage: mergeHomepage(store.settings.homepage) });
+  }
+  return fetchSiteSettings();
+});
 
 export async function getLeads(): Promise<Lead[]> {
   return queryAdminRows(getStore().leads, async (supabase) => {

@@ -220,7 +220,9 @@ create policy "admin write faqs" on public.faqs for all using (public.is_admin()
 create policy "public read partners" on public.partners for select using (true);
 create policy "admin write partners" on public.partners for all using (public.is_admin()) with check (public.is_admin());
 
-create policy "public read settings" on public.site_settings for select using (true);
+drop policy if exists "public read settings" on public.site_settings;
+drop policy if exists "admin write settings" on public.site_settings;
+create policy "public read settings" on public.site_settings for select using (key <> 'secrets');
 create policy "admin write settings" on public.site_settings for all using (public.is_admin()) with check (public.is_admin());
 
 create policy "public read cms" on public.cms_pages for select using (true);

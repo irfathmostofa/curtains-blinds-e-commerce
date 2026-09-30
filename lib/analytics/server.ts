@@ -4,7 +4,9 @@ import { getServerPixelSecrets } from "@/lib/analytics/config";
 import type { AnalyticsEvent } from "@/lib/analytics/events";
 import { TIKTOK_EVENT_MAP } from "@/lib/analytics/events";
 import { hashUserData } from "@/lib/analytics/hash";
-import { SITE_URL } from "@/lib/site";
+import { getAdminSiteSettings } from "@/lib/data/catalog";
+import { resolveSiteUrl } from "@/lib/site";
+import type { SiteSettings } from "@/lib/types";
 
 type DispatchResult = { platform: string; status: "sent" | "failed" | "skipped"; error?: string };
 
@@ -51,7 +53,13 @@ async function logEvent(
   );
 }
 
-async function sendMeta(event: AnalyticsEvent, pixelId: string, accessToken: string, testEventCode: string) {
+async function sendMeta(
+  event: AnalyticsEvent,
+  pixelId: string,
+  accessToken: string,
+  testEventCode: string,
+  siteUrl: string
+) {
   if (!pixelId || !accessToken) return { platform: `meta:${pixelId || "unset"}`, status: "skipped" as const };
   const ctx = requestContext();
   const hashed = hashUserData(event.user || {});
@@ -61,7 +69,7 @@ async function sendMeta(event: AnalyticsEvent, pixelId: string, accessToken: str
         event_name: event.name,
         event_time: Math.floor(Date.now() / 1000),
         event_id: event.eventId,
-        event_source_url: event.sourceUrl || SITE_URL,
+        event_source_url: event.sourceUrl || siteUrl,
         action_source: "website",
         user_data: {
           ...hashed,
@@ -95,8 +103,8 @@ async function sendMeta(event: AnalyticsEvent, pixelId: string, accessToken: str
   return { platform: `meta:${pixelId}`, status: "sent" as const };
 }
 
-async function sendTikTok(event: AnalyticsEvent) {
-  const secrets = getServerPixelSecrets().tiktok;
+async function sendTikTok(event: AnalyticsEvent, settings: SiteSettings, siteUrl: string) {
+  const secrets = getServerPixelSecrets(settings).tiktok;
   if (!secrets.pixelId || !secrets.accessToken) {
     return { platform: "tiktok", status: "skipped" as const };
   }
@@ -119,7 +127,7 @@ async function sendTikTok(event: AnalyticsEvent) {
           ttp: ctx.ttp || undefined,
           ttclid: ctx.ttclid || undefined,
         },
-        page: { url: event.sourceUrl || SITE_URL },
+        page: { url: event.sourceUrl || siteUrl },
         properties: {
           currency: event.currency || "AED",
           value: event.value,
@@ -150,7 +158,9 @@ export async function trackServerEvent(event: AnalyticsEvent) {
   const consent = cookies().get("cookie_consent")?.value;
   if (consent !== "accepted") return [];
 
-  const secrets = getServerPixelSecrets();
+  const settings = await getAdminSiteSettings();
+  const siteUrl = resolveSiteUrl(settings);
+  const secrets = getServerPixelSecrets(settings);
   const results: DispatchResult[] = [];
 
   const metaTargets = [
@@ -165,7 +175,7 @@ export async function trackServerEvent(event: AnalyticsEvent) {
 
   for (const target of metaTargets) {
     try {
-      const result = await sendMeta(event, target.id, target.token, target.test);
+      const result = await sendMeta(event, target.id, target.token, target.test, siteUrl);
       results.push(result);
       await logEvent(event, "server", "meta", result.status, result.error);
     } catch (error) {
@@ -176,7 +186,7 @@ export async function trackServerEvent(event: AnalyticsEvent) {
   }
 
   try {
-    const tiktok = await sendTikTok(event);
+    const tiktok = await sendTikTok(event, settings, siteUrl);
     results.push(tiktok);
     await logEvent(event, "server", "tiktok", tiktok.status, tiktok.error);
   } catch (error) {

@@ -35,9 +35,15 @@ Without Supabase credentials the public site and admin demo still run on fallbac
 
 ## Environment
 
-See `.env.example` for Supabase, site URL, WhatsApp, Resend, and analytics variables.
+`.env.local` only needs Supabase:
 
-Contact details, pixels and SEO are edited in Admin → Settings and stored in `site_settings`. Set `RESEND_API_KEY` so estimate, booking and chatbot submissions email the address saved in Settings.
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+```
+
+Contact details, public site URL, pixels, Resend and conversion API tokens are edited in Admin → Settings and stored in `site_settings`.
 
 ## Scripts
 

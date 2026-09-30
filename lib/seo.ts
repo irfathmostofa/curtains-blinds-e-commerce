@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DEFAULT_SETTINGS, SITE_NAME, SITE_URL } from "@/lib/site";
+import { DEFAULT_SETTINGS, resolveSiteName, resolveSiteUrl } from "@/lib/site";
 import type { SeoConfig, SiteSettings } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
 import { stripHtml } from "./html";
@@ -32,8 +32,8 @@ export function mergeKeywords(...groups: Array<string | string[] | undefined | n
 export function buildMetadata(config: SeoConfig, settings?: SiteSettings): Metadata {
   const site = settings || siteDefaults();
   const seo = site.seo;
-  const siteName = site.company_name || SITE_NAME;
-  const url = absoluteUrl(config.path);
+  const siteName = resolveSiteName(site);
+  const url = absoluteUrl(config.path, resolveSiteUrl(site));
   const title = config.title.includes(siteName) ? config.title : `${config.title} | ${siteName}`;
   const image =
     config.image ||
@@ -76,7 +76,7 @@ export function organizationJsonLd(settings: SiteSettings) {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: settings.company_name,
-    url: SITE_URL,
+    url: resolveSiteUrl(settings),
     telephone: settings.phone,
     email: settings.email,
     sameAs: settings.social_links.map((s) => s.href),
@@ -98,7 +98,7 @@ export function localBusinessJsonLd(settings: SiteSettings) {
     },
     areaServed: loc.city,
     priceRange: "$$",
-    url: SITE_URL,
+    url: resolveSiteUrl(settings),
   }));
 }
 
@@ -110,7 +110,7 @@ export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
       "@type": "ListItem",
       position: index + 1,
       name: item.name,
-      item: absoluteUrl(item.path),
+      item: absoluteUrl(item.path, resolveSiteUrl()),
     })),
   };
 }
@@ -142,7 +142,7 @@ export function productJsonLd(input: {
     name: input.name,
     description: input.description,
     image: input.image,
-    url: absoluteUrl(input.path),
+    url: absoluteUrl(input.path, resolveSiteUrl()),
     offers: {
       "@type": "Offer",
       priceCurrency: "AED",
@@ -175,9 +175,9 @@ export function articleJsonLd(input: {
     headline: input.title,
     description: input.description,
     image: input.image,
-    url: absoluteUrl(input.path),
+    url: absoluteUrl(input.path, resolveSiteUrl()),
     author: { "@type": "Person", name: input.author },
     datePublished: input.date,
-    publisher: { "@type": "Organization", name: SITE_NAME },
+    publisher: { "@type": "Organization", name: resolveSiteName() },
   };
 }
