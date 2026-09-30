@@ -9,6 +9,8 @@ const ar: Record<string, string> = {
   About: "من نحن",
   FAQs: "الأسئلة",
   Blog: "المدونة",
+  "Search articles": "ابحث في المقالات",
+  "No articles match your search.": "لا توجد مقالات تطابق بحثك.",
   "Get estimate": "اطلب عرض سعر",
   "Book a free visit": "احجز زيارة مجانية",
   "Browse collections": "تصفح المجموعات",
