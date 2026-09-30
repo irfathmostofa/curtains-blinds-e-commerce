@@ -1,93 +1,87 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { MultiStepForm } from "@/components/multi-step-form";
-
+import { useMemo, useState, type FormEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { bookingSchema, type BookingInput } from "@/lib/validations";
-import { saveDraft, submitBooking } from "@/app/actions";
+import { Button } from "@/components/ui/button";
+import { bookingSchema } from "@/lib/validations";
+import { submitBooking } from "@/app/actions";
 import { trackClientEvent } from "@/lib/analytics/client";
-import { DatePicker } from "@/components/date-picker";
 
 const slots = ["09:00–11:00", "10:00–12:00", "12:00–14:00", "16:00–18:00", "18:00–20:00"];
+const cities = ["Dubai", "Abu Dhabi"] as const;
 
-const stepFields: (keyof BookingInput)[][] = [
-  ["location"],
-  ["preferredDate", "preferredTime"],
-  ["address"],
-  ["name", "phone", "email"],
-];
+const empty = {
+  location: "Dubai" as (typeof cities)[number],
+  preferredDate: "",
+  preferredTime: "",
+  address: "",
+  name: "",
+  phone: "",
+  email: "",
+  notes: "",
+  company: "",
+};
 
-function firstError(errors: Record<string, { message?: string } | undefined>) {
-  const entry = Object.values(errors).find((err) => err?.message);
-  return entry?.message || "Please complete every required field.";
+type FieldName = keyof typeof empty;
+
+function minDate() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 export function BookingForm() {
   const [done, setDone] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
+  const [values, setValues] = useState(empty);
+  const today = useMemo(minDate, []);
 
-  const form = useForm<BookingInput>({
-    resolver: zodResolver(bookingSchema),
-    shouldUnregister: false,
-    defaultValues: {
-      location: "Dubai",
-      preferredDate: "",
-      preferredTime: "",
-      address: "",
-      name: "",
-      phone: "",
-      email: "",
-      notes: "",
-      company: "",
-    },
-  });
-
-  const values = form.watch();
-  useEffect(() => {
-    const t = setTimeout(() => {
-      void saveDraft(values as unknown as Record<string, string>);
-    }, 400);
-    return () => clearTimeout(t);
-  }, [values]);
-
-  async function onNext(index: number) {
-    const valid = await form.trigger(stepFields[index], { shouldFocus: true });
-    if (!valid) {
-      setError(firstError(form.formState.errors as Record<string, { message?: string } | undefined>));
-      return false;
-    }
-    setError(null);
-    return true;
+  function setField<K extends FieldName>(key: K, value: (typeof empty)[K]) {
+    setValues((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => ({ ...prev, [key]: undefined }));
+    setFormError(null);
   }
 
-  async function onSubmit() {
-    const valid = await form.trigger();
-    if (!valid) {
-      setError(firstError(form.formState.errors as Record<string, { message?: string } | undefined>));
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const parsed = bookingSchema.safeParse({
+      ...values,
+      email: values.email.trim(),
+      notes: values.notes.trim(),
+      company: "",
+    });
+    if (!parsed.success) {
+      const next: Partial<Record<FieldName, string>> = {};
+      for (const issue of parsed.error.issues) {
+        const key = String(issue.path[0] || "") as FieldName;
+        if (key && !next[key]) next[key] = issue.message;
+      }
+      setErrors(next);
+      setFormError(parsed.error.issues[0]?.message || "Please complete the required fields.");
       return;
     }
+
     setSubmitting(true);
-    setError(null);
-    const result = await submitBooking(form.getValues());
+    setFormError(null);
+    const result = await submitBooking(parsed.data);
     setSubmitting(false);
     if (!result.ok) {
-      setError(result.error || "Something went wrong");
+      setFormError(result.error || "Something went wrong. Please try again.");
       return;
     }
-    const submitted = form.getValues();
     if (result.eventId) {
       trackClientEvent({
         name: "Schedule",
         eventId: result.eventId,
         contentName: "Free measuring visit",
         contentType: "booking",
-        extra: { location: submitted.location, preferred_date: submitted.preferredDate },
+        extra: { location: parsed.data.location, preferred_date: parsed.data.preferredDate },
       });
     }
     setDone(true);
@@ -102,109 +96,104 @@ export function BookingForm() {
   }
 
   return (
-    <form onSubmit={(e) => e.preventDefault()}>
-      <input type="text" tabIndex={-1} autoComplete="off" className="hidden" {...form.register("company")} />
-      <MultiStepForm
-        submitting={submitting}
-        onSubmit={onSubmit}
-        onNext={onNext}
-        error={error}
-        steps={[
-          {
-            id: "location",
-            title: "City",
-            content: (
-              <fieldset className="grid gap-3 sm:grid-cols-2">
-                {(["Dubai", "Abu Dhabi"] as const).map((city) => (
-                  <label key={city} className="flex items-center gap-3 rounded-xl border p-4">
-                    <input type="radio" value={city} {...form.register("location")} />
-                    {city}
-                  </label>
-                ))}
-              </fieldset>
-            ),
-          },
-          {
-            id: "slot",
-            title: "Date and time",
-            content: (
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="date">Preferred date</Label>
-                  <DatePicker
-                    id="date"
-                    value={form.watch("preferredDate")}
-                    onChange={(value) =>
-                      form.setValue("preferredDate", value, { shouldValidate: true, shouldDirty: true })
-                    }
-                  />
-                  {form.formState.errors.preferredDate ? (
-                    <p className="text-sm text-destructive">{form.formState.errors.preferredDate.message}</p>
-                  ) : null}
-                </div>
-                <fieldset className="grid gap-2">
-                  <legend className="mb-2 text-sm font-medium">Time slot</legend>
-                  {slots.map((s) => (
-                    <label key={s} className="flex items-center gap-3 rounded-xl border p-3">
-                      <input type="radio" value={s} {...form.register("preferredTime")} />
-                      {s}
-                    </label>
-                  ))}
-                  {form.formState.errors.preferredTime ? (
-                    <p className="text-sm text-destructive">{form.formState.errors.preferredTime.message}</p>
-                  ) : null}
-                </fieldset>
-              </div>
-            ),
-          },
-          {
-            id: "address",
-            title: "Address",
-            content: (
-              <div className="space-y-2">
-                <Label htmlFor="address">Villa / apartment address</Label>
-                <Textarea id="address" {...form.register("address")} />
-                {form.formState.errors.address ? (
-                  <p className="text-sm text-destructive">{form.formState.errors.address.message}</p>
-                ) : null}
-              </div>
-            ),
-          },
-          {
-            id: "contact",
-            title: "Your details",
-            content: (
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="bname">Name</Label>
-                  <Input id="bname" {...form.register("name")} />
-                  {form.formState.errors.name ? (
-                    <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
-                  ) : null}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bphone">Phone</Label>
-                  <Input id="bphone" {...form.register("phone")} />
-                  {form.formState.errors.phone ? (
-                    <p className="text-sm text-destructive">{form.formState.errors.phone.message}</p>
-                  ) : null}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bemail">Email (optional)</Label>
-                  <Input id="bemail" type="email" {...form.register("email")} />
-                  {form.formState.errors.email ? (
-                    <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
-                  ) : null}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notes for the consultant</Label>
-                  <Textarea id="notes" {...form.register("notes")} />
-                </div>
-              </div>
-            ),
-          },
-        ]}
+    <form className="space-y-8" onSubmit={onSubmit} noValidate>
+      <input
+        type="text"
+        tabIndex={-1}
+        autoComplete="off"
+        className="hidden"
+        value={values.company}
+        onChange={(e) => setField("company", e.target.value)}
       />
+
+      <fieldset className="space-y-3">
+        <legend className="font-serif text-2xl">City</legend>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {cities.map((city) => (
+            <label key={city} className="flex items-center gap-3 rounded-xl border p-4">
+              <input
+                type="radio"
+                name="location"
+                value={city}
+                checked={values.location === city}
+                onChange={() => setField("location", city)}
+              />
+              {city}
+            </label>
+          ))}
+        </div>
+        {errors.location ? <p className="text-sm text-destructive">{errors.location}</p> : null}
+      </fieldset>
+
+      <div className="space-y-4">
+        <h2 className="font-serif text-2xl">Date and time</h2>
+        <div className="space-y-2">
+          <Label htmlFor="date">Preferred date</Label>
+          <Input
+            id="date"
+            type="date"
+            min={today}
+            value={values.preferredDate}
+            onChange={(e) => setField("preferredDate", e.target.value)}
+          />
+          {errors.preferredDate ? <p className="text-sm text-destructive">{errors.preferredDate}</p> : null}
+        </div>
+        <fieldset className="grid gap-2">
+          <legend className="mb-2 text-sm font-medium">Time slot</legend>
+          {slots.map((slot) => (
+            <label key={slot} className="flex items-center gap-3 rounded-xl border p-3">
+              <input
+                type="radio"
+                name="preferredTime"
+                value={slot}
+                checked={values.preferredTime === slot}
+                onChange={() => setField("preferredTime", slot)}
+              />
+              {slot}
+            </label>
+          ))}
+          {errors.preferredTime ? <p className="text-sm text-destructive">{errors.preferredTime}</p> : null}
+        </fieldset>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="address">Villa / apartment address</Label>
+        <Textarea
+          id="address"
+          value={values.address}
+          onChange={(e) => setField("address", e.target.value)}
+          placeholder="Building, community, city"
+        />
+        {errors.address ? <p className="text-sm text-destructive">{errors.address}</p> : null}
+      </div>
+
+      <div className="grid gap-4">
+        <h2 className="font-serif text-2xl">Your details</h2>
+        <div className="space-y-2">
+          <Label htmlFor="bname">Name</Label>
+          <Input id="bname" value={values.name} onChange={(e) => setField("name", e.target.value)} />
+          {errors.name ? <p className="text-sm text-destructive">{errors.name}</p> : null}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="bphone">Phone</Label>
+          <Input id="bphone" type="tel" value={values.phone} onChange={(e) => setField("phone", e.target.value)} />
+          {errors.phone ? <p className="text-sm text-destructive">{errors.phone}</p> : null}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="bemail">Email (optional)</Label>
+          <Input id="bemail" type="email" value={values.email} onChange={(e) => setField("email", e.target.value)} />
+          {errors.email ? <p className="text-sm text-destructive">{errors.email}</p> : null}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="notes">Notes for the consultant (optional)</Label>
+          <Textarea id="notes" value={values.notes} onChange={(e) => setField("notes", e.target.value)} />
+        </div>
+      </div>
+
+      {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
+      <Button type="submit" disabled={submitting} className="w-full sm:w-auto">
+        {submitting ? "Sending…" : "Submit booking"}
+      </Button>
     </form>
   );
 }
