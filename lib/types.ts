@@ -217,6 +217,8 @@ export type HomepageContent = {
     primary_cta_href: string;
     secondary_cta_label: string;
     secondary_cta_href: string;
+    image_url: string;
+    image_alt: string;
   };
   how_it_works: {
     eyebrow: string;

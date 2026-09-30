@@ -154,6 +154,9 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       primary_cta_href: "/book",
       secondary_cta_label: "Browse collections",
       secondary_cta_href: "/products",
+      image_url:
+        "https://images.unsplash.com/photo-1615876234886-fd9a39fda97f?auto=format&fit=crop&w=1400&q=80",
+      image_alt: "Layered sheer and linen curtains in a sunlit living room",
     },
     how_it_works: {
       eyebrow: "How it works",

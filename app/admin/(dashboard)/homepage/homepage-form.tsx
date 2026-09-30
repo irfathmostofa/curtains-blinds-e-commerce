@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { saveSettings } from "@/app/admin/actions";
 import { ImageUploader } from "@/components/admin/image-uploader";
@@ -27,14 +27,38 @@ const EMPTY_SLIDE: HeroSlide = {
   express_detail: "1–3 day installation",
 };
 
+const JUMP_SECTIONS = [
+  { id: "layout", label: "Section layout" },
+  { id: "hero", label: "Hero" },
+  { id: "carousel", label: "Carousel slides" },
+  { id: "marquee", label: "Marquee" },
+  { id: "intro", label: "Introduction" },
+  { id: "how_it_works", label: "How it works" },
+  { id: "features", label: "Feature cards" },
+  { id: "collections", label: "Collections" },
+  { id: "bestsellers", label: "Bestsellers" },
+  { id: "reviews", label: "Reviews" },
+  { id: "partners", label: "Partners" },
+  { id: "faqs", label: "FAQs" },
+  { id: "filtered_products", label: "Filter products" },
+  { id: "cta", label: "Estimate CTA" },
+  { id: "story", label: "Story / SEO copy" },
+] as const;
+
 export function HomepageForm({ initial }: { initial: SiteSettings }) {
   const [home, setHome] = useState<HomepageContent>(initial.homepage);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [jumpTo, setJumpTo] = useState("layout");
+  const [query, setQuery] = useState("");
   const hero = home.hero;
 
   function patchHero(partial: Partial<HomepageContent["hero"]>) {
     setHome((h) => ({ ...h, hero: { ...h.hero, ...partial } }));
+  }
+
+  function patchIntro(partial: Partial<HomepageContent["intro"]>) {
+    setHome((h) => ({ ...h, intro: { ...h.intro, ...partial } }));
   }
 
   function patchSection(
@@ -74,6 +98,16 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
     });
   }
 
+  function setSectionPosition(index: number, position: number) {
+    setHome((h) => {
+      const next = [...h.section_order];
+      const item = next.splice(index, 1)[0];
+      const clamped = Math.max(1, Math.min(next.length + 1, Math.round(position))) - 1;
+      next.splice(clamped, 0, item);
+      return { ...h, section_order: next };
+    });
+  }
+
   function toggleSection(index: number, enabled: boolean) {
     setHome((h) => ({
       ...h,
@@ -81,29 +115,95 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
     }));
   }
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
+  function scrollToSection(id: string) {
+    setJumpTo(id);
+    const el = document.getElementById(`hp-${id}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const firstField = el?.querySelector<HTMLElement>("input, select, textarea, button");
+    firstField?.focus({ preventScroll: true });
+  }
+
+  const persist = useCallback(async () => {
     setSaving(true);
     await saveSettings({ ...initial, homepage: home });
     setSaving(false);
     setMessage("Homepage saved. Refresh the public site to see changes.");
+  }, [home, initial]);
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    await persist();
   }
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        if (!saving) void persist();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [persist, saving]);
+
+  const filteredJump = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return JUMP_SECTIONS;
+    return JUMP_SECTIONS.filter((s) => s.label.toLowerCase().includes(q));
+  }, [query]);
+
   return (
-    <main className="mx-auto max-w-3xl space-y-8">
+    <main className="mx-auto max-w-3xl space-y-6 pb-24">
       <div>
         <h1 className="font-serif text-3xl">Homepage</h1>
         <p className="text-sm text-muted-foreground">
-          Choose the hero layout, turn sections on or off, reorder them, and edit copy without extra pages.
+          Jump to a section, type to search, Tab through fields, and press Ctrl/Cmd+S to save.
         </p>
       </div>
 
+      <div className="sticky top-0 z-20 -mx-1 space-y-3 rounded-2xl border bg-card/95 p-3 backdrop-blur sm:p-4">
+        <div className="grid gap-3 sm:grid-cols-[1fr_minmax(0,14rem)_auto]">
+          <div className="space-y-1">
+            <Label htmlFor="hp-search">Find a section</Label>
+            <Input
+              id="hp-search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && filteredJump[0]) {
+                  e.preventDefault();
+                  scrollToSection(filteredJump[0].id);
+                }
+              }}
+              placeholder="Type intro, hero, reviews…"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="hp-jump">Jump to</Label>
+            <select
+              id="hp-jump"
+              className="h-11 w-full rounded-xl border bg-card px-3"
+              value={jumpTo}
+              onChange={(e) => scrollToSection(e.target.value)}
+            >
+              {filteredJump.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-end">
+            <Button type="button" disabled={saving} className="w-full sm:w-auto" onClick={() => void persist()}>
+              {saving ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        </div>
+        {message ? <p className="text-sm">{message}</p> : null}
+      </div>
+
       <form className="space-y-8" onSubmit={onSubmit}>
-        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
-          <h2 className="font-serif text-xl">Section layout</h2>
-          <p className="text-sm text-muted-foreground">
-            Toggle visibility and move sections up or down. The live homepage follows this order.
-          </p>
+        <Panel id="layout" title="Section layout" hint="Type a position number, or Tab to the arrows. Uncheck to hide a section.">
           <div className="space-y-2">
             {home.section_order.map((section, index) => (
               <SectionRow
@@ -113,13 +213,13 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
                 total={home.section_order.length}
                 onToggle={(enabled) => toggleSection(index, enabled)}
                 onMove={(dir) => moveSection(index, dir)}
+                onPosition={(pos) => setSectionPosition(index, pos)}
               />
             ))}
           </div>
-        </section>
+        </Panel>
 
-        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
-          <h2 className="font-serif text-xl">Hero</h2>
+        <Panel id="hero" title="Hero" hint="Classic uses the fields below. Carousel uses the slides list.">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="hero-variant">Layout</Label>
@@ -145,16 +245,11 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               />
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Classic uses the fields below. Carousel uses the slides list — classic fields stay as a fallback.
-          </p>
-
           <HeroFields value={hero} onChange={patchHero} />
-        </section>
+        </Panel>
 
-        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-serif text-xl">Carousel slides</h2>
+        <Panel id="carousel" title="Carousel slides" hint="Shown when layout is set to Carousel.">
+          <div className="flex justify-end">
             <Button
               type="button"
               variant="outline"
@@ -164,7 +259,6 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               Add slide
             </Button>
           </div>
-          <p className="text-sm text-muted-foreground">Shown when layout is set to Carousel. At least one slide is recommended.</p>
           <div className="space-y-6">
             {home.hero_slides.map((slide, index) => (
               <div key={index} className="space-y-4 rounded-xl border p-4">
@@ -189,11 +283,9 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               </div>
             ))}
           </div>
-        </section>
+        </Panel>
 
-        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
-          <h2 className="font-serif text-xl">Marquee</h2>
-          <p className="text-sm text-muted-foreground">One phrase per line. Shown as a scrolling strip below the hero.</p>
+        <Panel id="marquee" title="Marquee" hint="One phrase per line. Shown as a scrolling strip below the hero.">
           <textarea
             className="min-h-36 w-full rounded-xl border bg-card px-3 py-2 text-sm"
             value={(home.marquee || []).join("\n")}
@@ -207,34 +299,26 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               }))
             }
           />
-        </section>
+        </Panel>
 
-        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
-          <h2 className="font-serif text-xl">Introduction</h2>
-          <p className="text-sm text-muted-foreground">
-            Shown after the marquee. Use this when the hero is a carousel so the page still has opening copy and CTAs.
-          </p>
+        <Panel id="intro" title="Introduction" hint="Copy on the left, image on the right of the homepage intro.">
           <div className="space-y-2">
             <Label htmlFor="intro-eyebrow">Eyebrow</Label>
             <Input
               id="intro-eyebrow"
               value={home.intro.eyebrow}
-              onChange={(e) => setHome((h) => ({ ...h, intro: { ...h.intro, eyebrow: e.target.value } }))}
+              onChange={(e) => patchIntro({ eyebrow: e.target.value })}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="intro-title">Title</Label>
-            <Input
-              id="intro-title"
-              value={home.intro.title}
-              onChange={(e) => setHome((h) => ({ ...h, intro: { ...h.intro, title: e.target.value } }))}
-            />
+            <Input id="intro-title" value={home.intro.title} onChange={(e) => patchIntro({ title: e.target.value })} />
           </div>
           <div className="space-y-2">
             <Label>Subtitle</Label>
             <RichTextEditor
               value={home.intro.subtitle}
-              onChange={(html) => setHome((h) => ({ ...h, intro: { ...h.intro, subtitle: html } }))}
+              onChange={(html) => patchIntro({ subtitle: html })}
               minHeight="120px"
             />
           </div>
@@ -244,9 +328,7 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               <Input
                 id="intro-primary-label"
                 value={home.intro.primary_cta_label}
-                onChange={(e) =>
-                  setHome((h) => ({ ...h, intro: { ...h.intro, primary_cta_label: e.target.value } }))
-                }
+                onChange={(e) => patchIntro({ primary_cta_label: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -254,9 +336,7 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               <Input
                 id="intro-primary-href"
                 value={home.intro.primary_cta_href}
-                onChange={(e) =>
-                  setHome((h) => ({ ...h, intro: { ...h.intro, primary_cta_href: e.target.value } }))
-                }
+                onChange={(e) => patchIntro({ primary_cta_href: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -264,9 +344,7 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               <Input
                 id="intro-secondary-label"
                 value={home.intro.secondary_cta_label}
-                onChange={(e) =>
-                  setHome((h) => ({ ...h, intro: { ...h.intro, secondary_cta_label: e.target.value } }))
-                }
+                onChange={(e) => patchIntro({ secondary_cta_label: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -274,16 +352,44 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               <Input
                 id="intro-secondary-href"
                 value={home.intro.secondary_cta_href}
-                onChange={(e) =>
-                  setHome((h) => ({ ...h, intro: { ...h.intro, secondary_cta_href: e.target.value } }))
-                }
+                onChange={(e) => patchIntro({ secondary_cta_href: e.target.value })}
               />
             </div>
           </div>
-        </section>
+          <div className="space-y-2">
+            <Label htmlFor="intro-image-alt">Image alt text</Label>
+            <Input
+              id="intro-image-alt"
+              value={home.intro.image_alt || ""}
+              onChange={(e) => patchIntro({ image_alt: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="intro-image-url">Image URL</Label>
+            <Input
+              id="intro-image-url"
+              value={home.intro.image_url || ""}
+              onChange={(e) => patchIntro({ image_url: e.target.value })}
+              placeholder="Paste a URL or upload below"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Upload intro image</Label>
+            <ImageUploader
+              folder="blog-images"
+              suggestedAlt={home.intro.image_alt || "Maison Drape introduction"}
+              nameHint="homepage-intro"
+              multiple={false}
+              onUploaded={(asset) => patchIntro({ image_url: asset.url, image_alt: asset.alt || home.intro.image_alt })}
+            />
+            {home.intro.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={home.intro.image_url} alt={home.intro.image_alt} className="mt-2 max-h-56 w-full rounded-xl object-cover" />
+            ) : null}
+          </div>
+        </Panel>
 
-        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
-          <h2 className="font-serif text-xl">How it works</h2>
+        <Panel id="how_it_works" title="How it works">
           <div className="space-y-2">
             <Label htmlFor="hiw-eyebrow">Eyebrow</Label>
             <Input
@@ -374,10 +480,9 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               </div>
             ))}
           </div>
-        </section>
+        </Panel>
 
-        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
-          <h2 className="font-serif text-xl">Feature cards</h2>
+        <Panel id="features" title="Feature cards">
           <div className="grid gap-4">
             {home.features.map((feature, index) => (
               <div key={index} className="space-y-3 rounded-xl border p-4">
@@ -417,7 +522,7 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               </div>
             ))}
           </div>
-        </section>
+        </Panel>
 
         {(
           [
@@ -428,8 +533,7 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
             ["faqs", "FAQs"],
           ] as const
         ).map(([key, label]) => (
-          <section key={key} className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
-            <h2 className="font-serif text-xl">{label} heading</h2>
+          <Panel key={key} id={key} title={`${label} heading`}>
             <div className="space-y-2">
               <Label htmlFor={`${key}-eyebrow`}>Eyebrow</Label>
               <Input
@@ -450,14 +554,10 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
                 minHeight="110px"
               />
             </div>
-          </section>
+          </Panel>
         ))}
 
-        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
-          <h2 className="font-serif text-xl">Filter products</h2>
-          <p className="text-sm text-muted-foreground">
-            Homepage tabs filter live products by All, Bestsellers, and each category.
-          </p>
+        <Panel id="filtered_products" title="Filter products" hint="Homepage tabs filter live products by All, Bestsellers, and each category.">
           <div className="space-y-2">
             <Label htmlFor="fp-eyebrow">Eyebrow</Label>
             <Input
@@ -534,10 +634,9 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               Show Bestsellers tab
             </label>
           </div>
-        </section>
+        </Panel>
 
-        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
-          <h2 className="font-serif text-xl">Estimate CTA</h2>
+        <Panel id="cta" title="Estimate CTA">
           <div className="space-y-2">
             <Label htmlFor="cta-title">Title</Label>
             <Input id="cta-title" value={home.cta.title} onChange={(e) => patchCta({ title: e.target.value })} />
@@ -556,10 +655,9 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               <Input id="cta-href" value={home.cta.button_href} onChange={(e) => patchCta({ button_href: e.target.value })} />
             </div>
           </div>
-        </section>
+        </Panel>
 
-        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
-          <h2 className="font-serif text-xl">Story / SEO copy</h2>
+        <Panel id="story" title="Story / SEO copy">
           <div className="space-y-2">
             <Label htmlFor="story-title">Title</Label>
             <Input
@@ -586,7 +684,7 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               />
             </div>
           ))}
-        </section>
+        </Panel>
 
         {message ? <p className="text-sm">{message}</p> : null}
         <Button type="submit" disabled={saving}>
@@ -597,21 +695,36 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
   );
 }
 
+function Panel({ id, title, hint, children }: { id: string; title: string; hint?: string; children: ReactNode }) {
+  return (
+    <section id={`hp-${id}`} className="scroll-mt-36 space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
+      <div>
+        <h2 className="font-serif text-xl">{title}</h2>
+        {hint ? <p className="mt-1 text-sm text-muted-foreground">{hint}</p> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
 function SectionRow({
   section,
   index,
   total,
   onToggle,
   onMove,
+  onPosition,
 }: {
   section: HomepageSectionLayout;
   index: number;
   total: number;
   onToggle: (enabled: boolean) => void;
   onMove: (direction: -1 | 1) => void;
+  onPosition: (position: number) => void;
 }) {
+  const posId = useId();
   return (
-    <div className="flex items-center gap-3 rounded-xl border px-3 py-2">
+    <div className="flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2">
       <label className="flex min-w-0 flex-1 items-center gap-3 text-sm">
         <input
           type="checkbox"
@@ -621,7 +734,32 @@ function SectionRow({
         />
         <span className="truncate font-medium">{HOMEPAGE_SECTION_LABELS[section.id]}</span>
       </label>
-      <div className="flex shrink-0 gap-1">
+      <div className="flex shrink-0 items-center gap-2">
+        <Label htmlFor={posId} className="sr-only">
+          Position for {HOMEPAGE_SECTION_LABELS[section.id]}
+        </Label>
+        <Input
+          id={posId}
+          type="number"
+          min={1}
+          max={total}
+          className="h-9 w-16 px-2 text-center"
+          value={index + 1}
+          onChange={(e) => {
+            const n = Number(e.target.value);
+            if (Number.isFinite(n)) onPosition(n);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowUp" && (e.altKey || e.metaKey)) {
+              e.preventDefault();
+              onMove(-1);
+            }
+            if (e.key === "ArrowDown" && (e.altKey || e.metaKey)) {
+              e.preventDefault();
+              onMove(1);
+            }
+          }}
+        />
         <Button type="button" variant="outline" size="icon" aria-label="Move section up" disabled={index === 0} onClick={() => onMove(-1)}>
           <ChevronUp className="h-4 w-4" />
         </Button>
@@ -692,6 +830,14 @@ function HeroFields({
       <div className="space-y-2">
         <Label>Hero image alt text</Label>
         <Input value={value.image_alt} onChange={(e) => onChange({ image_alt: e.target.value })} />
+      </div>
+      <div className="space-y-2">
+        <Label>Hero image URL</Label>
+        <Input
+          value={value.image_url}
+          onChange={(e) => onChange({ image_url: e.target.value })}
+          placeholder="Paste a URL or upload below"
+        />
       </div>
       <div className="space-y-2">
         <Label>Hero image</Label>
