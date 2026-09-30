@@ -8,6 +8,7 @@ import type { Booking, ChatLead, Lead } from "@/lib/types";
 import { trackServerEvent } from "@/lib/analytics/server";
 import { newEventId } from "@/lib/analytics/events";
 import { SITE_URL } from "@/lib/site";
+import { notifyAdmin } from "@/lib/email";
 
 function sourceUrl(path: string) {
   const host = headers().get("x-forwarded-host") || headers().get("host");
@@ -57,6 +58,20 @@ export async function submitEstimate(input: unknown) {
   }
 
   cookies().set("estimate_draft", "", { maxAge: 0, path: "/" });
+  await notifyAdmin({
+    subject: `New estimate request from ${parsed.data.name}`,
+    heading: "New estimate request",
+    replyTo: parsed.data.email || undefined,
+    rows: [
+      { label: "Name", value: parsed.data.name },
+      { label: "Phone", value: parsed.data.phone },
+      { label: "Email", value: parsed.data.email || "" },
+      { label: "Rooms", value: parsed.data.rooms },
+      { label: "Product", value: parsed.data.productType },
+      { label: "Budget", value: parsed.data.budget },
+      { label: "Message", value: parsed.data.message || "" },
+    ],
+  });
   const eventId = newEventId();
   await trackServerEvent({
     name: "Lead",
@@ -101,6 +116,21 @@ export async function submitBooking(input: unknown) {
   }
 
   cookies().set("estimate_draft", "", { maxAge: 0, path: "/" });
+  await notifyAdmin({
+    subject: `New booking from ${parsed.data.name}`,
+    heading: "New measuring visit booking",
+    replyTo: parsed.data.email || undefined,
+    rows: [
+      { label: "Name", value: parsed.data.name },
+      { label: "Phone", value: parsed.data.phone },
+      { label: "Email", value: parsed.data.email || "" },
+      { label: "Location", value: parsed.data.location },
+      { label: "Address", value: parsed.data.address },
+      { label: "Preferred date", value: parsed.data.preferredDate },
+      { label: "Time slot", value: parsed.data.preferredTime },
+      { label: "Notes", value: parsed.data.notes || "" },
+    ],
+  });
   const eventId = newEventId();
   await trackServerEvent({
     name: "Schedule",
@@ -156,6 +186,22 @@ export async function submitChatLead(input: unknown) {
 
   const eventId = newEventId();
   const booked = Boolean(payload.booking_date && payload.booking_time);
+  await notifyAdmin({
+    subject: booked ? `New chat booking from ${payload.name}` : `New chat lead from ${payload.name}`,
+    heading: booked ? "New chatbot booking" : "New chatbot lead",
+    replyTo: payload.email || undefined,
+    rows: [
+      { label: "Name", value: payload.name },
+      { label: "Phone", value: payload.phone },
+      { label: "Email", value: payload.email || "" },
+      { label: "Product", value: payload.product_interest },
+      { label: "Rooms", value: payload.rooms },
+      { label: "Location", value: payload.location },
+      { label: "Estimate", value: `AED ${payload.estimate_min}–${payload.estimate_max}` },
+      { label: "Booking date", value: payload.booking_date || "" },
+      { label: "Booking time", value: payload.booking_time || "" },
+    ],
+  });
   await trackServerEvent({
     name: booked ? "Schedule" : "Lead",
     eventId,

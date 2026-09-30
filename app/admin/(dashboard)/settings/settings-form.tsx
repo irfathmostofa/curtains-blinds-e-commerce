@@ -51,6 +51,9 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" value={settings.email} onChange={(e) => patch({ email: e.target.value })} />
+              <p className="text-xs text-muted-foreground">
+                New estimate, booking and chatbot leads are emailed here. Requires RESEND_API_KEY in environment.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="wa">WhatsApp number</Label>
