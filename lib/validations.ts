@@ -26,7 +26,7 @@ export const bookingSchema = z.object({
   name: z.string().min(2, "Enter your name"),
   phone: z.string().min(7, "Enter a valid phone"),
   email: optionalEmail,
-  notes: z.string().max(2000),
+  notes: z.string().max(2000).optional().or(z.literal("")),
   company: honeypot,
 });
 

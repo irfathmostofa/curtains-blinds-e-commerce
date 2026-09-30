@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -15,18 +15,23 @@ export function MultiStepForm({
   steps,
   onSubmit,
   submitting,
+  onNext,
+  error,
 }: {
   steps: FormStep[];
   onSubmit: () => void;
   submitting?: boolean;
+  onNext?: (index: number) => boolean | Promise<boolean>;
+  error?: string | null;
 }) {
   const [index, setIndex] = useState(0);
-  const [dir, setDir] = useState(1);
-  const step = steps[index];
   const last = index === steps.length - 1;
 
-  function move(next: number) {
-    setDir(next > index ? 1 : -1);
+  async function move(next: number) {
+    if (next > index && onNext) {
+      const ok = await onNext(index);
+      if (!ok) return;
+    }
     setIndex(next);
   }
 
@@ -47,25 +52,22 @@ export function MultiStepForm({
           </li>
         ))}
       </ol>
-      <AnimatePresence mode="wait" custom={dir}>
-        <motion.div
-          key={step.id}
-          custom={dir}
-          initial={{ opacity: 0, x: dir * 32 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: dir * -32 }}
-          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-          className="space-y-6"
+      {steps.map((s, i) => (
+        <div
+          key={s.id}
+          className={i === index ? "space-y-6" : "hidden"}
+          aria-hidden={i !== index}
         >
           <div>
-            <h2 className="font-serif text-2xl">{step.title}</h2>
-            {step.description ? <p className="mt-1 text-muted-foreground">{step.description}</p> : null}
+            <h2 className="font-serif text-2xl">{s.title}</h2>
+            {s.description ? <p className="mt-1 text-muted-foreground">{s.description}</p> : null}
           </div>
-          <div>{step.content}</div>
-        </motion.div>
-      </AnimatePresence>
+          <div>{s.content}</div>
+        </div>
+      ))}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
       <div className="flex justify-between">
-        <Button type="button" variant="ghost" disabled={index === 0} onClick={() => move(index - 1)}>
+        <Button type="button" variant="ghost" disabled={index === 0} onClick={() => void move(index - 1)}>
           Back
         </Button>
         {last ? (
@@ -73,7 +75,7 @@ export function MultiStepForm({
             {submitting ? "Sending…" : "Submit"}
           </Button>
         ) : (
-          <Button type="button" onClick={() => move(index + 1)}>
+          <Button type="button" onClick={() => void move(index + 1)}>
             Continue
           </Button>
         )}

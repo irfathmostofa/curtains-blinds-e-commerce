@@ -31,6 +31,7 @@ export function EstimateForm() {
 
   const form = useForm<EstimateInput>({
     resolver: zodResolver(estimateSchema),
+    shouldUnregister: false,
     defaultValues: {
       rooms: "",
       productType: "",
@@ -93,6 +94,7 @@ export function EstimateForm() {
       <MultiStepForm
         submitting={submitting}
         onSubmit={onSubmit}
+        error={error}
         steps={[
           {
             id: "rooms",
@@ -157,7 +159,6 @@ export function EstimateForm() {
                   <Label htmlFor="message">Notes</Label>
                   <Textarea id="message" {...form.register("message")} />
                 </div>
-                {error ? <p className="text-sm text-destructive">{error}</p> : null}
               </div>
             ),
           },
