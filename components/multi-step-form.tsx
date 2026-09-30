@@ -48,7 +48,9 @@ export function MultiStepForm({
                 transition={{ duration: 0.35 }}
               />
             </div>
-            <p className="mt-2 hidden text-xs text-muted-foreground sm:block">{s.title}</p>
+            <p className={`mt-2 hidden text-xs sm:block ${i <= index ? "text-foreground" : "text-muted-foreground"}`}>
+              {i + 1}. {s.title}
+            </p>
           </li>
         ))}
       </ol>

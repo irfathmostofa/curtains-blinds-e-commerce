@@ -19,7 +19,7 @@ export default function BookPage() {
         title="Book a free visit"
         subtitle="A consultant brings fabric books, measures every elevation and leaves a written estimate. No obligation."
       />
-      <div className="mx-auto max-w-2xl rounded-3xl border bg-card p-6 md:p-10">
+      <div className="mx-auto max-w-3xl rounded-3xl border bg-card p-6 md:p-10">
         <BookingForm />
       </div>
     </main>

@@ -14,12 +14,14 @@ export function DatePicker({
   minDate,
   id,
   name,
+  inline = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   minDate?: Date;
   id?: string;
   name?: string;
+  inline?: boolean;
 }) {
   const selected = value ? startOfDay(new Date(`${value}T00:00:00`)) : null;
   const [open, setOpen] = useState(false);
@@ -54,7 +56,69 @@ export function DatePicker({
   function pick(day: Date) {
     if (isBefore(day, min)) return;
     onChange(format(day, "yyyy-MM-dd"));
-    setOpen(false);
+    if (!inline) setOpen(false);
+  }
+
+  const calendar = (
+    <div className={cn(inline ? "rounded-2xl border bg-card p-4" : "absolute z-40 mt-2 w-full min-w-[280px] rounded-2xl border bg-card p-4 shadow-lg")}>
+      <div className="mb-3 flex items-center justify-between">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Previous month"
+          onClick={() => setCursor((d) => addMonths(d, -1))}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <p className="font-serif text-lg">{format(cursor, "MMMM yyyy")}</p>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Next month"
+          onClick={() => setCursor((d) => addMonths(d, 1))}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground">
+        {WEEKDAYS.map((d) => (
+          <span key={d} className="py-1">
+            {d}
+          </span>
+        ))}
+        {cells.map((day, i) => {
+          if (!day) return <span key={`e-${i}`} />;
+          const iso = format(day, "yyyy-MM-dd");
+          const disabled = isBefore(day, min);
+          const active = value === iso;
+          return (
+            <button
+              key={iso}
+              type="button"
+              disabled={disabled}
+              onClick={() => pick(day)}
+              className={cn(
+                "h-9 rounded-lg text-sm hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-30",
+                active && "bg-primary text-primary-foreground hover:bg-primary"
+              )}
+            >
+              {day.getDate()}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  if (inline) {
+    return (
+      <div>
+        <input type="hidden" id={id} name={name} value={value} readOnly />
+        {calendar}
+      </div>
+    );
   }
 
   return (
@@ -75,58 +139,7 @@ export function DatePicker({
         </span>
         <span className="text-xs text-muted-foreground">Calendar</span>
       </button>
-      {open ? (
-        <div className="absolute z-40 mt-2 w-full min-w-[280px] rounded-2xl border bg-card p-4 shadow-lg">
-          <div className="mb-3 flex items-center justify-between">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label="Previous month"
-              onClick={() => setCursor((d) => addMonths(d, -1))}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <p className="font-serif text-lg">{format(cursor, "MMMM yyyy")}</p>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label="Next month"
-              onClick={() => setCursor((d) => addMonths(d, 1))}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground">
-            {WEEKDAYS.map((d) => (
-              <span key={d} className="py-1">
-                {d}
-              </span>
-            ))}
-            {cells.map((day, i) => {
-              if (!day) return <span key={`e-${i}`} />;
-              const iso = format(day, "yyyy-MM-dd");
-              const disabled = isBefore(day, min);
-              const active = value === iso;
-              return (
-                <button
-                  key={iso}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => pick(day)}
-                  className={cn(
-                    "h-9 rounded-lg text-sm hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-30",
-                    active && "bg-primary text-primary-foreground hover:bg-primary"
-                  )}
-                >
-                  {day.getDate()}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
+      {open ? calendar : null}
     </div>
   );
 }
