@@ -8,6 +8,7 @@ import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HOMEPAGE_SECTION_LABELS } from "@/lib/site";
 import type { HeroSlide, HeroVariant, HomepageContent, HomepageFeature, HomepageSectionLayout, SiteSettings } from "@/lib/types";
 
@@ -27,29 +28,29 @@ const EMPTY_SLIDE: HeroSlide = {
   express_detail: "1–3 day installation",
 };
 
-const JUMP_SECTIONS = [
-  { id: "layout", label: "Section layout" },
+const TABS = [
+  { id: "layout", label: "Layout" },
   { id: "hero", label: "Hero" },
-  { id: "carousel", label: "Carousel slides" },
+  { id: "carousel", label: "Carousel" },
   { id: "marquee", label: "Marquee" },
   { id: "intro", label: "Introduction" },
   { id: "how_it_works", label: "How it works" },
-  { id: "features", label: "Feature cards" },
+  { id: "features", label: "Features" },
   { id: "collections", label: "Collections" },
   { id: "bestsellers", label: "Bestsellers" },
   { id: "reviews", label: "Reviews" },
   { id: "partners", label: "Partners" },
   { id: "faqs", label: "FAQs" },
-  { id: "filtered_products", label: "Filter products" },
-  { id: "cta", label: "Estimate CTA" },
-  { id: "story", label: "Story / SEO copy" },
+  { id: "filtered_products", label: "Products" },
+  { id: "cta", label: "CTA" },
+  { id: "story", label: "Story" },
 ] as const;
 
 export function HomepageForm({ initial }: { initial: SiteSettings }) {
   const [home, setHome] = useState<HomepageContent>(initial.homepage);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [jumpTo, setJumpTo] = useState("layout");
+  const [tab, setTab] = useState("layout");
   const [query, setQuery] = useState("");
   const hero = home.hero;
 
@@ -115,14 +116,6 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
     }));
   }
 
-  function scrollToSection(id: string) {
-    setJumpTo(id);
-    const el = document.getElementById(`hp-${id}`);
-    el?.scrollIntoView({ behavior: "smooth", block: "start" });
-    const firstField = el?.querySelector<HTMLElement>("input, select, textarea, button");
-    firstField?.focus({ preventScroll: true });
-  }
-
   const persist = useCallback(async () => {
     setSaving(true);
     await saveSettings({ ...initial, homepage: home });
@@ -146,64 +139,62 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
     return () => window.removeEventListener("keydown", onKey);
   }, [persist, saving]);
 
-  const filteredJump = useMemo(() => {
+  const filteredTabs = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return JUMP_SECTIONS;
-    return JUMP_SECTIONS.filter((s) => s.label.toLowerCase().includes(q));
+    if (!q) return TABS;
+    return TABS.filter((s) => s.label.toLowerCase().includes(q));
   }, [query]);
+
+  useEffect(() => {
+    if (!filteredTabs.some((s) => s.id === tab) && filteredTabs[0]) {
+      setTab(filteredTabs[0].id);
+    }
+  }, [filteredTabs, tab]);
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 pb-24">
       <div>
         <h1 className="font-serif text-3xl">Homepage</h1>
         <p className="text-sm text-muted-foreground">
-          Jump to a section, type to search, Tab through fields, and press Ctrl/Cmd+S to save.
+          Open a tab, type to filter tabs, then press Ctrl/Cmd+S to save.
         </p>
       </div>
 
-      <div className="sticky top-0 z-20 -mx-1 space-y-3 rounded-2xl border bg-card/95 p-3 backdrop-blur sm:p-4">
-        <div className="grid gap-3 sm:grid-cols-[1fr_minmax(0,14rem)_auto]">
-          <div className="space-y-1">
-            <Label htmlFor="hp-search">Find a section</Label>
-            <Input
-              id="hp-search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && filteredJump[0]) {
-                  e.preventDefault();
-                  scrollToSection(filteredJump[0].id);
-                }
-              }}
-              placeholder="Type intro, hero, reviews…"
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="hp-jump">Jump to</Label>
-            <select
-              id="hp-jump"
-              className="h-11 w-full rounded-xl border bg-card px-3"
-              value={jumpTo}
-              onChange={(e) => scrollToSection(e.target.value)}
-            >
-              {filteredJump.map((s) => (
-                <option key={s.id} value={s.id}>
+      <form className="space-y-6" onSubmit={onSubmit}>
+        <Tabs value={tab} onValueChange={setTab}>
+          <div className="sticky top-0 z-20 -mx-1 space-y-3 rounded-2xl border bg-card/95 p-3 backdrop-blur sm:p-4">
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="min-w-[12rem] flex-1 space-y-1">
+                <Label htmlFor="hp-search">Find a tab</Label>
+                <Input
+                  id="hp-search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && filteredTabs[0]) {
+                      e.preventDefault();
+                      setTab(filteredTabs[0].id);
+                    }
+                  }}
+                  placeholder="Type intro, hero, reviews…"
+                />
+              </div>
+              <Button type="button" disabled={saving} onClick={() => void persist()}>
+                {saving ? "Saving…" : "Save"}
+              </Button>
+            </div>
+            <TabsList>
+              {filteredTabs.map((s) => (
+                <TabsTrigger key={s.id} value={s.id}>
                   {s.label}
-                </option>
+                </TabsTrigger>
               ))}
-            </select>
+            </TabsList>
+            {message ? <p className="text-sm">{message}</p> : null}
           </div>
-          <div className="flex items-end">
-            <Button type="button" disabled={saving} className="w-full sm:w-auto" onClick={() => void persist()}>
-              {saving ? "Saving…" : "Save"}
-            </Button>
-          </div>
-        </div>
-        {message ? <p className="text-sm">{message}</p> : null}
-      </div>
 
-      <form className="space-y-8" onSubmit={onSubmit}>
-        <Panel id="layout" title="Section layout" hint="Type a position number, or Tab to the arrows. Uncheck to hide a section.">
+          <TabsContent value="layout">
+            <Panel title="Section layout" hint="Type a position number, or Tab to the arrows. Uncheck to hide a section.">
           <div className="space-y-2">
             {home.section_order.map((section, index) => (
               <SectionRow
@@ -217,9 +208,11 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               />
             ))}
           </div>
-        </Panel>
+            </Panel>
+          </TabsContent>
 
-        <Panel id="hero" title="Hero" hint="Classic uses the fields below. Carousel uses the slides list.">
+          <TabsContent value="hero">
+            <Panel title="Hero" hint="Classic uses the fields below. Carousel uses the slides list.">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="hero-variant">Layout</Label>
@@ -246,9 +239,11 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
             </div>
           </div>
           <HeroFields value={hero} onChange={patchHero} />
-        </Panel>
+            </Panel>
+          </TabsContent>
 
-        <Panel id="carousel" title="Carousel slides" hint="Shown when layout is set to Carousel.">
+          <TabsContent value="carousel">
+            <Panel title="Carousel slides" hint="Shown when layout is set to Carousel.">
           <div className="flex justify-end">
             <Button
               type="button"
@@ -283,9 +278,11 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               </div>
             ))}
           </div>
-        </Panel>
+            </Panel>
+          </TabsContent>
 
-        <Panel id="marquee" title="Marquee" hint="One phrase per line. Shown as a scrolling strip below the hero.">
+          <TabsContent value="marquee">
+            <Panel title="Marquee" hint="One phrase per line. Shown as a scrolling strip below the hero.">
           <textarea
             className="min-h-36 w-full rounded-xl border bg-card px-3 py-2 text-sm"
             value={(home.marquee || []).join("\n")}
@@ -299,9 +296,11 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               }))
             }
           />
-        </Panel>
+            </Panel>
+          </TabsContent>
 
-        <Panel id="intro" title="Introduction" hint="Copy on the left, image on the right of the homepage intro.">
+          <TabsContent value="intro">
+            <Panel title="Introduction" hint="Copy on the left, image on the right of the homepage intro.">
           <div className="space-y-2">
             <Label htmlFor="intro-eyebrow">Eyebrow</Label>
             <Input
@@ -387,9 +386,11 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               <img src={home.intro.image_url} alt={home.intro.image_alt} className="mt-2 max-h-56 w-full rounded-xl object-cover" />
             ) : null}
           </div>
-        </Panel>
+            </Panel>
+          </TabsContent>
 
-        <Panel id="how_it_works" title="How it works">
+          <TabsContent value="how_it_works">
+            <Panel title="How it works">
           <div className="space-y-2">
             <Label htmlFor="hiw-eyebrow">Eyebrow</Label>
             <Input
@@ -480,9 +481,11 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               </div>
             ))}
           </div>
-        </Panel>
+            </Panel>
+          </TabsContent>
 
-        <Panel id="features" title="Feature cards">
+          <TabsContent value="features">
+            <Panel title="Feature cards">
           <div className="grid gap-4">
             {home.features.map((feature, index) => (
               <div key={index} className="space-y-3 rounded-xl border p-4">
@@ -522,7 +525,8 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               </div>
             ))}
           </div>
-        </Panel>
+            </Panel>
+          </TabsContent>
 
         {(
           [
@@ -533,7 +537,8 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
             ["faqs", "FAQs"],
           ] as const
         ).map(([key, label]) => (
-          <Panel key={key} id={key} title={`${label} heading`}>
+          <TabsContent key={key} value={key}>
+            <Panel title={`${label} heading`}>
             <div className="space-y-2">
               <Label htmlFor={`${key}-eyebrow`}>Eyebrow</Label>
               <Input
@@ -554,10 +559,12 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
                 minHeight="110px"
               />
             </div>
-          </Panel>
+            </Panel>
+          </TabsContent>
         ))}
 
-        <Panel id="filtered_products" title="Filter products" hint="Homepage tabs filter live products by All, Bestsellers, and each category.">
+          <TabsContent value="filtered_products">
+            <Panel title="Filter products" hint="Homepage tabs filter live products by All, Bestsellers, and each category.">
           <div className="space-y-2">
             <Label htmlFor="fp-eyebrow">Eyebrow</Label>
             <Input
@@ -634,9 +641,11 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               Show Bestsellers tab
             </label>
           </div>
-        </Panel>
+            </Panel>
+          </TabsContent>
 
-        <Panel id="cta" title="Estimate CTA">
+          <TabsContent value="cta">
+            <Panel title="Estimate CTA">
           <div className="space-y-2">
             <Label htmlFor="cta-title">Title</Label>
             <Input id="cta-title" value={home.cta.title} onChange={(e) => patchCta({ title: e.target.value })} />
@@ -655,9 +664,11 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               <Input id="cta-href" value={home.cta.button_href} onChange={(e) => patchCta({ button_href: e.target.value })} />
             </div>
           </div>
-        </Panel>
+            </Panel>
+          </TabsContent>
 
-        <Panel id="story" title="Story / SEO copy">
+          <TabsContent value="story">
+            <Panel title="Story / SEO copy">
           <div className="space-y-2">
             <Label htmlFor="story-title">Title</Label>
             <Input
@@ -684,7 +695,9 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               />
             </div>
           ))}
-        </Panel>
+            </Panel>
+          </TabsContent>
+        </Tabs>
 
         {message ? <p className="text-sm">{message}</p> : null}
         <Button type="submit" disabled={saving}>
@@ -695,9 +708,9 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
   );
 }
 
-function Panel({ id, title, hint, children }: { id: string; title: string; hint?: string; children: ReactNode }) {
+function Panel({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
   return (
-    <section id={`hp-${id}`} className="scroll-mt-36 space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
+    <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
       <div>
         <h2 className="font-serif text-xl">{title}</h2>
         {hint ? <p className="mt-1 text-sm text-muted-foreground">{hint}</p> : null}
