@@ -49,7 +49,7 @@ export function HeroCarousel({
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="relative h-[300px] w-full sm:h-[min(70dvh,40rem)] lg:h-[min(88dvh,52rem)]">
+      <div className="relative h-[250px] w-full sm:h-[min(70dvh,40rem)] lg:h-[min(88dvh,52rem)]">
         <AnimatePresence mode="wait" custom={dir}>
           <motion.div
             key={`${index}-${slide.image_url}`}
