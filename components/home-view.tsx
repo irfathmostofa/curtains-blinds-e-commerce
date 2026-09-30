@@ -13,6 +13,7 @@ import { ShieldCheck, Ruler, Sparkles, Clock } from "lucide-react";
 import { HeroClassic } from "@/components/hero-classic";
 import { HeroCarousel } from "@/components/hero-carousel";
 import { HowItWorks } from "./how-it-works";
+import { HomeIntro } from "./home-intro";
 import { MarqueeStrip } from "./marquee-strip";
 import { Reveal, SectionFrame, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { HtmlContent } from "./html-content";
@@ -76,6 +77,11 @@ export function HomeView({
         <HeroClassic slide={classicSlide} settings={settings} />
       ),
     marquee: <MarqueeStrip items={home.marquee} />,
+    intro: (
+      <SectionFrame className="py-0">
+        <HomeIntro content={home.intro} />
+      </SectionFrame>
+    ),
     how_it_works: (
       <SectionFrame className="py-14 sm:py-16">
         <HowItWorks content={home.how_it_works} />

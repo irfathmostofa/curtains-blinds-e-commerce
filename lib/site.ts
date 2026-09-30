@@ -145,6 +145,16 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       "Dubai Marina",
       "Business Bay",
     ],
+    intro: {
+      eyebrow: "Maison Drape",
+      title: "Curtains and blinds that actually belong in a Gulf home.",
+      subtitle:
+        "Made-to-measure drapes, sheers, rollers and silent motors. One complimentary visit, a written estimate, installation that respects your floors.",
+      primary_cta_label: "Book a free visit",
+      primary_cta_href: "/book",
+      secondary_cta_label: "Browse collections",
+      secondary_cta_href: "/products",
+    },
     how_it_works: {
       eyebrow: "How it works",
       title: "Elegant curtains, delivered in four effortless steps.",
@@ -228,6 +238,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     section_order: [
       { id: "hero", enabled: true },
       { id: "marquee", enabled: true },
+      { id: "intro", enabled: true },
       { id: "how_it_works", enabled: true },
       { id: "features", enabled: false },
       { id: "collections", enabled: true },
@@ -245,6 +256,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
 export const HOMEPAGE_SECTION_LABELS: Record<HomepageSectionId, string> = {
   hero: "Hero",
   marquee: "Marquee",
+  intro: "Introduction",
   how_it_works: "How it works",
   features: "Feature cards",
   collections: "Collections",
@@ -282,7 +294,19 @@ function mergeSectionOrder(saved?: HomepageSectionLayout[] | null): HomepageSect
   const fromSaved = saved.filter((s) => known.has(s.id)).map((s) => ({ id: s.id, enabled: s.enabled !== false }));
   const seen = new Set(fromSaved.map((s) => s.id));
   const missing = defaults.filter((s) => !seen.has(s.id));
-  return [...fromSaved, ...missing];
+  const merged = [...fromSaved];
+  for (const section of missing) {
+    const defaultIndex = defaults.findIndex((s) => s.id === section.id);
+    const before = defaults.slice(0, defaultIndex).reverse().find((s) => seen.has(s.id));
+    if (before) {
+      const idx = merged.findIndex((s) => s.id === before.id);
+      merged.splice(idx + 1, 0, { ...section });
+    } else {
+      merged.unshift({ ...section });
+    }
+    seen.add(section.id);
+  }
+  return merged;
 }
 
 function baseSectionOrder(): HomepageSectionLayout[] {
@@ -305,6 +329,7 @@ export function mergeHomepage(saved?: Partial<HomepageContent> | null): Homepage
     hero,
     hero_slides: slides,
     marquee: saved.marquee?.length ? saved.marquee : [...base.marquee],
+    intro: { ...base.intro, ...saved.intro },
     how_it_works: {
       ...base.how_it_works,
       ...saved.how_it_works,

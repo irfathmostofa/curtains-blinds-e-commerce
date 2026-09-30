@@ -16,12 +16,16 @@ export function EntityManager({
   categories = [],
   status,
   location,
+  from,
+  to,
 }: {
   config: EntityConfig;
   rows: Record<string, unknown>[];
   categories?: { id: string; name: string }[];
   status?: string;
   location?: string;
+  from?: string;
+  to?: string;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -96,9 +100,22 @@ export function EntityManager({
                 </select>
               </label>
             ) : null}
+            <label className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
+              From
+              <Input type="date" name="from" defaultValue={from || ""} className="h-10 min-w-0 flex-1 sm:w-auto" />
+            </label>
+            <label className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
+              To
+              <Input type="date" name="to" defaultValue={to || ""} className="h-10 min-w-0 flex-1 sm:w-auto" />
+            </label>
             <Button type="submit" variant="outline" size="sm">
               Filter
             </Button>
+            {status || location || from || to ? (
+              <Button type="button" variant="ghost" size="sm" onClick={() => router.push(config.href)}>
+                Clear
+              </Button>
+            ) : null}
           </form>
         ) : null}
       </div>

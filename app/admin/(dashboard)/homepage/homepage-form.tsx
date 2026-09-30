@@ -210,6 +210,79 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
         </section>
 
         <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
+          <h2 className="font-serif text-xl">Introduction</h2>
+          <p className="text-sm text-muted-foreground">
+            Shown after the marquee. Use this when the hero is a carousel so the page still has opening copy and CTAs.
+          </p>
+          <div className="space-y-2">
+            <Label htmlFor="intro-eyebrow">Eyebrow</Label>
+            <Input
+              id="intro-eyebrow"
+              value={home.intro.eyebrow}
+              onChange={(e) => setHome((h) => ({ ...h, intro: { ...h.intro, eyebrow: e.target.value } }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="intro-title">Title</Label>
+            <Input
+              id="intro-title"
+              value={home.intro.title}
+              onChange={(e) => setHome((h) => ({ ...h, intro: { ...h.intro, title: e.target.value } }))}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Subtitle</Label>
+            <RichTextEditor
+              value={home.intro.subtitle}
+              onChange={(html) => setHome((h) => ({ ...h, intro: { ...h.intro, subtitle: html } }))}
+              minHeight="120px"
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="intro-primary-label">Primary button label</Label>
+              <Input
+                id="intro-primary-label"
+                value={home.intro.primary_cta_label}
+                onChange={(e) =>
+                  setHome((h) => ({ ...h, intro: { ...h.intro, primary_cta_label: e.target.value } }))
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="intro-primary-href">Primary button link</Label>
+              <Input
+                id="intro-primary-href"
+                value={home.intro.primary_cta_href}
+                onChange={(e) =>
+                  setHome((h) => ({ ...h, intro: { ...h.intro, primary_cta_href: e.target.value } }))
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="intro-secondary-label">Secondary button label</Label>
+              <Input
+                id="intro-secondary-label"
+                value={home.intro.secondary_cta_label}
+                onChange={(e) =>
+                  setHome((h) => ({ ...h, intro: { ...h.intro, secondary_cta_label: e.target.value } }))
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="intro-secondary-href">Secondary button link</Label>
+              <Input
+                id="intro-secondary-href"
+                value={home.intro.secondary_cta_href}
+                onChange={(e) =>
+                  setHome((h) => ({ ...h, intro: { ...h.intro, secondary_cta_href: e.target.value } }))
+                }
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
           <h2 className="font-serif text-xl">How it works</h2>
           <div className="space-y-2">
             <Label htmlFor="hiw-eyebrow">Eyebrow</Label>

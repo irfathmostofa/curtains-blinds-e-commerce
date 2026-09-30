@@ -8,6 +8,12 @@ function displayValue(value: unknown) {
   if (value === false) return "No";
   if (value === null || value === undefined || value === "") return "—";
   if (typeof value === "number") return String(value);
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    }
+  }
   if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
   return String(value);
 }

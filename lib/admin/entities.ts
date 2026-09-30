@@ -162,6 +162,7 @@ export const entities: Record<string, EntityConfig> = {
       { key: "phone", label: "Phone" },
       { key: "product_interest", label: "Interest" },
       { key: "status", label: "Status" },
+      { key: "created_at", label: "Received" },
     ],
     fields: [
       { name: "name", label: "Name", type: "text", required: true },
@@ -189,6 +190,7 @@ export const entities: Record<string, EntityConfig> = {
       { key: "product_interest", label: "Interest" },
       { key: "location", label: "Location" },
       { key: "status", label: "Status" },
+      { key: "created_at", label: "Received" },
     ],
     fields: [
       { name: "name", label: "Name", type: "text" },
@@ -219,6 +221,7 @@ export const entities: Record<string, EntityConfig> = {
       { key: "preferred_date", label: "Date" },
       { key: "preferred_time_slot", label: "Slot" },
       { key: "status", label: "Status" },
+      { key: "created_at", label: "Received" },
     ],
     fields: [
       { name: "name", label: "Name", type: "text", required: true },

@@ -185,6 +185,7 @@ export type HeroSlide = {
 export type HomepageSectionId =
   | "hero"
   | "marquee"
+  | "intro"
   | "how_it_works"
   | "features"
   | "collections"
@@ -208,6 +209,15 @@ export type HomepageContent = {
   };
   hero_slides: HeroSlide[];
   marquee: string[];
+  intro: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    primary_cta_label: string;
+    primary_cta_href: string;
+    secondary_cta_label: string;
+    secondary_cta_href: string;
+  };
   how_it_works: {
     eyebrow: string;
     title: string;

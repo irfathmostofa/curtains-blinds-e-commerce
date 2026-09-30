@@ -2,6 +2,8 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
 import { createPublicClient } from "@/lib/supabase/server";
+import { createWriteClient } from "@/lib/supabase/admin";
+import { getStore } from "@/lib/data/store";
 import { DEFAULT_SETTINGS, mergeHomepage } from "@/lib/site";
 import type {
   BlogPost,
@@ -40,6 +42,21 @@ async function queryRows<T>(fn: (client: NonNullable<ReturnType<typeof catalogCl
     return data ?? [];
   } catch {
     return [];
+  }
+}
+
+async function queryAdminRows<T>(
+  fallback: T[],
+  fn: (client: NonNullable<ReturnType<typeof createWriteClient>>) => Promise<{ data: T[] | null; error: { message: string } | null }>
+): Promise<T[]> {
+  const supabase = createWriteClient();
+  if (!supabase) return fallback;
+  try {
+    const { data, error } = await fn(supabase);
+    if (error || !data) return fallback;
+    return data;
+  } catch {
+    return fallback;
   }
 }
 
@@ -233,23 +250,23 @@ export const getCmsPage = cache(async (slug: string): Promise<CmsPage | undefine
 export const getSiteSettings = cache(fetchSiteSettings);
 
 export async function getLeads(): Promise<Lead[]> {
-  return queryRows(async (supabase) => {
-    const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
-    return data as Lead[] | null;
+  return queryAdminRows(getStore().leads, async (supabase) => {
+    const { data, error } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
+    return { data: data as Lead[] | null, error };
   });
 }
 
 export async function getBookings(): Promise<Booking[]> {
-  return queryRows(async (supabase) => {
-    const { data } = await supabase.from("bookings").select("*").order("created_at", { ascending: false });
-    return data as Booking[] | null;
+  return queryAdminRows(getStore().bookings, async (supabase) => {
+    const { data, error } = await supabase.from("bookings").select("*").order("created_at", { ascending: false });
+    return { data: data as Booking[] | null, error };
   });
 }
 
 export async function getChatLeads(): Promise<ChatLead[]> {
-  return queryRows(async (supabase) => {
-    const { data } = await supabase.from("chat_leads").select("*").order("created_at", { ascending: false });
-    return data as ChatLead[] | null;
+  return queryAdminRows(getStore().chatLeads, async (supabase) => {
+    const { data, error } = await supabase.from("chat_leads").select("*").order("created_at", { ascending: false });
+    return { data: data as ChatLead[] | null, error };
   });
 }
 
