@@ -110,7 +110,7 @@ export function FilteredProducts({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-            className="grid grid-cols-2 gap-3 sm:gap-6"
+            className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-6"
           >
             {visible.map((product) => (
               <ProductCard key={product.id} product={product} compact />
