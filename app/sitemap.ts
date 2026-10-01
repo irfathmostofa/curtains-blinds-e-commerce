@@ -10,6 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getSiteSettings(),
   ]);
   const SITE_URL = resolveSiteUrl(settings);
+  if (settings.under_construction) return [];
   const staticRoutes = [
     "",
     "/products",

@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, mergeHomepage } from "@/lib/site";
+import { DEFAULT_SETTINGS, mergeHomepage, normalizePaymentMethods } from "@/lib/site";
 import type {
   BlogPost,
   Booking,
@@ -53,6 +53,7 @@ function empty(): Store {
 export function getStore(): Store {
   if (!g.__mdStore) g.__mdStore = empty();
   g.__mdStore.settings.homepage = mergeHomepage(g.__mdStore.settings.homepage);
+  g.__mdStore.settings.payment_methods = normalizePaymentMethods(g.__mdStore.settings.payment_methods);
   return g.__mdStore;
 }
 

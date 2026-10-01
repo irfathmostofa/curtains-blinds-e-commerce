@@ -9,6 +9,8 @@ import { trackServerEvent } from "@/lib/analytics/server";
 import { newEventId } from "@/lib/analytics/events";
 import { SITE_URL } from "@/lib/site";
 import { notifyAdmin } from "@/lib/email";
+import { getSiteSettings } from "@/lib/data/catalog";
+import { isAdminLoggedIn } from "@/lib/admin/session";
 
 function sourceUrl(path: string) {
   const host = headers().get("x-forwarded-host") || headers().get("host");
@@ -18,6 +20,12 @@ function sourceUrl(path: string) {
 }
 
 const rateKey = "form_submits";
+
+async function publicSiteBlocked() {
+  const settings = await getSiteSettings();
+  if (!settings.under_construction) return false;
+  return !(await isAdminLoggedIn());
+}
 
 function rateLimited() {
   const jar = cookies();
@@ -29,6 +37,7 @@ function rateLimited() {
 }
 
 export async function submitEstimate(input: unknown) {
+  if (await publicSiteBlocked()) return { ok: false, error: "The site is under construction." };
   const parsed = estimateSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message || "Invalid form" };
   if (parsed.data.company) return { ok: true as const };
@@ -86,6 +95,7 @@ export async function submitEstimate(input: unknown) {
 }
 
 export async function submitBooking(input: unknown) {
+  if (await publicSiteBlocked()) return { ok: false, error: "The site is under construction." };
   const parsed = bookingSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message || "Invalid form" };
   if (parsed.data.company) return { ok: true as const };
@@ -152,6 +162,7 @@ export async function saveDraft(data: Record<string, string>) {
 }
 
 export async function submitChatLead(input: unknown) {
+  if (await publicSiteBlocked()) return { ok: false, error: "The site is under construction." };
   const parsed = chatLeadSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message || "Invalid form" };
   if (rateLimited()) return { ok: false, error: "Please wait before submitting again." };

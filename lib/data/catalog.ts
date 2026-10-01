@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { createPublicClient } from "@/lib/supabase/server";
 import { createWriteClient } from "@/lib/supabase/admin";
 import { getStore } from "@/lib/data/store";
-import { DEFAULT_SETTINGS, mergeHomepage, omitSecrets, SECRET_SETTING_KEYS } from "@/lib/site";
+import { DEFAULT_SETTINGS, mergeHomepage, normalizePaymentMethods, omitSecrets, SECRET_SETTING_KEYS } from "@/lib/site";
 import type {
   BlogPost,
   Booking,
@@ -135,6 +135,11 @@ function str(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
 }
 
+function asBool(value: unknown, fallback = false) {
+  if (value === undefined || value === null || value === "") return fallback;
+  return value === true || value === "true" || value === "on" || value === 1 || value === "1";
+}
+
 function assembleSettings(
   map: Record<string, unknown>,
   includeSecrets: boolean
@@ -153,9 +158,7 @@ function assembleSettings(
     nav_links: (map.nav_links as SiteSettings["nav_links"]) || DEFAULT_SETTINGS.nav_links,
     locations: (map.locations as SiteSettings["locations"]) || DEFAULT_SETTINGS.locations,
     social_links: (map.social_links as SiteSettings["social_links"]) || DEFAULT_SETTINGS.social_links,
-    payment_methods: Array.isArray(general.payment_methods)
-      ? (general.payment_methods as string[])
-      : DEFAULT_SETTINGS.payment_methods,
+    payment_methods: normalizePaymentMethods(general.payment_methods),
     trust: (map.trust as SiteSettings["trust"]) || DEFAULT_SETTINGS.trust,
     seo: { ...DEFAULT_SETTINGS.seo, ...((map.seo as SiteSettings["seo"]) || {}) },
     gtm_id: str(general.gtm_id),
@@ -169,6 +172,7 @@ function assembleSettings(
     tiktok_access_token: "",
     meta_capi_test_event_code: "",
     tiktok_test_event_code: "",
+    under_construction: asBool(general.under_construction, false),
     homepage: mergeHomepage(
       (map.homepage as SiteSettings["homepage"]) || (general.homepage as SiteSettings["homepage"] | undefined)
     ),

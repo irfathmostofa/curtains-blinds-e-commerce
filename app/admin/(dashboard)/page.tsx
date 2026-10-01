@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { ConstructionBanner } from "@/components/admin/construction-banner";
 import { SectionHeading } from "@/components/section-heading";
 import {
+  getAdminSiteSettings,
   getBlogPosts,
   getBookings,
   getChatLeads,
@@ -11,12 +13,13 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const [products, leads, bookings, posts, chatLeads] = await Promise.all([
+  const [products, leads, bookings, posts, chatLeads, settings] = await Promise.all([
     getProducts({ includeInactive: true }),
     getLeads(),
     getBookings(),
     getBlogPosts({ includeDrafts: true }),
     getChatLeads(),
+    getAdminSiteSettings(),
   ]);
   const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
   const bookingsWeek = bookings.filter((b) => new Date(b.created_at).getTime() > weekAgo).length;
@@ -32,6 +35,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <main className="space-y-8">
+      {settings.under_construction ? <ConstructionBanner /> : null}
       <SectionHeading as="h1" title="Dashboard" subtitle="Lead flow, visits and catalogue health." />
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (

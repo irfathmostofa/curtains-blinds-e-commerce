@@ -14,7 +14,7 @@ import { slugify } from "@/lib/utils";
 import { revalidateTag } from "next/cache";
 import { entities } from "@/lib/admin/entities";
 import { isUuid, sanitizeEntityPayload, sanitizeVariants } from "@/lib/admin/payload";
-import { SECRET_SETTING_KEYS } from "@/lib/site";
+import { SECRET_SETTING_KEYS, normalizePaymentMethods } from "@/lib/site";
 import type { SiteSettings } from "@/lib/types";
 
 const DEMO_COOKIE = "md_admin_session";
@@ -145,6 +145,7 @@ export async function updateBookingStatus(id: string, status: string) {
 export async function saveSettings(settings: Record<string, unknown>) {
   const store = getStore();
   store.settings = { ...store.settings, ...settings } as typeof store.settings;
+  store.settings.payment_methods = normalizePaymentMethods(store.settings.payment_methods);
   const next = store.settings;
   const general = {
     company_name: next.company_name,
@@ -158,7 +159,8 @@ export async function saveSettings(settings: Record<string, unknown>) {
     meta_pixel_id: next.meta_pixel_id,
     instagram_pixel_id: next.instagram_pixel_id,
     tiktok_pixel_id: next.tiktok_pixel_id,
-    payment_methods: next.payment_methods,
+    payment_methods: normalizePaymentMethods(next.payment_methods),
+    under_construction: Boolean(next.under_construction),
   };
   const incomingHasSecrets = SECRET_SETTING_KEYS.some((key) => key in settings);
   const secrets = Object.fromEntries(SECRET_SETTING_KEYS.map((key) => [key, next[key] || ""])) as Pick<
@@ -239,6 +241,6 @@ async function saveLocalImage(
 }
 
 function allowedBucket(folder: string) {
-  const buckets = ["product-images", "blog-images", "partner-logos"];
+  const buckets = ["product-images", "blog-images", "partner-logos", "payment-logos"];
   return buckets.includes(folder) ? folder : "product-images";
 }

@@ -14,12 +14,14 @@ export function ImageUploader({
   nameHint,
   onUploaded,
   multiple = true,
+  inputId = "image-alt",
 }: {
   folder?: string;
   suggestedAlt?: string;
   nameHint?: string;
   onUploaded: (asset: Asset) => void;
   multiple?: boolean;
+  inputId?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [alt, setAlt] = useState(suggestedAlt || "");
@@ -66,9 +68,9 @@ export function ImageUploader({
   return (
     <div className="space-y-3">
       <div className="space-y-2">
-        <Label htmlFor="image-alt">Alt text (required for SEO)</Label>
+        <Label htmlFor={inputId}>Alt text (required for SEO)</Label>
         <Input
-          id="image-alt"
+          id={inputId}
           value={alt}
           onChange={(e) => setAlt(e.target.value)}
           placeholder={suggestedAlt || "Describe the image"}

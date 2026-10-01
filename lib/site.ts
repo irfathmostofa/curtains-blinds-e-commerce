@@ -3,6 +3,7 @@ import type {
   HomepageContent,
   HomepageSectionId,
   HomepageSectionLayout,
+  PaymentMethod,
   SiteSettings,
 } from "@/lib/types";
 
@@ -54,7 +55,13 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     { label: "Pinterest", href: "https://pinterest.com/maisondrape" },
     { label: "LinkedIn", href: "https://linkedin.com/company/maisondrape" },
   ],
-  payment_methods: ["Visa", "Mastercard", "Apple Pay", "Cash on Delivery", "Bank Transfer"],
+  payment_methods: [
+    { label: "Visa" },
+    { label: "Mastercard" },
+    { label: "Apple Pay" },
+    { label: "Cash on Delivery" },
+    { label: "Bank Transfer" },
+  ],
   nav_links: [
     { label: "Products", href: "/products" },
     { label: "Get Estimate", href: "/get-estimate" },
@@ -107,6 +114,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   tiktok_access_token: "",
   meta_capi_test_event_code: "",
   tiktok_test_event_code: "",
+  under_construction: false,
   homepage: {
     hero: {
       variant: "classic",
@@ -352,6 +360,27 @@ function mergeSectionOrder(saved?: HomepageSectionLayout[] | null): HomepageSect
 
 function baseSectionOrder(): HomepageSectionLayout[] {
   return DEFAULT_SETTINGS.homepage.section_order.map((s) => ({ ...s }));
+}
+
+export function normalizePaymentMethods(value: unknown): PaymentMethod[] {
+  if (!Array.isArray(value)) return DEFAULT_SETTINGS.payment_methods.map((m) => ({ ...m }));
+  const next = value
+    .map((item) => {
+      if (typeof item === "string") {
+        const label = item.trim();
+        return label ? { label } : null;
+      }
+      if (item && typeof item === "object") {
+        const row = item as { label?: string; image_url?: string };
+        const label = String(row.label || "").trim();
+        if (!label) return null;
+        const image_url = String(row.image_url || "").trim();
+        return image_url ? { label, image_url } : { label };
+      }
+      return null;
+    })
+    .filter(Boolean) as PaymentMethod[];
+  return next;
 }
 
 export function mergeHomepage(saved?: Partial<HomepageContent> | null): HomepageContent {

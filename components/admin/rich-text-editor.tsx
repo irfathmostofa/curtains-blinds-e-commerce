@@ -22,14 +22,15 @@ export function RichTextEditor({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const last = useRef(value);
+  const initialHtml = useRef(sanitizeHtml(value || ""));
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (value !== last.current) {
-      el.innerHTML = value || "";
-      last.current = value;
-    }
+    if (value === last.current) return;
+    if (document.activeElement === el) return;
+    el.innerHTML = value || "";
+    last.current = value;
   }, [value]);
 
   function emit() {
@@ -89,6 +90,7 @@ export function RichTextEditor({
         )}
         style={{ minHeight }}
         data-placeholder={placeholder}
+        dangerouslySetInnerHTML={{ __html: initialHtml.current }}
         onInput={emit}
         onBlur={emit}
       />

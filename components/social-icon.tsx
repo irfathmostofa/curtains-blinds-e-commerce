@@ -32,6 +32,21 @@ function normalize(value: string) {
   return value.toLowerCase().replace(/[^a-z]/g, "");
 }
 
+export const SOCIAL_PLATFORMS = [
+  { label: "Instagram", value: "Instagram" },
+  { label: "Facebook", value: "Facebook" },
+  { label: "TikTok", value: "TikTok" },
+  { label: "Pinterest", value: "Pinterest" },
+  { label: "LinkedIn", value: "LinkedIn" },
+  { label: "YouTube", value: "YouTube" },
+  { label: "X", value: "X" },
+  { label: "Twitter", value: "Twitter" },
+  { label: "WhatsApp", value: "WhatsApp" },
+  { label: "Snapchat", value: "Snapchat" },
+  { label: "Threads", value: "Threads" },
+  { label: "Google", value: "Google" },
+] as const;
+
 export function socialIconKey(label: string, href = "") {
   const key = normalize(label);
   const url = href.toLowerCase();
@@ -50,6 +65,7 @@ export function socialIconKey(label: string, href = "") {
     whatsapp: "whatsapp",
     snapchat: "snapchat",
     threads: "threads",
+    google: "google",
   };
   if (aliases[key]) return aliases[key];
   for (const [needle, icon] of Object.entries(aliases)) {

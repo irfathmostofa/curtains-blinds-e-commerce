@@ -1,4 +1,5 @@
 import type { ReactNode, SVGProps } from "react";
+import type { PaymentMethod } from "@/lib/types";
 
 function normalize(value: string) {
   return value.toLowerCase().replace(/[^a-z]/g, "");
@@ -49,19 +50,32 @@ function MethodIcon({ label }: { label: string }) {
   return null;
 }
 
-export function PaymentBadges({ methods, className }: { methods: string[]; className?: string }) {
-  const list = methods.filter((m) => m && m.trim());
+export function PaymentBadges({
+  methods,
+  className,
+}: {
+  methods: Array<string | PaymentMethod>;
+  className?: string;
+}) {
+  const list = methods
+    .map((item) => (typeof item === "string" ? { label: item } : item))
+    .filter((m) => m?.label?.trim());
   if (!list.length) return null;
   return (
     <ul className={`flex flex-wrap items-center gap-2 ${className || ""}`}>
-      {list.map((method) => (
+      {list.map((method, i) => (
         <li
-          key={method}
+          key={`${method.label}-${i}`}
           className="inline-flex items-center gap-1.5 rounded-md border border-primary-foreground/20 bg-primary-foreground/10 px-2.5 py-1 text-primary-foreground/90"
-          title={method}
+          title={method.label}
         >
-          <MethodIcon label={method} />
-          <Wordmark label={method} className="text-[11px] font-medium" />
+          {method.image_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={method.image_url} alt={method.label} className="h-4 w-auto max-w-10 object-contain" />
+          ) : (
+            <MethodIcon label={method.label} />
+          )}
+          <Wordmark label={method.label} className="text-[11px] font-medium" />
         </li>
       ))}
     </ul>

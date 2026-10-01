@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUploader } from "@/components/admin/image-uploader";
-import { TagInput } from "@/components/admin/tag-input";
-import type { SiteSettings } from "@/lib/types";
+import { SOCIAL_PLATFORMS, SocialIcon } from "@/components/social-icon";
+import { normalizePaymentMethods } from "@/lib/site";
+import type { PaymentMethod, SiteSettings } from "@/lib/types";
 
 const PAYMENT_SUGGESTIONS = [
   "Visa",
@@ -25,7 +26,10 @@ const PAYMENT_SUGGESTIONS = [
 ];
 
 export function SettingsForm({ initial }: { initial: SiteSettings }) {
-  const [settings, setSettings] = useState<SiteSettings>(initial);
+  const [settings, setSettings] = useState<SiteSettings>(() => ({
+    ...initial,
+    payment_methods: normalizePaymentMethods(initial.payment_methods),
+  }));
   const [message, setMessage] = useState<string | null>(null);
   const seo = settings.seo;
 
@@ -45,12 +49,39 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   }
 
   function addSocial() {
-    setSettings((s) => ({ ...s, social_links: [...s.social_links, { label: "", href: "" }] }));
+    setSettings((s) => {
+      const used = new Set(s.social_links.map((link) => link.label));
+      const next = SOCIAL_PLATFORMS.find((p) => !used.has(p.value)) || SOCIAL_PLATFORMS[0];
+      return { ...s, social_links: [...s.social_links, { label: next.value, href: "" }] };
+    });
   }
 
   function removeSocial(index: number) {
     setSettings((s) => ({ ...s, social_links: s.social_links.filter((_, i) => i !== index) }));
   }
+
+  function patchPayment(index: number, partial: Partial<PaymentMethod>) {
+    setSettings((s) => ({
+      ...s,
+      payment_methods: s.payment_methods.map((method, i) => (i === index ? { ...method, ...partial } : method)),
+    }));
+  }
+
+  function addPayment(label = "") {
+    setSettings((s) => {
+      const nextLabel = label.trim();
+      if (nextLabel && s.payment_methods.some((m) => m.label === nextLabel)) return s;
+      return { ...s, payment_methods: [...s.payment_methods, { label: nextLabel || "Visa" }] };
+    });
+  }
+
+  function removePayment(index: number) {
+    setSettings((s) => ({ ...s, payment_methods: s.payment_methods.filter((_, i) => i !== index) }));
+  }
+
+  const unusedPayments = PAYMENT_SUGGESTIONS.filter(
+    (name) => !settings.payment_methods.some((method) => method.label === name)
+  );
 
   return (
     <main className="mx-auto max-w-3xl space-y-8">
@@ -63,10 +94,32 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
         className="space-y-8"
         onSubmit={async (e) => {
           e.preventDefault();
-          await saveSettings(settings);
+          const result = await saveSettings(settings);
+          if (result && "error" in result && result.error) {
+            setMessage(result.error);
+            return;
+          }
           setMessage("Saved.");
         }}
       >
+        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
+          <div>
+            <h2 className="font-serif text-xl">Site access</h2>
+            <p className="text-xs text-muted-foreground">
+              When under construction is on, visitors see a holding page. Logged-in admins can still browse the full site.
+            </p>
+          </div>
+          <label className="flex items-center gap-3 rounded-xl border px-3 py-3 text-sm">
+            <input
+              type="checkbox"
+              className="h-4 w-4 accent-[hsl(var(--accent))]"
+              checked={Boolean(settings.under_construction)}
+              onChange={(e) => patch({ under_construction: e.target.checked })}
+            />
+            Under construction mode
+          </label>
+        </section>
+
         <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
           <h2 className="font-serif text-xl">Contact</h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -112,31 +165,47 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           </div>
           <div className="space-y-3">
             <Label>Social links</Label>
-            {settings.social_links.map((link, index) => (
-              <div key={index} className="flex flex-col gap-2 sm:flex-row">
-                <Input
-                  value={link.label}
-                  placeholder="Instagram"
-                  aria-label={`Social link ${index + 1} name`}
-                  onChange={(e) => patchSocial(index, { label: e.target.value })}
-                />
-                <Input
-                  value={link.href}
-                  placeholder="https://instagram.com/yourbrand"
-                  aria-label={`Social link ${index + 1} URL`}
-                  onChange={(e) => patchSocial(index, { href: e.target.value })}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  aria-label={`Remove ${link.label || "social link"}`}
-                  onClick={() => removeSocial(index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+            {settings.social_links.map((link, index) => {
+              const options = SOCIAL_PLATFORMS.some((p) => p.value === link.label)
+                ? SOCIAL_PLATFORMS
+                : [{ label: link.label || "Custom", value: link.label || "Custom" }, ...SOCIAL_PLATFORMS];
+              return (
+                <div key={index} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border bg-secondary">
+                      <SocialIcon label={link.label} href={link.href} className="h-4 w-4" />
+                    </span>
+                    <select
+                      className="h-11 min-w-0 flex-1 rounded-xl border bg-card px-3"
+                      value={link.label}
+                      aria-label={`Social platform ${index + 1}`}
+                      onChange={(e) => patchSocial(index, { label: e.target.value })}
+                    >
+                      {options.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <Input
+                    value={link.href}
+                    placeholder="https://instagram.com/yourbrand"
+                    aria-label={`${link.label || "Social"} URL`}
+                    onChange={(e) => patchSocial(index, { href: e.target.value })}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    aria-label={`Remove ${link.label || "social link"}`}
+                    onClick={() => removeSocial(index)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              );
+            })}
             {!settings.social_links.length ? (
               <p className="text-sm text-muted-foreground">No social links yet.</p>
             ) : null}
@@ -144,15 +213,73 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               Add social link
             </Button>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>Accepted payment methods</Label>
-            <TagInput
-              value={settings.payment_methods}
-              onChange={(next) => patch({ payment_methods: next })}
-              placeholder="Add a payment method and press Enter"
-              suggestions={PAYMENT_SUGGESTIONS}
-              emptyText="No payment methods yet. Add one below."
-            />
+            {settings.payment_methods.map((method, index) => (
+              <div key={index} className="space-y-3 rounded-xl border p-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <Input
+                    value={method.label}
+                    placeholder="Visa"
+                    aria-label={`Payment method ${index + 1} name`}
+                    onChange={(e) => patchPayment(index, { label: e.target.value })}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    aria-label={`Remove ${method.label || "payment method"}`}
+                    onClick={() => removePayment(index)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label>Logo image</Label>
+                  <ImageUploader
+                    folder="payment-logos"
+                    suggestedAlt={method.label || "Payment method"}
+                    nameHint={`payment-${method.label || index}`}
+                    multiple={false}
+                    inputId={`payment-alt-${index}`}
+                    onUploaded={(asset) => patchPayment(index, { image_url: asset.url })}
+                  />
+                  {method.image_url ? (
+                    <div className="flex items-center gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={method.image_url} alt={method.label} className="h-8 w-auto max-w-24 object-contain" />
+                      <button
+                        type="button"
+                        className="text-xs underline"
+                        onClick={() => patchPayment(index, { image_url: "" })}
+                      >
+                        Remove image
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+            {!settings.payment_methods.length ? (
+              <p className="text-sm text-muted-foreground">No payment methods yet. Add one below.</p>
+            ) : null}
+            {unusedPayments.length ? (
+              <div className="flex flex-wrap gap-2">
+                {unusedPayments.map((name) => (
+                  <button
+                    key={name}
+                    type="button"
+                    className="rounded-full border border-dashed px-3 py-1 text-xs text-muted-foreground hover:border-accent hover:text-foreground"
+                    onClick={() => addPayment(name)}
+                  >
+                    + {name}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            <Button type="button" variant="outline" size="sm" onClick={() => addPayment("Custom")}>
+              Add payment method
+            </Button>
           </div>
         </section>
 

@@ -118,8 +118,12 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
 
   const persist = useCallback(async () => {
     setSaving(true);
-    await saveSettings({ ...initial, homepage: home });
+    const result = await saveSettings({ ...initial, homepage: home });
     setSaving(false);
+    if (result && "error" in result && result.error) {
+      setMessage(result.error);
+      return;
+    }
     setMessage("Homepage saved. Refresh the public site to see changes.");
   }, [home, initial]);
 
@@ -677,9 +681,29 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               onChange={(e) => setHome((h) => ({ ...h, story: { ...h.story, title: e.target.value } }))}
             />
           </div>
-          {home.story.paragraphs.map((p, i) => (
+          {(home.story.paragraphs.length ? home.story.paragraphs : [""]).map((p, i) => (
             <div key={i} className="space-y-2">
-              <Label>Paragraph {i + 1}</Label>
+              <div className="flex items-center justify-between gap-3">
+                <Label>Paragraph {i + 1}</Label>
+                {home.story.paragraphs.length > 1 ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setHome((h) => ({
+                        ...h,
+                        story: {
+                          ...h.story,
+                          paragraphs: h.story.paragraphs.filter((_, idx) => idx !== i),
+                        },
+                      }))
+                    }
+                  >
+                    Remove
+                  </Button>
+                ) : null}
+              </div>
               <RichTextEditor
                 value={p}
                 onChange={(html) =>
@@ -687,7 +711,9 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
                     ...h,
                     story: {
                       ...h.story,
-                      paragraphs: h.story.paragraphs.map((para, idx) => (idx === i ? html : para)),
+                      paragraphs: (h.story.paragraphs.length ? h.story.paragraphs : [""]).map((para, idx) =>
+                        idx === i ? html : para
+                      ),
                     },
                   }))
                 }
@@ -695,6 +721,19 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               />
             </div>
           ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setHome((h) => ({
+                ...h,
+                story: { ...h.story, paragraphs: [...(h.story.paragraphs.length ? h.story.paragraphs : [""]), ""] },
+              }))
+            }
+          >
+            Add paragraph
+          </Button>
             </Panel>
           </TabsContent>
         </Tabs>

@@ -136,6 +136,11 @@ export type Partner = {
   sort_order: number;
 };
 
+export type PaymentMethod = {
+  label: string;
+  image_url?: string;
+};
+
 export type NavLink = {
   label: string;
   href: string;
@@ -259,7 +264,7 @@ export type SiteSettings = {
   email: string;
   whatsapp: string;
   social_links: { label: string; href: string }[];
-  payment_methods: string[];
+  payment_methods: PaymentMethod[];
   business_hours: string;
   locations: LocationInfo[];
   trust: { rating: number; reviews: number; warranty: string };
@@ -283,6 +288,7 @@ export type SiteSettings = {
   tiktok_access_token: string;
   meta_capi_test_event_code: string;
   tiktok_test_event_code: string;
+  under_construction: boolean;
   homepage: HomepageContent;
 };
 
