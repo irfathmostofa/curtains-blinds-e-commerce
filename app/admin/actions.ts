@@ -158,6 +158,7 @@ export async function saveSettings(settings: Record<string, unknown>) {
     meta_pixel_id: next.meta_pixel_id,
     instagram_pixel_id: next.instagram_pixel_id,
     tiktok_pixel_id: next.tiktok_pixel_id,
+    payment_methods: next.payment_methods,
   };
   const incomingHasSecrets = SECRET_SETTING_KEYS.some((key) => key in settings);
   const secrets = Object.fromEntries(SECRET_SETTING_KEYS.map((key) => [key, next[key] || ""])) as Pick<

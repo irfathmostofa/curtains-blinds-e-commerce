@@ -23,11 +23,13 @@ export function TagInput({
   onChange,
   placeholder = "Add an option and press Enter",
   suggestions = SUGGESTED_FABRICS,
+  emptyText = "No fabrics yet. Add one below.",
 }: {
   value: string[];
   onChange: (next: string[]) => void;
   placeholder?: string;
   suggestions?: string[];
+  emptyText?: string;
 }) {
   const [draft, setDraft] = useState("");
 
@@ -72,7 +74,7 @@ export function TagInput({
             </button>
           </span>
         ))}
-        {!value.length ? <p className="text-sm text-muted-foreground">No fabrics yet. Add one below.</p> : null}
+        {!value.length ? <p className="text-sm text-muted-foreground">{emptyText}</p> : null}
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Input

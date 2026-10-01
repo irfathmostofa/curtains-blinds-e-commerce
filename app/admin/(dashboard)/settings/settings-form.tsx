@@ -1,13 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import { X } from "lucide-react";
 import { saveSettings } from "@/app/admin/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUploader } from "@/components/admin/image-uploader";
+import { TagInput } from "@/components/admin/tag-input";
 import type { SiteSettings } from "@/lib/types";
+
+const PAYMENT_SUGGESTIONS = [
+  "Visa",
+  "Mastercard",
+  "American Express",
+  "Apple Pay",
+  "Google Pay",
+  "PayPal",
+  "Tabby",
+  "Tamara",
+  "Cash on Delivery",
+  "Bank Transfer",
+];
 
 export function SettingsForm({ initial }: { initial: SiteSettings }) {
   const [settings, setSettings] = useState<SiteSettings>(initial);
@@ -20,6 +35,21 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
 
   function patchSeo(partial: Partial<SiteSettings["seo"]>) {
     setSettings((s) => ({ ...s, seo: { ...s.seo, ...partial } }));
+  }
+
+  function patchSocial(index: number, partial: Partial<SiteSettings["social_links"][number]>) {
+    setSettings((s) => ({
+      ...s,
+      social_links: s.social_links.map((link, i) => (i === index ? { ...link, ...partial } : link)),
+    }));
+  }
+
+  function addSocial() {
+    setSettings((s) => ({ ...s, social_links: [...s.social_links, { label: "", href: "" }] }));
+  }
+
+  function removeSocial(index: number) {
+    setSettings((s) => ({ ...s, social_links: s.social_links.filter((_, i) => i !== index) }));
   }
 
   return (
@@ -70,6 +100,59 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           <div className="space-y-2">
             <Label htmlFor="tagline">Tagline</Label>
             <Textarea id="tagline" value={settings.tagline} onChange={(e) => patch({ tagline: e.target.value })} />
+          </div>
+        </section>
+
+        <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
+          <div>
+            <h2 className="font-serif text-xl">Social & payments</h2>
+            <p className="text-xs text-muted-foreground">
+              Social links render as icons in the footer. Payment methods show as accepted-payment badges.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <Label>Social links</Label>
+            {settings.social_links.map((link, index) => (
+              <div key={index} className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  value={link.label}
+                  placeholder="Instagram"
+                  aria-label={`Social link ${index + 1} name`}
+                  onChange={(e) => patchSocial(index, { label: e.target.value })}
+                />
+                <Input
+                  value={link.href}
+                  placeholder="https://instagram.com/yourbrand"
+                  aria-label={`Social link ${index + 1} URL`}
+                  onChange={(e) => patchSocial(index, { href: e.target.value })}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label={`Remove ${link.label || "social link"}`}
+                  onClick={() => removeSocial(index)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            {!settings.social_links.length ? (
+              <p className="text-sm text-muted-foreground">No social links yet.</p>
+            ) : null}
+            <Button type="button" variant="outline" size="sm" onClick={addSocial}>
+              Add social link
+            </Button>
+          </div>
+          <div className="space-y-2">
+            <Label>Accepted payment methods</Label>
+            <TagInput
+              value={settings.payment_methods}
+              onChange={(next) => patch({ payment_methods: next })}
+              placeholder="Add a payment method and press Enter"
+              suggestions={PAYMENT_SUGGESTIONS}
+              emptyText="No payment methods yet. Add one below."
+            />
           </div>
         </section>
 

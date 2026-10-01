@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useLocale } from "@/components/locale-provider";
+import { SocialIcon } from "@/components/social-icon";
+import { PaymentBadges } from "@/components/payment-methods";
 import type { SiteSettings } from "@/lib/types";
 
 export function Footer({ settings }: { settings: SiteSettings }) {
@@ -50,17 +52,33 @@ export function Footer({ settings }: { settings: SiteSettings }) {
             </li>
             <li>{settings.business_hours}</li>
           </ul>
-          <ul className="mt-4 flex flex-wrap gap-3 text-sm">
+          <ul className="mt-4 flex flex-wrap gap-3">
             {settings.social_links.map((s) => (
-              <li key={s.href}>
-                <a href={s.href} className="underline-offset-4 hover:underline">
-                  {s.label}
+              <li key={`${s.label}-${s.href}`}>
+                <a
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={s.label}
+                  title={s.label}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground transition-colors hover:bg-primary-foreground hover:text-primary"
+                >
+                  <SocialIcon label={s.label} href={s.href} className="h-4 w-4" />
                 </a>
               </li>
             ))}
           </ul>
         </div>
       </div>
+
+      {settings.payment_methods.length ? (
+        <div className="border-t border-primary-foreground/10">
+          <div className="container flex flex-col gap-3 py-6 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-semibold uppercase tracking-wider">{t("We accept")}</p>
+            <PaymentBadges methods={settings.payment_methods} />
+          </div>
+        </div>
+      ) : null}
       <div className="border-t border-primary-foreground/10">
         <div className="container flex flex-col gap-2 py-6 text-xs text-primary-foreground/60 md:flex-row md:justify-between">
           <p>

@@ -49,9 +49,12 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   business_hours: "Saturday–Thursday, 9:00–20:00",
   social_links: [
     { label: "Instagram", href: "https://instagram.com/maisondrape" },
+    { label: "Facebook", href: "https://facebook.com/maisondrape" },
+    { label: "TikTok", href: "https://tiktok.com/@maisondrape" },
     { label: "Pinterest", href: "https://pinterest.com/maisondrape" },
     { label: "LinkedIn", href: "https://linkedin.com/company/maisondrape" },
   ],
+  payment_methods: ["Visa", "Mastercard", "Apple Pay", "Cash on Delivery", "Bank Transfer"],
   nav_links: [
     { label: "Products", href: "/products" },
     { label: "Get Estimate", href: "/get-estimate" },

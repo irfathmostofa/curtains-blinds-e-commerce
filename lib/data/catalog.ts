@@ -153,6 +153,9 @@ function assembleSettings(
     nav_links: (map.nav_links as SiteSettings["nav_links"]) || DEFAULT_SETTINGS.nav_links,
     locations: (map.locations as SiteSettings["locations"]) || DEFAULT_SETTINGS.locations,
     social_links: (map.social_links as SiteSettings["social_links"]) || DEFAULT_SETTINGS.social_links,
+    payment_methods: Array.isArray(general.payment_methods)
+      ? (general.payment_methods as string[])
+      : DEFAULT_SETTINGS.payment_methods,
     trust: (map.trust as SiteSettings["trust"]) || DEFAULT_SETTINGS.trust,
     seo: { ...DEFAULT_SETTINGS.seo, ...((map.seo as SiteSettings["seo"]) || {}) },
     gtm_id: str(general.gtm_id),

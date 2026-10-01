@@ -259,6 +259,7 @@ export type SiteSettings = {
   email: string;
   whatsapp: string;
   social_links: { label: string; href: string }[];
+  payment_methods: string[];
   business_hours: string;
   locations: LocationInfo[];
   trust: { rating: number; reviews: number; warranty: string };
