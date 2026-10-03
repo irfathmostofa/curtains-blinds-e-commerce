@@ -153,6 +153,19 @@ export type LocationInfo = {
   mapEmbedUrl: string;
 };
 
+export type Weekday = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
+
+export type DayHours = {
+  closed: boolean;
+  open: string;
+  close: string;
+};
+
+export type BusinessHoursSchedule = {
+  timezone: string;
+  days: Record<Weekday, DayHours>;
+};
+
 export type HomepageFeature = {
   icon: "ruler" | "shield" | "sparkles" | "clock";
   title: string;
@@ -266,6 +279,7 @@ export type SiteSettings = {
   social_links: { label: string; href: string }[];
   payment_methods: PaymentMethod[];
   business_hours: string;
+  business_hours_schedule: BusinessHoursSchedule;
   locations: LocationInfo[];
   trust: { rating: number; reviews: number; warranty: string };
   seo: {

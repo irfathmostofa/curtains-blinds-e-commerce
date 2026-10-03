@@ -1,13 +1,32 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/components/locale-provider";
 import { SocialIcon } from "@/components/social-icon";
 import { PaymentBadges } from "@/components/payment-methods";
+import {
+  WEEKDAY_LABELS,
+  WEEKDAYS,
+  formatClock,
+  getAvailability,
+} from "@/lib/site";
 import type { SiteSettings } from "@/lib/types";
 
 export function Footer({ settings }: { settings: SiteSettings }) {
   const { t } = useLocale();
+  const schedule = settings.business_hours_schedule;
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const tick = () => setNow(new Date());
+    tick();
+    const id = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const availability = useMemo(() => (now ? getAvailability(schedule, now) : null), [schedule, now]);
+
   return (
     <footer className="mt-12 border-t border-border bg-primary text-primary-foreground sm:mt-20">
       <div className="container grid gap-10 py-12 sm:py-14 md:grid-cols-4">
@@ -30,15 +49,21 @@ export function Footer({ settings }: { settings: SiteSettings }) {
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-wider">{t("Visit")}</h2>
           <div className="mt-4 space-y-4 text-sm text-primary-foreground/80">
-            {settings.locations.map((loc) => (
-              <address key={loc.city} className="not-italic">
-                <p className="font-medium text-primary-foreground">{loc.city}</p>
-                <p>{loc.address}</p>
-                <p>
-                  <a href={`tel:${loc.phone.replace(/\s/g, "")}`}>{loc.phone}</a>
-                </p>
-              </address>
-            ))}
+            {settings.locations.length ? (
+              settings.locations.map((loc) => (
+                <address key={`${loc.city}-${loc.phone}-${loc.address}`} className="not-italic">
+                  {loc.city ? <p className="font-medium text-primary-foreground">{t(loc.city)}</p> : null}
+                  {loc.address ? <p>{t(loc.address)}</p> : null}
+                  {loc.phone ? (
+                    <p>
+                      <a href={`tel:${loc.phone.replace(/\s/g, "")}`}>{loc.phone}</a>
+                    </p>
+                  ) : null}
+                </address>
+              ))
+            ) : (
+              <p>{t("Visit details coming soon.")}</p>
+            )}
           </div>
         </div>
         <div>
@@ -50,8 +75,38 @@ export function Footer({ settings }: { settings: SiteSettings }) {
             <li>
               <a href={`https://wa.me/${settings.whatsapp.replace(/[^\d]/g, "")}`}>{t("WhatsApp")}</a>
             </li>
-            <li>{settings.business_hours}</li>
           </ul>
+          <div className="mt-4 space-y-2 text-sm text-primary-foreground/80">
+            {availability ? (
+              <>
+                <p className="flex items-center gap-2 font-medium text-primary-foreground">
+                  <span
+                    className={`inline-block h-2 w-2 rounded-full ${availability.isOpen ? "bg-emerald-400" : "bg-primary-foreground/40"}`}
+                    aria-hidden
+                  />
+                  {t(availability.label)}
+                </p>
+                <p>
+                  {availability.today.closed
+                    ? t("Closed today")
+                    : `${t("Today")} ${formatClock(availability.today.open)}–${formatClock(availability.today.close)}`}
+                </p>
+              </>
+            ) : null}
+            <ul className="space-y-1 text-primary-foreground/70">
+              {WEEKDAYS.map((day) => {
+                const hours = schedule.days[day];
+                const range = hours.closed
+                  ? t("Closed")
+                  : `${formatClock(hours.open)}–${formatClock(hours.close)}`;
+                return (
+                  <li key={day} className={day === availability?.weekday ? "text-primary-foreground" : undefined}>
+                    {t(WEEKDAY_LABELS[day])}: {range}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
           <ul className="mt-4 flex flex-wrap gap-3">
             {settings.social_links.filter((s) => s.href.trim()).map((s) => (
               <li key={`${s.label}-${s.href}`}>

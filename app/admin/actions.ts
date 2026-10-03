@@ -14,7 +14,13 @@ import { slugify } from "@/lib/utils";
 import { revalidateTag } from "next/cache";
 import { entities } from "@/lib/admin/entities";
 import { isUuid, sanitizeEntityPayload, sanitizeVariants } from "@/lib/admin/payload";
-import { SECRET_SETTING_KEYS, normalizePaymentMethods } from "@/lib/site";
+import {
+  SECRET_SETTING_KEYS,
+  formatBusinessHoursSummary,
+  normalizeBusinessHoursSchedule,
+  normalizeLocations,
+  normalizePaymentMethods,
+} from "@/lib/site";
 import type { SiteSettings } from "@/lib/types";
 
 const DEMO_COOKIE = "md_admin_session";
@@ -146,6 +152,9 @@ export async function saveSettings(settings: Record<string, unknown>) {
   const store = getStore();
   store.settings = { ...store.settings, ...settings } as typeof store.settings;
   store.settings.payment_methods = normalizePaymentMethods(store.settings.payment_methods);
+  store.settings.locations = normalizeLocations(store.settings.locations);
+  store.settings.business_hours_schedule = normalizeBusinessHoursSchedule(store.settings.business_hours_schedule);
+  store.settings.business_hours = formatBusinessHoursSummary(store.settings.business_hours_schedule);
   const next = store.settings;
   const general = {
     company_name: next.company_name,
@@ -155,6 +164,7 @@ export async function saveSettings(settings: Record<string, unknown>) {
     email: next.email,
     whatsapp: next.whatsapp,
     business_hours: next.business_hours,
+    business_hours_schedule: next.business_hours_schedule,
     gtm_id: next.gtm_id,
     meta_pixel_id: next.meta_pixel_id,
     instagram_pixel_id: next.instagram_pixel_id,

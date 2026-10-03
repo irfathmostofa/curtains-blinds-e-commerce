@@ -1,10 +1,14 @@
 import type {
+  BusinessHoursSchedule,
+  DayHours,
   HeroSlide,
   HomepageContent,
   HomepageSectionId,
   HomepageSectionLayout,
+  LocationInfo,
   PaymentMethod,
   SiteSettings,
+  Weekday,
 } from "@/lib/types";
 
 export const SITE_NAME = "Maison Drape";
@@ -48,6 +52,18 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   email: "hello@maisondrape.ae",
   whatsapp: "971500000000",
   business_hours: "Saturday–Thursday, 9:00–20:00",
+  business_hours_schedule: {
+    timezone: "Asia/Dubai",
+    days: {
+      sun: { closed: false, open: "09:00", close: "20:00" },
+      mon: { closed: false, open: "09:00", close: "20:00" },
+      tue: { closed: false, open: "09:00", close: "20:00" },
+      wed: { closed: false, open: "09:00", close: "20:00" },
+      thu: { closed: false, open: "09:00", close: "20:00" },
+      fri: { closed: true, open: "09:00", close: "20:00" },
+      sat: { closed: false, open: "09:00", close: "20:00" },
+    },
+  },
   social_links: [
     { label: "Instagram", href: "https://instagram.com/maisondrape" },
     { label: "Facebook", href: "https://facebook.com/maisondrape" },
@@ -360,6 +376,141 @@ function mergeSectionOrder(saved?: HomepageSectionLayout[] | null): HomepageSect
 
 function baseSectionOrder(): HomepageSectionLayout[] {
   return DEFAULT_SETTINGS.homepage.section_order.map((s) => ({ ...s }));
+}
+
+export const WEEKDAYS: Weekday[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+
+export const WEEKDAY_LABELS: Record<Weekday, string> = {
+  sun: "Sunday",
+  mon: "Monday",
+  tue: "Tuesday",
+  wed: "Wednesday",
+  thu: "Thursday",
+  fri: "Friday",
+  sat: "Saturday",
+};
+
+function normalizeTime(value: unknown, fallback: string) {
+  const raw = String(value || "").trim();
+  const match = raw.match(/^(\d{1,2}):([0-5]\d)(?::[0-5]\d)?$/);
+  if (!match) return fallback;
+  const hour = Number(match[1]);
+  if (hour > 23) return fallback;
+  return `${String(hour).padStart(2, "0")}:${match[2]}`;
+}
+
+export function normalizeLocations(value: unknown): LocationInfo[] {
+  if (!Array.isArray(value)) return DEFAULT_SETTINGS.locations.map((loc) => ({ ...loc }));
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Partial<LocationInfo>;
+      const city = String(row.city || "").trim();
+      const address = String(row.address || "").trim();
+      const phone = String(row.phone || "").trim();
+      const mapEmbedUrl = String(row.mapEmbedUrl || "").trim();
+      if (!city && !address && !phone) return null;
+      return { city, address, phone, mapEmbedUrl };
+    })
+    .filter(Boolean) as LocationInfo[];
+}
+
+export function normalizeBusinessHoursSchedule(value: unknown): BusinessHoursSchedule {
+  const fallback = DEFAULT_SETTINGS.business_hours_schedule;
+  const raw = value && typeof value === "object" ? (value as Partial<BusinessHoursSchedule>) : {};
+  const timezone = String(raw.timezone || "").trim() || fallback.timezone;
+  const days = {} as Record<Weekday, DayHours>;
+  for (const day of WEEKDAYS) {
+    const src = raw.days?.[day];
+    const base = fallback.days[day];
+    days[day] = {
+      closed: Boolean(src?.closed ?? base.closed),
+      open: normalizeTime(src?.open, base.open),
+      close: normalizeTime(src?.close, base.close),
+    };
+  }
+  return { timezone, days };
+}
+
+function minutesFromMidnight(hhmm: string) {
+  const [h, m] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function weekdayFromIndex(index: number): Weekday {
+  return WEEKDAYS[index] || "sun";
+}
+
+export function formatClock(hhmm: string) {
+  const [h, m] = hhmm.split(":").map(Number);
+  const hour = ((h + 11) % 12) + 1;
+  const suffix = h >= 12 ? "PM" : "AM";
+  return `${hour}:${String(m).padStart(2, "0")} ${suffix}`;
+}
+
+export function formatBusinessHoursSummary(schedule: BusinessHoursSchedule) {
+  const groups: { start: Weekday; end: Weekday; text: string }[] = [];
+  for (const day of WEEKDAYS) {
+    const hours = schedule.days[day];
+    const text = hours.closed ? "Closed" : `${formatClock(hours.open)}–${formatClock(hours.close)}`;
+    const last = groups[groups.length - 1];
+    if (last && last.text === text) {
+      last.end = day;
+      continue;
+    }
+    groups.push({ start: day, end: day, text });
+  }
+  return groups
+    .map((group) => {
+      const days =
+        group.start === group.end
+          ? WEEKDAY_LABELS[group.start]
+          : `${WEEKDAY_LABELS[group.start]}–${WEEKDAY_LABELS[group.end]}`;
+      return `${days}: ${group.text}`;
+    })
+    .join(" · ");
+}
+
+export function getLocalParts(date: Date, timeZone: string) {
+  const fmt = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
+  const parts = Object.fromEntries(fmt.formatToParts(date).map((p) => [p.type, p.value]));
+  const weekdayMap: Record<string, Weekday> = {
+    Sun: "sun",
+    Mon: "mon",
+    Tue: "tue",
+    Wed: "wed",
+    Thu: "thu",
+    Fri: "fri",
+    Sat: "sat",
+  };
+  return {
+    weekday: weekdayMap[parts.weekday] || weekdayFromIndex(date.getDay()),
+    minutes: Number(parts.hour) * 60 + Number(parts.minute),
+  };
+}
+
+export function getAvailability(schedule: BusinessHoursSchedule, now = new Date()) {
+  const { weekday, minutes } = getLocalParts(now, schedule.timezone);
+  const today = schedule.days[weekday];
+  const open = minutesFromMidnight(today.open);
+  const close = minutesFromMidnight(today.close);
+  const overnight = close <= open;
+  const isOpen = !today.closed && (overnight ? minutes >= open || minutes < close : minutes >= open && minutes < close);
+  return {
+    isOpen,
+    weekday,
+    today,
+    label: isOpen ? "Open now" : "Closed now",
+    todayLabel: today.closed
+      ? "Closed today"
+      : `Today ${formatClock(today.open)}–${formatClock(today.close)}`,
+  };
 }
 
 export function normalizePaymentMethods(value: unknown): PaymentMethod[] {

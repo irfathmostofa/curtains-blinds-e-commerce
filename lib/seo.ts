@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DEFAULT_SETTINGS, resolveSiteName, resolveSiteUrl } from "@/lib/site";
+import { DEFAULT_SETTINGS, WEEKDAY_LABELS, WEEKDAYS, resolveSiteName, resolveSiteUrl } from "@/lib/site";
 import type { SeoConfig, SiteSettings } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
 import { stripHtml } from "./html";
@@ -84,6 +84,13 @@ export function organizationJsonLd(settings: SiteSettings) {
 }
 
 export function localBusinessJsonLd(settings: SiteSettings) {
+  const schedule = settings.business_hours_schedule;
+  const openingHoursSpecification = WEEKDAYS.filter((day) => !schedule.days[day].closed).map((day) => ({
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: WEEKDAY_LABELS[day],
+    opens: schedule.days[day].open,
+    closes: schedule.days[day].close,
+  }));
   return settings.locations.map((loc) => ({
     "@context": "https://schema.org",
     "@type": "HomeAndConstructionBusiness",
@@ -99,6 +106,7 @@ export function localBusinessJsonLd(settings: SiteSettings) {
     areaServed: loc.city,
     priceRange: "$$",
     url: resolveSiteUrl(settings),
+    openingHoursSpecification,
   }));
 }
 

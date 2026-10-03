@@ -38,7 +38,7 @@ export default async function AboutPage() {
             <h2>Where we work</h2>
             <ul>
               {settings.locations.map((loc) => (
-                <li key={loc.city}>
+                <li key={`${loc.city}-${loc.address}`}>
                   <strong>{loc.city}:</strong> {loc.address}
                 </li>
               ))}

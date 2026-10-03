@@ -4,7 +4,16 @@ import { cookies } from "next/headers";
 import { createPublicClient } from "@/lib/supabase/server";
 import { createWriteClient } from "@/lib/supabase/admin";
 import { getStore } from "@/lib/data/store";
-import { DEFAULT_SETTINGS, mergeHomepage, normalizePaymentMethods, omitSecrets, SECRET_SETTING_KEYS } from "@/lib/site";
+import {
+  DEFAULT_SETTINGS,
+  formatBusinessHoursSummary,
+  mergeHomepage,
+  normalizeBusinessHoursSchedule,
+  normalizeLocations,
+  normalizePaymentMethods,
+  omitSecrets,
+  SECRET_SETTING_KEYS,
+} from "@/lib/site";
 import type {
   BlogPost,
   Booking,
@@ -154,9 +163,11 @@ function assembleSettings(
     phone: str(general.phone, DEFAULT_SETTINGS.phone),
     email: str(general.email, DEFAULT_SETTINGS.email),
     whatsapp: str(general.whatsapp, DEFAULT_SETTINGS.whatsapp),
-    business_hours: str(general.business_hours, DEFAULT_SETTINGS.business_hours),
+    business_hours_schedule: normalizeBusinessHoursSchedule(
+      general.business_hours_schedule ?? map.business_hours_schedule
+    ),
     nav_links: (map.nav_links as SiteSettings["nav_links"]) || DEFAULT_SETTINGS.nav_links,
-    locations: (map.locations as SiteSettings["locations"]) || DEFAULT_SETTINGS.locations,
+    locations: normalizeLocations(map.locations),
     social_links: (map.social_links as SiteSettings["social_links"]) || DEFAULT_SETTINGS.social_links,
     payment_methods: normalizePaymentMethods(general.payment_methods),
     trust: (map.trust as SiteSettings["trust"]) || DEFAULT_SETTINGS.trust,
@@ -177,6 +188,7 @@ function assembleSettings(
       (map.homepage as SiteSettings["homepage"]) || (general.homepage as SiteSettings["homepage"] | undefined)
     ),
   };
+  assembled.business_hours = formatBusinessHoursSummary(assembled.business_hours_schedule);
   if (includeSecrets) {
     for (const key of SECRET_SETTING_KEYS) {
       assembled[key] = str(secrets[key]);

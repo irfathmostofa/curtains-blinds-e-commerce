@@ -9,8 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUploader } from "@/components/admin/image-uploader";
 import { SOCIAL_PLATFORMS, SocialIcon, socialPlatformByValue } from "@/components/social-icon";
-import { normalizePaymentMethods } from "@/lib/site";
-import type { PaymentMethod, SiteSettings } from "@/lib/types";
+import {
+  WEEKDAY_LABELS,
+  WEEKDAYS,
+  normalizeBusinessHoursSchedule,
+  normalizeLocations,
+  normalizePaymentMethods,
+} from "@/lib/site";
+import type { DayHours, PaymentMethod, SiteSettings, Weekday } from "@/lib/types";
 
 const PAYMENT_SUGGESTIONS = [
   "Visa",
@@ -29,6 +35,8 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   const [settings, setSettings] = useState<SiteSettings>(() => ({
     ...initial,
     payment_methods: normalizePaymentMethods(initial.payment_methods),
+    locations: normalizeLocations(initial.locations),
+    business_hours_schedule: normalizeBusinessHoursSchedule(initial.business_hours_schedule),
   }));
   const [message, setMessage] = useState<string | null>(null);
   const [pendingNetwork, setPendingNetwork] = useState("");
@@ -82,6 +90,37 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
 
   function removePayment(index: number) {
     setSettings((s) => ({ ...s, payment_methods: s.payment_methods.filter((_, i) => i !== index) }));
+  }
+
+  function patchLocation(index: number, partial: Partial<SiteSettings["locations"][number]>) {
+    setSettings((s) => ({
+      ...s,
+      locations: s.locations.map((loc, i) => (i === index ? { ...loc, ...partial } : loc)),
+    }));
+  }
+
+  function addLocation() {
+    setSettings((s) => ({
+      ...s,
+      locations: [...s.locations, { city: "", address: "", phone: s.phone || "", mapEmbedUrl: "" }],
+    }));
+  }
+
+  function removeLocation(index: number) {
+    setSettings((s) => ({ ...s, locations: s.locations.filter((_, i) => i !== index) }));
+  }
+
+  function patchHoursDay(day: Weekday, partial: Partial<DayHours>) {
+    setSettings((s) => ({
+      ...s,
+      business_hours_schedule: {
+        ...s.business_hours_schedule,
+        days: {
+          ...s.business_hours_schedule.days,
+          [day]: { ...s.business_hours_schedule.days[day], ...partial },
+        },
+      },
+    }));
   }
 
   const unusedPayments = PAYMENT_SUGGESTIONS.filter(
@@ -155,11 +194,127 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               <Input id="wa" value={settings.whatsapp} onChange={(e) => patch({ whatsapp: e.target.value })} />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="tagline">Tagline</Label>
-            <Textarea id="tagline" value={settings.tagline} onChange={(e) => patch({ tagline: e.target.value })} />
-          </div>
-        </section>
+            <div className="space-y-2">
+              <Label htmlFor="tagline">Tagline</Label>
+              <Textarea id="tagline" value={settings.tagline} onChange={(e) => patch({ tagline: e.target.value })} />
+            </div>
+          </section>
+
+          <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
+            <div>
+              <h2 className="font-serif text-xl">Visit locations</h2>
+              <p className="text-xs text-muted-foreground">Shown in the footer Visit column and on the About page.</p>
+            </div>
+            {settings.locations.map((loc, index) => (
+              <div key={index} className="space-y-3 rounded-xl border p-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor={`loc-city-${index}`}>City</Label>
+                    <Input
+                      id={`loc-city-${index}`}
+                      value={loc.city}
+                      placeholder="Dubai"
+                      onChange={(e) => patchLocation(index, { city: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`loc-phone-${index}`}>Phone</Label>
+                    <Input
+                      id={`loc-phone-${index}`}
+                      value={loc.phone}
+                      placeholder="+971 4 555 1200"
+                      onChange={(e) => patchLocation(index, { phone: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`loc-address-${index}`}>Address</Label>
+                  <Input
+                    id={`loc-address-${index}`}
+                    value={loc.address}
+                    placeholder="Street, area, city"
+                    onChange={(e) => patchLocation(index, { address: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`loc-map-${index}`}>Map embed URL</Label>
+                  <Input
+                    id={`loc-map-${index}`}
+                    value={loc.mapEmbedUrl}
+                    placeholder="https://maps.google.com/maps?q=..."
+                    onChange={(e) => patchLocation(index, { mapEmbedUrl: e.target.value })}
+                  />
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={() => removeLocation(index)}>
+                  Remove location
+                </Button>
+              </div>
+            ))}
+            {!settings.locations.length ? (
+              <p className="text-sm text-muted-foreground">No visit locations yet. Add one below.</p>
+            ) : null}
+            <Button type="button" variant="outline" size="sm" onClick={addLocation}>
+              Add location
+            </Button>
+          </section>
+
+          <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
+            <div>
+              <h2 className="font-serif text-xl">Available time</h2>
+              <p className="text-xs text-muted-foreground">
+                Weekly hours drive the live Open now / Closed now status in the footer.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="hours-tz">Timezone</Label>
+              <Input
+                id="hours-tz"
+                value={settings.business_hours_schedule.timezone}
+                placeholder="Asia/Dubai"
+                onChange={(e) =>
+                  patch({
+                    business_hours_schedule: {
+                      ...settings.business_hours_schedule,
+                      timezone: e.target.value,
+                    },
+                  })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              {WEEKDAYS.map((day) => {
+                const hours = settings.business_hours_schedule.days[day];
+                return (
+                  <div key={day} className="grid items-center gap-2 rounded-xl border px-3 py-2 sm:grid-cols-[8rem_auto_1fr_1fr]">
+                    <p className="text-sm font-medium">{WEEKDAY_LABELS[day]}</p>
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-[hsl(var(--accent))]"
+                        checked={hours.closed}
+                        onChange={(e) => patchHoursDay(day, { closed: e.target.checked })}
+                      />
+                      Closed
+                    </label>
+                    <Input
+                      type="time"
+                      aria-label={`${WEEKDAY_LABELS[day]} opens`}
+                      value={hours.open}
+                      disabled={hours.closed}
+                      onChange={(e) => patchHoursDay(day, { open: e.target.value })}
+                    />
+                    <Input
+                      type="time"
+                      aria-label={`${WEEKDAY_LABELS[day]} closes`}
+                      value={hours.close}
+                      disabled={hours.closed}
+                      onChange={(e) => patchHoursDay(day, { close: e.target.value })}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </section>
 
         <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
           <div>
