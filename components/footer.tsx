@@ -53,7 +53,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
             <li>{settings.business_hours}</li>
           </ul>
           <ul className="mt-4 flex flex-wrap gap-3">
-            {settings.social_links.map((s) => (
+            {settings.social_links.filter((s) => s.href.trim()).map((s) => (
               <li key={`${s.label}-${s.href}`}>
                 <a
                   href={s.href}

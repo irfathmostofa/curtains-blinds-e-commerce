@@ -33,19 +33,23 @@ function normalize(value: string) {
 }
 
 export const SOCIAL_PLATFORMS = [
-  { label: "Instagram", value: "Instagram" },
-  { label: "Facebook", value: "Facebook" },
-  { label: "TikTok", value: "TikTok" },
-  { label: "Pinterest", value: "Pinterest" },
-  { label: "LinkedIn", value: "LinkedIn" },
-  { label: "YouTube", value: "YouTube" },
-  { label: "X", value: "X" },
-  { label: "Twitter", value: "Twitter" },
-  { label: "WhatsApp", value: "WhatsApp" },
-  { label: "Snapchat", value: "Snapchat" },
-  { label: "Threads", value: "Threads" },
-  { label: "Google", value: "Google" },
+  { label: "Instagram", value: "Instagram", placeholder: "https://instagram.com/yourbrand" },
+  { label: "Facebook", value: "Facebook", placeholder: "https://facebook.com/yourbrand" },
+  { label: "TikTok", value: "TikTok", placeholder: "https://tiktok.com/@yourbrand" },
+  { label: "Snapchat", value: "Snapchat", placeholder: "https://snapchat.com/add/yourbrand" },
+  { label: "Pinterest", value: "Pinterest", placeholder: "https://pinterest.com/yourbrand" },
+  { label: "LinkedIn", value: "LinkedIn", placeholder: "https://linkedin.com/company/yourbrand" },
+  { label: "YouTube", value: "YouTube", placeholder: "https://youtube.com/@yourbrand" },
+  { label: "X", value: "X", placeholder: "https://x.com/yourbrand" },
+  { label: "Twitter", value: "Twitter", placeholder: "https://twitter.com/yourbrand" },
+  { label: "WhatsApp", value: "WhatsApp", placeholder: "https://wa.me/971500000000" },
+  { label: "Threads", value: "Threads", placeholder: "https://threads.net/@yourbrand" },
+  { label: "Google", value: "Google", placeholder: "https://g.page/yourbrand" },
 ] as const;
+
+export function socialPlatformByValue(value: string) {
+  return SOCIAL_PLATFORMS.find((platform) => platform.value === value);
+}
 
 export function socialIconKey(label: string, href = "") {
   const key = normalize(label);

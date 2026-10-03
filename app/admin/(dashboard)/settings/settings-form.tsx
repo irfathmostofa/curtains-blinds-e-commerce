@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUploader } from "@/components/admin/image-uploader";
-import { SOCIAL_PLATFORMS, SocialIcon } from "@/components/social-icon";
+import { SOCIAL_PLATFORMS, SocialIcon, socialPlatformByValue } from "@/components/social-icon";
 import { normalizePaymentMethods } from "@/lib/site";
 import type { PaymentMethod, SiteSettings } from "@/lib/types";
 
@@ -31,7 +31,10 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
     payment_methods: normalizePaymentMethods(initial.payment_methods),
   }));
   const [message, setMessage] = useState<string | null>(null);
+  const [pendingNetwork, setPendingNetwork] = useState("");
   const seo = settings.seo;
+  const usedNetworks = new Set(settings.social_links.map((link) => link.label));
+  const unusedNetworks = SOCIAL_PLATFORMS.filter((platform) => !usedNetworks.has(platform.value));
 
   function patch(partial: Partial<SiteSettings>) {
     setSettings((s) => ({ ...s, ...partial }));
@@ -49,11 +52,13 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   }
 
   function addSocial() {
+    const network = socialPlatformByValue(pendingNetwork);
+    if (!network) return;
     setSettings((s) => {
-      const used = new Set(s.social_links.map((link) => link.label));
-      const next = SOCIAL_PLATFORMS.find((p) => !used.has(p.value)) || SOCIAL_PLATFORMS[0];
-      return { ...s, social_links: [...s.social_links, { label: next.value, href: "" }] };
+      if (s.social_links.some((link) => link.label === network.value)) return s;
+      return { ...s, social_links: [...s.social_links, { label: network.value, href: "" }] };
     });
+    setPendingNetwork("");
   }
 
   function removeSocial(index: number) {
@@ -165,32 +170,40 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           </div>
           <div className="space-y-3">
             <Label>Social links</Label>
+            <p className="text-xs text-muted-foreground">Select a network icon first, then add its profile URL.</p>
+            {unusedNetworks.length ? (
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <select
+                  className="h-11 min-w-0 flex-1 rounded-xl border bg-card px-3 sm:max-w-xs"
+                  value={pendingNetwork}
+                  aria-label="Select social network"
+                  onChange={(e) => setPendingNetwork(e.target.value)}
+                >
+                  <option value="">Select icon</option>
+                  {unusedNetworks.map((platform) => (
+                    <option key={platform.value} value={platform.value}>
+                      {platform.label}
+                    </option>
+                  ))}
+                </select>
+                <Button type="button" variant="outline" size="sm" onClick={addSocial} disabled={!pendingNetwork}>
+                  Add
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">All available networks are already added.</p>
+            )}
             {settings.social_links.map((link, index) => {
-              const options = SOCIAL_PLATFORMS.some((p) => p.value === link.label)
-                ? SOCIAL_PLATFORMS
-                : [{ label: link.label || "Custom", value: link.label || "Custom" }, ...SOCIAL_PLATFORMS];
+              const platform = socialPlatformByValue(link.label);
               return (
-                <div key={index} className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border bg-secondary">
-                      <SocialIcon label={link.label} href={link.href} className="h-4 w-4" />
-                    </span>
-                    <select
-                      className="h-11 min-w-0 flex-1 rounded-xl border bg-card px-3"
-                      value={link.label}
-                      aria-label={`Social platform ${index + 1}`}
-                      onChange={(e) => patchSocial(index, { label: e.target.value })}
-                    >
-                      {options.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                <div key={`${link.label}-${index}`} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <div className="inline-flex h-11 min-w-[10rem] items-center gap-2 rounded-xl border bg-secondary px-3 text-sm">
+                    <SocialIcon label={link.label} href={link.href} className="h-4 w-4 text-foreground" />
+                    {platform?.label || link.label}
                   </div>
                   <Input
                     value={link.href}
-                    placeholder="https://instagram.com/yourbrand"
+                    placeholder={platform?.placeholder || "https://"}
                     aria-label={`${link.label || "Social"} URL`}
                     onChange={(e) => patchSocial(index, { href: e.target.value })}
                   />
@@ -207,11 +220,8 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               );
             })}
             {!settings.social_links.length ? (
-              <p className="text-sm text-muted-foreground">No social links yet.</p>
+              <p className="text-sm text-muted-foreground">No social links yet. Select an icon above to start.</p>
             ) : null}
-            <Button type="button" variant="outline" size="sm" onClick={addSocial}>
-              Add social link
-            </Button>
           </div>
           <div className="space-y-3">
             <Label>Accepted payment methods</Label>
