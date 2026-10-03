@@ -75,7 +75,7 @@ export function PaymentBadges({
           ) : (
             <MethodIcon label={method.label} />
           )}
-          <Wordmark label={method.label} className="text-[11px] font-medium" />
+          {/* <Wordmark label={method.label} className="text-[11px] font-medium" /> */}
         </li>
       ))}
     </ul>

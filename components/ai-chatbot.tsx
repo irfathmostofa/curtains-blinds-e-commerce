@@ -282,7 +282,7 @@ export function AiChatbot() {
           <motion.button
             type="button"
             aria-label={t("AI assistant")}
-            className="group fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 z-30 flex items-center gap-0 rounded-full bg-primary p-0 text-primary-foreground shadow-[0_12px_40px_rgba(28,25,22,0.28)] transition-shadow hover:shadow-[0_16px_48px_rgba(28,25,22,0.34)] sm:bottom-5 sm:left-5 sm:gap-3 sm:py-2 sm:pl-2 sm:pr-4 rtl:left-auto rtl:right-4 rtl:sm:pl-4 rtl:sm:pr-2"
+            className="group border border-white fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 z-30 flex items-center gap-0 rounded-full bg-primary p-0 text-primary-foreground shadow-[0_12px_40px_rgba(28,25,22,0.28)] transition-shadow hover:shadow-[0_16px_48px_rgba(28,25,22,0.34)] sm:bottom-5 sm:left-5 sm:gap-3 sm:py-2 sm:pl-2 sm:pr-4 rtl:left-auto rtl:right-4 rtl:sm:pl-4 rtl:sm:pr-2"
             initial={{ opacity: 0, y: 24, scale: 0.94 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.94 }}
@@ -295,7 +295,7 @@ export function AiChatbot() {
             }}
           >
             {/* Icon bubble — pulsing halo replaces the old ring-dot badge */}
-            <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-primary text-accent sm:h-11 sm:w-11 sm:bg-accent sm:text-accent-foreground">
+            <span className="relative  flex h-14 w-14 items-center justify-center rounded-full bg-primary text-accent sm:h-11 sm:w-11 sm:bg-accent sm:text-accent-foreground">
               <Sparkles className="relative h-5 w-5 sm:h-4 sm:w-4" />
             </span>
 
