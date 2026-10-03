@@ -112,6 +112,7 @@ export async function upsertEntity(entity: string, payload: Record<string, unkno
       }
     }
   }
+  revalidateTag("catalog");
   return { ok: true, id };
 }
 
@@ -137,6 +138,7 @@ export async function deleteEntity(entity: string, id: string) {
       if (error) return { error: error.message };
     }
   }
+  revalidateTag("catalog");
   return { ok: true };
 }
 

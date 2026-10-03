@@ -130,8 +130,10 @@ export function EntityManager({
       />
 
       <Dialog open={open} onOpenChange={(v) => (v ? setOpen(true) : close())}>
-        <DialogContent className="max-h-[92dvh] w-[min(96vw,52rem)] max-w-3xl overflow-y-auto p-4 sm:p-6">
-          <h2 className="pr-8 font-serif text-2xl">{editing ? `Edit ${config.title}` : `New ${config.title}`}</h2>
+        <DialogContent className="flex max-h-[92dvh] w-[min(96vw,52rem)] max-w-3xl min-h-0 flex-col gap-0 overflow-hidden p-0 sm:p-0">
+          <h2 className="shrink-0 border-b px-4 py-4 pr-12 font-serif text-2xl sm:px-6">
+            {editing ? `Edit ${config.title}` : `New ${config.title}`}
+          </h2>
           <FormBuilder
             key={String(editing?.id || editing?.slug || "new")}
             config={config}

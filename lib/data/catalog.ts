@@ -296,9 +296,9 @@ export const getFaqs = cache(async (category?: string): Promise<Faq[]> => {
 
 export async function getBlogPosts(opts?: { includeDrafts?: boolean }): Promise<BlogPost[]> {
   if (opts?.includeDrafts) {
-    return queryRows(async (supabase) => {
-      const { data } = await supabase.from("blog_posts").select("*").order("published_at", { ascending: false });
-      return data as BlogPost[] | null;
+    return queryAdminRows(getStore().posts, async (supabase) => {
+      const { data, error } = await supabase.from("blog_posts").select("*").order("published_at", { ascending: false });
+      return { data: data as BlogPost[] | null, error };
     });
   }
   const posts = await fetchPublishedPosts();

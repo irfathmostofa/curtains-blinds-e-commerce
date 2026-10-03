@@ -229,8 +229,22 @@ export function FormBuilder({
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setSaving(true);
     setError(null);
+    for (const field of config.fields) {
+      if (!field.required || field.type === "checkbox") continue;
+      if (
+        (field.name === "cover_image_alt" || field.name === "image_alt" || field.name === "logo_alt") &&
+        (images[0]?.alt || images[0]?.url)
+      ) {
+        continue;
+      }
+      const val = values[field.name];
+      if (val === undefined || val === null || String(val).trim() === "") {
+        setError(`${field.label} is required.`);
+        return;
+      }
+    }
+    setSaving(true);
     const payload: Record<string, unknown> = { ...values };
     if (!payload.slug) payload.slug = slugify(String(payload.name || payload.title || ""));
     if (payload.parent_id === "") payload.parent_id = null;
@@ -244,9 +258,14 @@ export function FormBuilder({
       payload.image_url = images[0].url;
       payload.image_alt = images[0].alt || payload.image_alt;
     }
-    if (config.key === "posts" && images[0]) {
-      payload.cover_image_url = images[0].url;
-      payload.cover_image_alt = images[0].alt || payload.cover_image_alt;
+    if (config.key === "posts") {
+      if (images[0]) {
+        payload.cover_image_url = images[0].url;
+        payload.cover_image_alt = images[0].alt || payload.cover_image_alt || "";
+      } else {
+        payload.cover_image_url = "";
+        payload.cover_image_alt = payload.cover_image_alt || "";
+      }
     }
     if (config.key === "partners" && images[0]) {
       payload.logo_url = images[0].url;
@@ -263,7 +282,8 @@ export function FormBuilder({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 py-4 sm:px-6">
       <section className="grid gap-4 sm:grid-cols-2">
         {contentFields.map((field) => (
           <div
@@ -442,28 +462,31 @@ export function FormBuilder({
         </section>
       ) : null}
 
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <div className="sticky bottom-0 flex flex-wrap gap-3 border-t bg-card py-3">
-        <Button type="submit" disabled={saving} className="min-w-28">
-          {saving ? "Saving…" : "Save"}
-        </Button>
-        {initial && (initial.id || initial.slug) ? (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={async () => {
-              const id = String(config.idField === "slug" ? initial.slug : initial.id);
-              const result = await deleteEntity(config.key, id);
-              if ("error" in result && result.error) {
-                setError(result.error);
-                return;
-              }
-              onDone?.();
-            }}
-          >
-            Delete
+      </div>
+      <div className="flex shrink-0 flex-col gap-2 border-t bg-card px-4 py-3 sm:px-6">
+        {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        <div className="flex flex-wrap gap-3">
+          <Button type="submit" disabled={saving} className="min-w-28">
+            {saving ? "Saving…" : "Save"}
           </Button>
-        ) : null}
+          {initial && (initial.id || initial.slug) ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={async () => {
+                const id = String(config.idField === "slug" ? initial.slug : initial.id);
+                const result = await deleteEntity(config.key, id);
+                if ("error" in result && result.error) {
+                  setError(result.error);
+                  return;
+                }
+                onDone?.();
+              }}
+            >
+              Delete
+            </Button>
+          ) : null}
+        </div>
       </div>
     </form>
   );

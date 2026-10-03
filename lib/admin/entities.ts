@@ -277,7 +277,7 @@ export const entities: Record<string, EntityConfig> = {
       { name: "slug", label: "Slug", type: "slug", required: true, group: "content", hint: "URL path. Auto-fills from the title." },
       { name: "excerpt", label: "Excerpt", type: "textarea", group: "content" },
       { name: "content", label: "Content", type: "richtext", group: "content" },
-      { name: "cover_image_alt", label: "Cover image alt", type: "text", required: true, group: "media" },
+      { name: "cover_image_alt", label: "Cover image alt", type: "text", group: "media" },
       { name: "author", label: "Author", type: "text", group: "content" },
       { name: "published_at", label: "Published at", type: "date", group: "content" },
       { name: "seo_title", label: "Meta title", type: "text", group: "seo" },
