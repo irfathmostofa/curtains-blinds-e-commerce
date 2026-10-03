@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUploader } from "@/components/admin/image-uploader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SOCIAL_PLATFORMS, SocialIcon, socialPlatformByValue } from "@/components/social-icon";
 import {
   WEEKDAY_LABELS,
@@ -40,6 +41,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   }));
   const [message, setMessage] = useState<string | null>(null);
   const [pendingNetwork, setPendingNetwork] = useState("");
+  const [tab, setTab] = useState("access");
   const seo = settings.seo;
   const usedNetworks = new Set(settings.social_links.map((link) => link.label));
   const unusedNetworks = SOCIAL_PLATFORMS.filter((platform) => !usedNetworks.has(platform.value));
@@ -128,10 +130,10 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   );
 
   return (
-    <main className="mx-auto max-w-3xl space-y-8">
+    <main className="mx-auto max-w-3xl space-y-8 pb-24">
       <div>
         <h1 className="font-serif text-3xl">Site settings</h1>
-        <p className="text-sm text-muted-foreground">Contact, navigation and global SEO metadata without extra pages.</p>
+        <p className="text-sm text-muted-foreground">Contact, visit hours, analytics and SEO in separate tabs.</p>
       </div>
 
       <form
@@ -146,6 +148,22 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           setMessage("Saved.");
         }}
       >
+        <Tabs value={tab} onValueChange={setTab}>
+          <div className="sticky top-0 z-20 -mx-1 space-y-3 rounded-2xl border bg-card/95 p-3 backdrop-blur sm:p-4">
+            <TabsList>
+              <TabsTrigger value="access">Access</TabsTrigger>
+              <TabsTrigger value="contact">Contact</TabsTrigger>
+              <TabsTrigger value="visit">Visit</TabsTrigger>
+              <TabsTrigger value="hours">Hours</TabsTrigger>
+              <TabsTrigger value="social">Social & payments</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              <TabsTrigger value="email">Email</TabsTrigger>
+              <TabsTrigger value="seo">SEO</TabsTrigger>
+            </TabsList>
+            {message ? <p className="text-sm">{message}</p> : null}
+          </div>
+
+        <TabsContent value="access">
         <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
           <div>
             <h2 className="font-serif text-xl">Site access</h2>
@@ -163,7 +181,9 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
             Under construction mode
           </label>
         </section>
+        </TabsContent>
 
+        <TabsContent value="contact">
         <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
           <h2 className="font-serif text-xl">Contact</h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -199,7 +219,9 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               <Textarea id="tagline" value={settings.tagline} onChange={(e) => patch({ tagline: e.target.value })} />
             </div>
           </section>
+        </TabsContent>
 
+        <TabsContent value="visit">
           <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
             <div>
               <h2 className="font-serif text-xl">Visit locations</h2>
@@ -257,7 +279,9 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               Add location
             </Button>
           </section>
+        </TabsContent>
 
+        <TabsContent value="hours">
           <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
             <div>
               <h2 className="font-serif text-xl">Available time</h2>
@@ -315,7 +339,9 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               })}
             </div>
           </section>
+        </TabsContent>
 
+        <TabsContent value="social">
         <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
           <div>
             <h2 className="font-serif text-xl">Social & payments</h2>
@@ -447,7 +473,9 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
             </Button>
           </div>
         </section>
+        </TabsContent>
 
+        <TabsContent value="analytics">
         <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
           <div>
             <h2 className="font-serif text-xl">Analytics & pixels</h2>
@@ -525,7 +553,9 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
             </div>
           </div>
         </section>
+        </TabsContent>
 
+        <TabsContent value="email">
         <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
           <div>
             <h2 className="font-serif text-xl">Email delivery</h2>
@@ -556,7 +586,9 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
             </div>
           </div>
         </section>
+        </TabsContent>
 
+        <TabsContent value="seo">
         <section className="space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
           <div>
             <h2 className="font-serif text-xl">SEO metadata</h2>
@@ -623,6 +655,8 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
             <p className="line-clamp-2 text-xs text-muted-foreground">{seo.default_description}</p>
           </div>
         </section>
+        </TabsContent>
+        </Tabs>
 
         {message ? <p className="text-sm">{message}</p> : null}
         <Button type="submit">Save settings</Button>

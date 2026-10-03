@@ -200,16 +200,24 @@ export type HeroSlide = {
   express_detail: string;
 };
 
+export type HomepageStat = {
+  value: string;
+  suffix: string;
+  label: string;
+};
+
 export type HomepageSectionId =
   | "hero"
   | "marquee"
   | "intro"
   | "how_it_works"
+  | "stats"
   | "features"
   | "collections"
   | "filtered_products"
   | "bestsellers"
   | "reviews"
+  | "areas"
   | "cta"
   | "partners"
   | "faqs"
@@ -244,7 +252,13 @@ export type HomepageContent = {
     subtitle: string;
     steps: HowItWorksStep[];
   };
+  stats: HomepageSectionCopy & {
+    items: HomepageStat[];
+  };
   features: HomepageFeature[];
+  areas: HomepageSectionCopy & {
+    items: string[];
+  };
   collections: HomepageSectionCopy;
   filtered_products: HomepageSectionCopy & {
     limit: number;

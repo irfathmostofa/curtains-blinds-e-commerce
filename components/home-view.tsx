@@ -14,6 +14,8 @@ import { HeroClassic } from "@/components/hero-classic";
 import { HeroCarousel } from "@/components/hero-carousel";
 import { HowItWorks } from "./how-it-works";
 import { HomeIntro } from "./home-intro";
+import { HomeStats } from "./home-stats";
+import { HomeAreas } from "./home-areas";
 import { MarqueeStrip } from "./marquee-strip";
 import { Reveal, SectionFrame, Stagger, StaggerItem } from "@/components/motion/reveal";
 import { HtmlContent } from "./html-content";
@@ -85,6 +87,11 @@ export function HomeView({
     how_it_works: (
       <SectionFrame className="py-14 sm:py-16">
         <HowItWorks content={home.how_it_works} />
+      </SectionFrame>
+    ),
+    stats: (
+      <SectionFrame className="py-14 sm:py-16">
+        <HomeStats content={home.stats} />
       </SectionFrame>
     ),
     features: (
@@ -162,6 +169,11 @@ export function HomeView({
             <TestimonialCarousel items={testimonials} />
           </Reveal>
         </div>
+      </SectionFrame>
+    ),
+    areas: (
+      <SectionFrame tone="tint" className="py-14 sm:py-16">
+        <HomeAreas content={home.areas} />
       </SectionFrame>
     ),
     cta: (

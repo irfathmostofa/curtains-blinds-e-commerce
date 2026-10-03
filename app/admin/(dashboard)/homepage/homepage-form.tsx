@@ -35,7 +35,9 @@ const TABS = [
   { id: "marquee", label: "Marquee" },
   { id: "intro", label: "Introduction" },
   { id: "how_it_works", label: "How it works" },
+  { id: "stats", label: "Counters" },
   { id: "features", label: "Features" },
+  { id: "areas", label: "Areas we serve" },
   { id: "collections", label: "Collections" },
   { id: "bestsellers", label: "Bestsellers" },
   { id: "reviews", label: "Reviews" },
@@ -485,6 +487,185 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
               </div>
             ))}
           </div>
+            </Panel>
+          </TabsContent>
+
+          <TabsContent value="stats">
+            <Panel title="Counters" hint="Shown as animated numbers on the homepage.">
+              <div className="space-y-2">
+                <Label htmlFor="stats-eyebrow">Eyebrow</Label>
+                <Input
+                  id="stats-eyebrow"
+                  value={home.stats.eyebrow}
+                  onChange={(e) => setHome((h) => ({ ...h, stats: { ...h.stats, eyebrow: e.target.value } }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="stats-title">Title</Label>
+                <Input
+                  id="stats-title"
+                  value={home.stats.title}
+                  onChange={(e) => setHome((h) => ({ ...h, stats: { ...h.stats, title: e.target.value } }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Subtitle</Label>
+                <RichTextEditor
+                  value={home.stats.subtitle}
+                  onChange={(html) => setHome((h) => ({ ...h, stats: { ...h.stats, subtitle: html } }))}
+                  minHeight="110px"
+                />
+              </div>
+              <div className="grid gap-4">
+                {home.stats.items.map((item, index) => (
+                  <div key={index} className="grid gap-3 rounded-xl border p-4 sm:grid-cols-[1fr_6rem_1fr_auto]">
+                    <div className="space-y-2">
+                      <Label htmlFor={`stat-value-${index}`}>Value</Label>
+                      <Input
+                        id={`stat-value-${index}`}
+                        value={item.value}
+                        onChange={(e) =>
+                          setHome((h) => ({
+                            ...h,
+                            stats: {
+                              ...h.stats,
+                              items: h.stats.items.map((s, i) => (i === index ? { ...s, value: e.target.value } : s)),
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`stat-suffix-${index}`}>Suffix</Label>
+                      <Input
+                        id={`stat-suffix-${index}`}
+                        value={item.suffix}
+                        onChange={(e) =>
+                          setHome((h) => ({
+                            ...h,
+                            stats: {
+                              ...h.stats,
+                              items: h.stats.items.map((s, i) => (i === index ? { ...s, suffix: e.target.value } : s)),
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`stat-label-${index}`}>Label</Label>
+                      <Input
+                        id={`stat-label-${index}`}
+                        value={item.label}
+                        onChange={(e) =>
+                          setHome((h) => ({
+                            ...h,
+                            stats: {
+                              ...h.stats,
+                              items: h.stats.items.map((s, i) => (i === index ? { ...s, label: e.target.value } : s)),
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="self-end"
+                      onClick={() =>
+                        setHome((h) => ({
+                          ...h,
+                          stats: { ...h.stats, items: h.stats.items.filter((_, i) => i !== index) },
+                        }))
+                      }
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setHome((h) => ({
+                    ...h,
+                    stats: { ...h.stats, items: [...h.stats.items, { value: "0", suffix: "+", label: "" }] },
+                  }))
+                }
+              >
+                Add counter
+              </Button>
+            </Panel>
+          </TabsContent>
+
+          <TabsContent value="areas">
+            <Panel title="Areas we serve" hint="Communities listed on the homepage.">
+              <div className="space-y-2">
+                <Label htmlFor="areas-eyebrow">Eyebrow</Label>
+                <Input
+                  id="areas-eyebrow"
+                  value={home.areas.eyebrow}
+                  onChange={(e) => setHome((h) => ({ ...h, areas: { ...h.areas, eyebrow: e.target.value } }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="areas-title">Title</Label>
+                <Input
+                  id="areas-title"
+                  value={home.areas.title}
+                  onChange={(e) => setHome((h) => ({ ...h, areas: { ...h.areas, title: e.target.value } }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Subtitle</Label>
+                <RichTextEditor
+                  value={home.areas.subtitle}
+                  onChange={(html) => setHome((h) => ({ ...h, areas: { ...h.areas, subtitle: html } }))}
+                  minHeight="110px"
+                />
+              </div>
+              <div className="space-y-3">
+                {home.areas.items.map((area, index) => (
+                  <div key={index} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <Input
+                      value={area}
+                      placeholder="Palm Jumeirah"
+                      onChange={(e) =>
+                        setHome((h) => ({
+                          ...h,
+                          areas: {
+                            ...h.areas,
+                            items: h.areas.items.map((item, i) => (i === index ? e.target.value : item)),
+                          },
+                        }))
+                      }
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setHome((h) => ({
+                          ...h,
+                          areas: { ...h.areas, items: h.areas.items.filter((_, i) => i !== index) },
+                        }))
+                      }
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setHome((h) => ({ ...h, areas: { ...h.areas, items: [...h.areas.items, ""] } }))}
+              >
+                Add area
+              </Button>
             </Panel>
           </TabsContent>
 
