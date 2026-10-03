@@ -4,6 +4,7 @@ import { Breadcrumbs } from "@/components/breadcrumbs";
 import { getBlogPost, getBlogPosts } from "@/lib/data/catalog";
 import { articleJsonLd, buildMetadata } from "@/lib/seo";
 import { JsonLd } from "@/components/json-ld";
+import { CTABanner } from "@/components/cta-banner";
 
 export const revalidate = 3600;
 
@@ -12,7 +13,11 @@ export async function generateStaticParams() {
   return posts.map((p) => ({ slug: p.slug }));
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}) {
   const post = await getBlogPost(params.slug);
   if (!post) return {};
   return buildMetadata({
@@ -25,7 +30,11 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   });
 }
 
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+export default async function BlogPostPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
   const post = await getBlogPost(params.slug);
   if (!post) notFound();
   return (
@@ -51,13 +60,31 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
         <h1 className="font-serif text-4xl">{post.title}</h1>
         <p className="text-sm text-muted-foreground">
           {post.author}
-          {post.published_at ? ` · ${new Date(post.published_at).toLocaleDateString("en-AE")}` : ""}
+          {post.published_at
+            ? ` · ${new Date(post.published_at).toLocaleDateString("en-AE")}`
+            : ""}
         </p>
         <div className="relative aspect-[16/9] overflow-hidden rounded-3xl">
-          <Image src={post.cover_image_url} alt={post.cover_image_alt} fill className="object-cover" priority sizes="800px" />
+          <Image
+            src={post.cover_image_url}
+            alt={post.cover_image_alt}
+            fill
+            className="object-cover"
+            priority
+            sizes="800px"
+          />
         </div>
-        <div className="prose prose-stone max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
+        <div
+          className="prose prose-stone max-w-none"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
       </article>
+      <CTABanner
+        title="See these fabrics in your light"
+        subtitle="A complimentary visit covers measuring, samples and a written estimate."
+        buttonLabel="Book a free visit"
+        buttonHref="/book"
+      />
     </main>
   );
 }

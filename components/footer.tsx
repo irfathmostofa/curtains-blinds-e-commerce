@@ -86,11 +86,11 @@ export function Footer({ settings }: { settings: SiteSettings }) {
                   />
                   {t(availability.label)}
                 </p>
-                <p>
+                {/* <p>
                   {availability.today.closed
                     ? t("Closed today")
                     : `${t("Today")} ${formatClock(availability.today.open)}–${formatClock(availability.today.close)}`}
-                </p>
+                </p> */}
               </>
             ) : null}
             <ul className="space-y-1 text-primary-foreground/70">
@@ -142,6 +142,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
           <p className="flex gap-4">
             <Link href="/privacy-policy">{t("Privacy Policy")}</Link>
             <Link href="/terms-of-use">{t("Terms of Use")}</Link>
+            <Link href="https://irfathchowdhuryjoy.web.app/" target="_black">{t("Developed By Md. Irfath Chowdhury")}</Link>
           </p>
         </div>
       </div>
