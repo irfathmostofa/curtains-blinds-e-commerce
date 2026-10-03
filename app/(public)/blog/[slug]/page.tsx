@@ -5,6 +5,8 @@ import { getBlogPost, getBlogPosts } from "@/lib/data/catalog";
 import { articleJsonLd, buildMetadata } from "@/lib/seo";
 import { JsonLd } from "@/components/json-ld";
 import { CTABanner } from "@/components/cta-banner";
+import { HtmlContent } from "@/components/html-content";
+import { stripHtml } from "@/lib/html";
 
 export const revalidate = 3600;
 
@@ -22,7 +24,7 @@ export async function generateMetadata({
   if (!post) return {};
   return buildMetadata({
     title: post.seo_title || post.title,
-    description: post.seo_description || post.excerpt,
+    description: post.seo_description || post.excerpt || stripHtml(post.content).slice(0, 160),
     path: `/blog/${post.slug}`,
     image: post.cover_image_url,
     type: "article",
@@ -42,7 +44,7 @@ export default async function BlogPostPage({
       <JsonLd
         data={articleJsonLd({
           title: post.title,
-          description: post.excerpt,
+          description: post.excerpt || stripHtml(post.content).slice(0, 160),
           image: post.cover_image_url,
           path: `/blog/${post.slug}`,
           author: post.author,
@@ -64,20 +66,19 @@ export default async function BlogPostPage({
             ? ` · ${new Date(post.published_at).toLocaleDateString("en-AE")}`
             : ""}
         </p>
-        <div className="relative aspect-[16/9] overflow-hidden rounded-3xl">
-          <Image
-            src={post.cover_image_url}
-            alt={post.cover_image_alt}
-            fill
-            className="object-cover"
-            priority
-            sizes="800px"
-          />
-        </div>
-        <div
-          className="prose prose-stone max-w-none"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
+        {post.cover_image_url ? (
+          <div className="relative aspect-[16/9] overflow-hidden rounded-3xl">
+            <Image
+              src={post.cover_image_url}
+              alt={post.cover_image_alt || post.title}
+              fill
+              className="object-cover"
+              priority
+              sizes="800px"
+            />
+          </div>
+        ) : null}
+        <HtmlContent html={post.content} className="text-foreground" />
       </article>
       <CTABanner
         title="See these fabrics in your light"

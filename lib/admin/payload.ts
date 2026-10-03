@@ -1,4 +1,5 @@
 import { entityAllowedColumns } from "@/lib/admin/entities";
+import { normalizeRichText } from "@/lib/html";
 import { slugify } from "@/lib/utils";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -98,7 +99,7 @@ export function sanitizeEntityPayload(entity: string, payload: Record<string, un
     raw.is_active = raw.is_active === undefined ? true : asBool(raw.is_active);
     raw.fabric_options = asTags(raw.fabric_options);
     raw.images = asImages(raw.images);
-    raw.description = asString(raw.description);
+    raw.description = normalizeRichText(raw.description);
     raw.seo_title = asString(raw.seo_title);
     raw.seo_description = asString(raw.seo_description);
     raw.seo_keywords = asString(raw.seo_keywords);
@@ -108,7 +109,7 @@ export function sanitizeEntityPayload(entity: string, payload: Record<string, un
     const parentId = asNullableString(raw.parent_id);
     raw.parent_id = parentId && isUuid(parentId) ? parentId : null;
     raw.sort_order = asNumber(raw.sort_order, 0);
-    raw.description = asString(raw.description);
+    raw.description = normalizeRichText(raw.description);
     raw.image_url = asString(raw.image_url);
     raw.image_alt = asString(raw.image_alt);
     raw.seo_title = asString(raw.seo_title);
@@ -150,7 +151,7 @@ export function sanitizeEntityPayload(entity: string, payload: Record<string, un
 
   if (entity === "posts") {
     raw.excerpt = asString(raw.excerpt);
-    raw.content = asString(raw.content);
+    raw.content = normalizeRichText(raw.content);
     raw.cover_image_url = asString(raw.cover_image_url);
     raw.cover_image_alt = asString(raw.cover_image_alt);
     raw.author = asString(raw.author, "Maison Drape Studio");
@@ -163,7 +164,7 @@ export function sanitizeEntityPayload(entity: string, payload: Record<string, un
   if (entity === "faqs") {
     raw.category = asString(raw.category, "general") || "general";
     raw.sort_order = asNumber(raw.sort_order, 0);
-    raw.answer = asString(raw.answer);
+    raw.answer = normalizeRichText(raw.answer);
   }
 
   if (entity === "partners") {
@@ -173,7 +174,7 @@ export function sanitizeEntityPayload(entity: string, payload: Record<string, un
   }
 
   if (entity === "pages") {
-    raw.content = asString(raw.content);
+    raw.content = normalizeRichText(raw.content);
     raw.seo_title = asString(raw.seo_title);
     raw.seo_description = asString(raw.seo_description);
   }

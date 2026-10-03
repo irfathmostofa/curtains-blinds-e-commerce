@@ -12,7 +12,7 @@ import type { EntityConfig, FieldConfig } from "@/lib/admin/entities";
 import { deleteEntity, upsertEntity } from "@/app/admin/actions";
 import { slugify } from "@/lib/utils";
 import { TagInput } from "./tag-input";
-import { stripHtml } from "@/lib/html";
+import { normalizeRichText, stripHtml } from "@/lib/html";
 import { SlugField } from "./slug-field";
 
 function asTags(value: unknown): string[] {
@@ -54,6 +54,7 @@ function FieldControl({
         value={String(values[field.name] ?? "")}
         onChange={(html) => setField(field.name, html)}
         placeholder={`Write ${field.label.toLowerCase()}…`}
+        minHeight={field.name === "content" ? "280px" : "180px"}
       />
     );
   }
@@ -166,9 +167,18 @@ export function FormBuilder({
   onDone?: () => void;
   categories?: { id: string; name: string }[];
 }) {
-  const [values, setValues] = useState<Record<string, unknown>>(
-    initial || (config.key === "products" ? { is_active: true, fabric_options: [] } : {})
-  );
+  const [values, setValues] = useState<Record<string, unknown>>(() => {
+    if (initial) {
+      const next = { ...initial };
+      if ("content" in next) next.content = normalizeRichText(next.content);
+      if ("description" in next) next.description = normalizeRichText(next.description);
+      if ("answer" in next) next.answer = normalizeRichText(next.answer);
+      return next;
+    }
+    if (config.key === "products") return { is_active: true, fabric_options: [] };
+    if (config.key === "posts") return { author: "Maison Drape Studio", content: "" };
+    return {};
+  });
   const [slugLocked, setSlugLocked] = useState(Boolean(initial?.slug));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -238,14 +248,17 @@ export function FormBuilder({
       ) {
         continue;
       }
-      const val = values[field.name];
-      if (val === undefined || val === null || String(val).trim() === "") {
+      const val = field.type === "richtext" ? normalizeRichText(values[field.name]) : values[field.name];
+      if (val === undefined || val === null || String(val).trim() === "" || (field.type === "richtext" && !stripHtml(String(val)))) {
         setError(`${field.label} is required.`);
         return;
       }
     }
     setSaving(true);
     const payload: Record<string, unknown> = { ...values };
+    for (const field of config.fields) {
+      if (field.type === "richtext") payload[field.name] = normalizeRichText(payload[field.name]);
+    }
     if (!payload.slug) payload.slug = slugify(String(payload.name || payload.title || ""));
     if (payload.parent_id === "") payload.parent_id = null;
     if (payload.category_id === "") payload.category_id = null;

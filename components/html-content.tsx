@@ -1,16 +1,16 @@
-import { looksLikeHtml } from "@/lib/html";
+import { looksLikeHtml, normalizeRichText } from "@/lib/html";
 import { cn } from "@/lib/utils";
 
-
 export function HtmlContent({ html, className }: { html: string; className?: string }) {
-  if (!html) return null;
-  if (!looksLikeHtml(html)) {
-    return <div className={cn("leading-relaxed text-muted-foreground", className)}>{html}</div>;
+  const safe = normalizeRichText(html);
+  if (!safe) return null;
+  if (!looksLikeHtml(safe)) {
+    return <div className={cn("leading-relaxed text-muted-foreground", className)}>{safe}</div>;
   }
   return (
     <div
       className={cn("prose prose-stone max-w-none text-muted-foreground", className)}
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={{ __html: safe }}
     />
   );
 }

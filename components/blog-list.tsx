@@ -50,18 +50,20 @@ export function BlogList({ posts }: { posts: BlogPost[] }) {
             <StaggerItem key={post.id}>
               <article className="group overflow-hidden rounded-2xl border bg-card transition duration-500 hover:-translate-y-1.5 hover:shadow-xl">
                 <Link href={`/blog/${post.slug}`}>
-                  <div className="relative aspect-[16/10] overflow-hidden">
-                    <Image
-                      src={post.cover_image_url}
-                      alt={post.cover_image_alt}
-                      fill
-                      className="object-cover transition duration-700 group-hover:scale-110"
-                      sizes="(min-width:768px) 33vw, 100vw"
-                    />
-                  </div>
+                  {post.cover_image_url ? (
+                    <div className="relative aspect-[16/10] overflow-hidden">
+                      <Image
+                        src={post.cover_image_url}
+                        alt={post.cover_image_alt || post.title}
+                        fill
+                        className="object-cover transition duration-700 group-hover:scale-110"
+                        sizes="(min-width:768px) 33vw, 100vw"
+                      />
+                    </div>
+                  ) : null}
                   <div className="space-y-2 p-5">
                     <h2 className="font-serif text-2xl">{t(post.title)}</h2>
-                    <p className="text-sm text-muted-foreground">{t(post.excerpt)}</p>
+                    {post.excerpt ? <p className="text-sm text-muted-foreground">{t(post.excerpt)}</p> : null}
                   </div>
                 </Link>
               </article>

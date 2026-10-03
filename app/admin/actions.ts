@@ -11,7 +11,7 @@ import { loginSchema } from "@/lib/validations";
 import { getStore } from "@/lib/data/store";
 import { processImage } from "@/lib/images/process";
 import { slugify } from "@/lib/utils";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { entities } from "@/lib/admin/entities";
 import { isUuid, sanitizeEntityPayload, sanitizeVariants } from "@/lib/admin/payload";
 import {
@@ -113,6 +113,11 @@ export async function upsertEntity(entity: string, payload: Record<string, unkno
     }
   }
   revalidateTag("catalog");
+  if (entity === "posts") {
+    revalidatePath("/blog");
+    const slug = String(row.slug || "");
+    if (slug) revalidatePath(`/blog/${slug}`);
+  }
   return { ok: true, id };
 }
 
@@ -139,6 +144,10 @@ export async function deleteEntity(entity: string, id: string) {
     }
   }
   revalidateTag("catalog");
+  if (entity === "posts") {
+    revalidatePath("/blog");
+    revalidatePath(`/blog/${id}`);
+  }
   return { ok: true };
 }
 

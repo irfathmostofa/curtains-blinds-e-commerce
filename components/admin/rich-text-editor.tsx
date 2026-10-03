@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Bold, Heading2, Heading3, Italic, Link2, List, ListOrdered, Quote, Redo2, Undo2 } from "lucide-react";
-import { sanitizeHtml } from "@/lib/html";
+import { normalizeRichText, sanitizeHtml } from "@/lib/html";
 import { cn } from "@/lib/utils";
 
 function command(name: string, value?: string) {
@@ -21,20 +21,27 @@ export function RichTextEditor({
   minHeight?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const last = useRef(value);
-  const initialHtml = useRef(sanitizeHtml(value || ""));
+  const last = useRef(normalizeRichText(value));
+  const seeded = useRef(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (value === last.current) return;
+    const next = normalizeRichText(value);
+    if (!seeded.current) {
+      el.innerHTML = next;
+      last.current = next;
+      seeded.current = true;
+      return;
+    }
+    if (next === last.current) return;
     if (document.activeElement === el) return;
-    el.innerHTML = value || "";
-    last.current = value;
+    el.innerHTML = next;
+    last.current = next;
   }, [value]);
 
   function emit() {
-    const html = sanitizeHtml(ref.current?.innerHTML || "");
+    const html = normalizeRichText(sanitizeHtml(ref.current?.innerHTML || ""));
     last.current = html;
     onChange(html);
   }
@@ -90,7 +97,6 @@ export function RichTextEditor({
         )}
         style={{ minHeight }}
         data-placeholder={placeholder}
-        dangerouslySetInnerHTML={{ __html: initialHtml.current }}
         onInput={emit}
         onBlur={emit}
       />
