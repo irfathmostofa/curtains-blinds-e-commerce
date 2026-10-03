@@ -295,7 +295,7 @@ export function AiChatbot() {
             }}
           >
             <Sparkles className="relative h-5 w-5 sm:h-6 sm:w-6" />
-            <span className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+            <span className="pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 rtl:left-auto rtl:right-full rtl:ml-0 rtl:mr-2">
               {t("Need an estimate?")}
             </span>
           </motion.button>
