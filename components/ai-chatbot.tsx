@@ -281,8 +281,8 @@ export function AiChatbot() {
         {!open ? (
           <motion.button
             type="button"
-            aria-label={t("AI assistant")}
-            className="group border border-white fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 z-30 flex items-center gap-0 rounded-full bg-primary p-0 text-primary-foreground shadow-[0_12px_40px_rgba(28,25,22,0.28)] transition-shadow hover:shadow-[0_16px_48px_rgba(28,25,22,0.34)] sm:bottom-5 sm:left-5 sm:gap-3 sm:py-2 sm:pl-2 sm:pr-4 rtl:left-auto rtl:right-4 rtl:sm:pl-4 rtl:sm:pr-2"
+            aria-label={t("Need an estimate?")}
+            className="group fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 z-30 flex h-12 w-12 items-center justify-center rounded-full border border-white bg-primary text-accent shadow-[0_12px_40px_rgba(28,25,22,0.28)] transition-shadow hover:shadow-[0_16px_48px_rgba(28,25,22,0.34)] sm:bottom-5 sm:left-5 sm:h-14 sm:w-14 rtl:left-auto rtl:right-4"
             initial={{ opacity: 0, y: 24, scale: 0.94 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.94 }}
@@ -294,16 +294,9 @@ export function AiChatbot() {
               if (step === "welcome") setStep("name");
             }}
           >
-            {/* Icon bubble — pulsing halo replaces the old ring-dot badge */}
-            <span className="relative  flex h-14 w-14 items-center justify-center rounded-full bg-primary text-accent sm:h-11 sm:w-11 sm:bg-accent sm:text-accent-foreground">
-              <Sparkles className="relative h-5 w-5 sm:h-4 sm:w-4" />
-            </span>
-
-            <span className="hidden text-left sm:block">
-              <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-primary-foreground/70">
-                {t("Studio concierge")}
-              </span>
-              <span className="block text-sm font-medium leading-tight">{t("Need an estimate?")}</span>
+            <Sparkles className="relative h-5 w-5 sm:h-6 sm:w-6" />
+            <span className="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+              {t("Need an estimate?")}
             </span>
           </motion.button>
         ) : null}
