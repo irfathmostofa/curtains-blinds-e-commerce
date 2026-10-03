@@ -333,7 +333,7 @@ export const entities: Record<string, EntityConfig> = {
   pages: {
     key: "pages",
     title: "Pages",
-    description: "CMS pages such as privacy and terms.",
+    description: "CMS pages such as About us, privacy and terms.",
     href: "/admin/pages",
     storeKey: "pages",
     table: "cms_pages",

@@ -85,6 +85,9 @@ on conflict (slug) do nothing;
 
 insert into public.cms_pages (slug, title, content, seo_title, seo_description)
 values
+  ('about-us', 'An atelier for Gulf light', '<p>Maison Drape started as a curtain workroom and grew into a full window-treatment studio: drapes, blinds, motors and trade supply.</p>
+<p>We measure in villas from Palm Jumeirah to Saadiyat, and in apartments where a 3cm reveal decides whether a cassette will sit cleanly. That is the work: not selling a catalogue SKU, but specifying fabric, lining and hardware against real glass, real HVAC and real stack-back.</p>
+<p>Installers are in-house. Consultants carry blackout, sunscreen and linen in the same bag. Motors are documented for your systems integrator. The 12-month workmanship warranty is written on every job sheet.</p>', 'About Maison Drape', 'Atelier making custom curtains, blinds and motorised tracks for Dubai and Abu Dhabi homes, hotels and designers.'),
   ('privacy-policy', 'Privacy Policy', '<p>Maison Drape ("we") collects contact details you submit on estimate and booking forms, plus technical cookies required to run this site. We use that information only to respond to your enquiry, schedule visits and improve our service.</p>
 <p>We do not sell personal data. Analytics and marketing scripts load only after you accept cookies. You may reject non-essential cookies at any time via the banner.</p>
 <p>To request access or deletion of your data, email hello@maisondrape.ae.</p>', 'Privacy Policy | Maison Drape', 'How Maison Drape collects, stores and uses personal data from website visitors, leads and bookings.'),
