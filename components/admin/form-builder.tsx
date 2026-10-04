@@ -478,14 +478,15 @@ export function FormBuilder({
       </div>
       <div className="flex shrink-0 flex-col gap-2 border-t bg-card px-4 py-3 sm:px-6">
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
-        <div className="flex flex-wrap gap-3">
-          <Button type="submit" disabled={saving} className="min-w-28">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <Button type="submit" disabled={saving} className="min-w-28 w-full sm:w-auto">
             {saving ? "Saving…" : "Save"}
           </Button>
           {initial && (initial.id || initial.slug) ? (
             <Button
               type="button"
               variant="outline"
+              className="w-full sm:w-auto"
               onClick={async () => {
                 const id = String(config.idField === "slug" ? initial.slug : initial.id);
                 const result = await deleteEntity(config.key, id);

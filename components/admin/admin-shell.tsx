@@ -113,9 +113,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }, [open]);
 
   return (
-    <div className="min-h-screen bg-ivory">
-      <header className="sticky top-0 z-[70] flex items-center justify-between border-b bg-card px-4 py-3 lg:hidden">
-        <Link href="/admin" className="font-serif text-lg">
+    <div className="min-h-dvh overflow-x-hidden bg-ivory">
+      <header className="sticky top-0 z-[70] flex items-center justify-between gap-3 border-b bg-card px-4 py-3 lg:hidden">
+        <Link href="/admin" className="truncate font-serif text-lg">
           Maison Admin
         </Link>
         <Button
@@ -138,15 +138,15 @@ export function AdminShell({ children }: { children: ReactNode }) {
             aria-label="Close admin menu"
             onClick={() => setOpen(false)}
           />
-          <aside className="absolute inset-y-0 left-0 flex w-[min(20rem,86vw)] flex-col overflow-y-auto border-r bg-card p-5 pt-20 shadow-xl">
+          <aside className="absolute inset-y-0 left-0 flex w-[min(20rem,86vw)] max-w-full flex-col overflow-y-auto border-r bg-card p-5 pt-20 shadow-xl">
             <NavLinks pathname={pathname} onNavigate={() => setOpen(false)} />
             <SidebarFooter onNavigate={() => setOpen(false)} />
           </aside>
         </div>
       ) : null}
 
-      <div className="lg:grid lg:min-h-screen lg:grid-cols-[16.5rem_minmax(0,1fr)]">
-        <aside className="sticky top-0 hidden h-screen flex-col overflow-y-auto border-r bg-card p-5 lg:flex">
+      <div className="lg:grid lg:min-h-dvh lg:grid-cols-[16.5rem_minmax(0,1fr)]">
+        <aside className="sticky top-0 hidden h-dvh flex-col overflow-y-auto border-r bg-card p-5 lg:flex">
           <Link href="/admin" className="font-serif text-xl">
             Maison Admin
           </Link>
@@ -155,7 +155,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
           <SidebarFooter />
         </aside>
-        <div className="min-w-0 p-4 sm:p-6 lg:p-8">{children}</div>
+        <div className="min-w-0 overflow-x-hidden p-4 sm:p-6 lg:p-8">{children}</div>
       </div>
     </div>
   );

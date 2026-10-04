@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 function Submit() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
       {pending ? "Signing in…" : "Sign in"}
     </Button>
   );
@@ -28,7 +28,9 @@ export function LoginForm() {
         <Input id="password" name="password" type="password" required />
       </div>
       {state?.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
-      <Submit />
+      <div className="pt-1">
+        <Submit />
+      </div>
     </form>
   );
 }

@@ -149,7 +149,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
         }}
       >
         <Tabs value={tab} onValueChange={setTab}>
-          <div className="sticky top-0 z-20 -mx-1 space-y-3 rounded-2xl border bg-card/95 p-3 backdrop-blur sm:p-4">
+          <div className="sticky top-16 z-20 -mx-1 space-y-3 rounded-2xl border bg-card/95 p-3 backdrop-blur sm:p-4 lg:top-0">
             <TabsList>
               <TabsTrigger value="access">Access</TabsTrigger>
               <TabsTrigger value="contact">Contact</TabsTrigger>
@@ -205,9 +205,17 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               <Input id="phone" value={settings.phone} onChange={(e) => patch({ phone: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" value={settings.email} onChange={(e) => patch({ email: e.target.value })} />
-              <p className="text-xs text-muted-foreground">New estimate, booking and chatbot leads are emailed here.</p>
+              <Label htmlFor="email">Inbox email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@gmail.com"
+                value={settings.email}
+                onChange={(e) => patch({ email: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Lead, booking and chatbot alerts are delivered here. A Gmail address works as the inbox.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="wa">WhatsApp number</Label>
@@ -309,7 +317,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               {WEEKDAYS.map((day) => {
                 const hours = settings.business_hours_schedule.days[day];
                 return (
-                  <div key={day} className="grid items-center gap-2 rounded-xl border px-3 py-2 sm:grid-cols-[8rem_auto_1fr_1fr]">
+                  <div key={day} className="grid items-center gap-2 rounded-xl border px-3 py-2 sm:grid-cols-[7rem_auto_1fr_1fr]">
                     <p className="text-sm font-medium">{WEEKDAY_LABELS[day]}</p>
                     <label className="flex items-center gap-2 text-xs text-muted-foreground">
                       <input
@@ -560,7 +568,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           <div>
             <h2 className="font-serif text-xl">Email delivery</h2>
             <p className="text-xs text-muted-foreground">
-              Resend sends admin notifications for estimates, bookings and chatbot leads. The recipient is the contact email above.
+              Resend sends admin notifications for estimates, bookings and chatbot leads to the inbox email on the Contact tab. Gmail works as the recipient. It cannot be used as the From address.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -575,14 +583,17 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
                 onChange={(e) => patch({ resend_api_key: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="resend-from">From email</Label>
               <Input
                 id="resend-from"
-                placeholder="Maison Drape &lt;hello@maisondrape.ae&gt;"
+                placeholder="Maison Drape &lt;hello@yourdomain.com&gt;"
                 value={settings.resend_from_email}
                 onChange={(e) => patch({ resend_from_email: e.target.value })}
               />
+              <p className="text-xs text-muted-foreground">
+                Must be a domain you verified in Resend. Leave blank to send from onboarding@resend.dev while testing. Do not put a Gmail address here.
+              </p>
             </div>
           </div>
         </section>
@@ -659,7 +670,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
         </Tabs>
 
         {message ? <p className="text-sm">{message}</p> : null}
-        <Button type="submit">Save settings</Button>
+        <Button type="submit" className="w-full sm:w-auto">Save settings</Button>
       </form>
     </main>
   );

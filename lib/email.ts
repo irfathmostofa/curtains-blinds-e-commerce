@@ -9,6 +9,9 @@ type NotifyInput = {
   replyTo?: string;
 };
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
+const PUBLIC_INBOX_HOSTS = new Set(["gmail.com", "googlemail.com", "yahoo.com", "outlook.com", "hotmail.com", "live.com", "icloud.com"]);
+
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, "&amp;")
@@ -31,24 +34,46 @@ function buildHtml(heading: string, rows: { label: string; value: string }[], co
 </div>`;
 }
 
+export function parseEmailAddress(value: string) {
+  const raw = value.trim();
+  if (!raw) return "";
+  const angled = raw.match(/<([^>]+)>/);
+  const email = (angled ? angled[1] : raw).trim().toLowerCase();
+  return EMAIL_RE.test(email) ? email : "";
+}
+
+export function isPublicInboxHost(email: string) {
+  const host = parseEmailAddress(email).split("@")[1] || "";
+  return PUBLIC_INBOX_HOSTS.has(host);
+}
+
+export function formatFromAddress(from: string, company: string) {
+  const email = parseEmailAddress(from);
+  if (!email || isPublicInboxHost(email)) return `${company} <onboarding@resend.dev>`;
+  if (from.includes("<") && from.includes(">")) return from.trim();
+  return `${company} <${email}>`;
+}
+
 export async function notifyAdmin(input: NotifyInput) {
   const settings = await getAdminSiteSettings();
   const apiKey = settings.resend_api_key?.trim();
-  const to = settings.email?.trim();
+  const to = parseEmailAddress(settings.email || "");
   if (!apiKey || !to) return;
 
   const company = resolveSiteName(settings);
-  const from = settings.resend_from_email?.trim() || `${company} <onboarding@resend.dev>`;
+  const from = formatFromAddress(settings.resend_from_email || "", company);
+  const replyTo = parseEmailAddress(input.replyTo || "") || undefined;
 
   try {
     const resend = new Resend(apiKey);
-    await resend.emails.send({
+    const { error } = await resend.emails.send({
       from,
       to,
-      replyTo: input.replyTo || undefined,
+      replyTo,
       subject: input.subject,
       html: buildHtml(input.heading, input.rows, company),
     });
+    if (error) console.error("Failed to send admin notification email", error);
   } catch (error) {
     console.error("Failed to send admin notification email", error);
   }

@@ -46,7 +46,7 @@ export function EntityManager({
   return (
     <main className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <h1 className="font-serif text-3xl">{config.title}</h1>
           <p className="text-sm text-muted-foreground">{config.description}</p>
         </div>
@@ -75,10 +75,10 @@ export function EntityManager({
           className="sm:max-w-xs"
         />
         {config.key === "leads" || config.key === "bookings" || config.key === "chatLeads" ? (
-          <form method="get" action={config.href} className="flex flex-col gap-3 text-sm sm:flex-row sm:flex-wrap sm:items-center">
-            <label className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
+          <form method="get" action={config.href} className="grid w-full gap-3 text-sm sm:flex sm:flex-wrap sm:items-center">
+            <label className="grid min-w-0 gap-1 sm:flex sm:items-center sm:gap-2">
               Status
-              <select name="status" defaultValue={status || ""} className="h-10 min-w-0 flex-1 rounded-xl border px-3 sm:w-auto">
+              <select name="status" defaultValue={status || ""} className="h-10 min-w-0 w-full rounded-xl border px-3 sm:w-auto">
                 <option value="">All</option>
                 {(config.key === "leads" || config.key === "chatLeads"
                   ? ["new", "contacted", "converted"]
@@ -91,24 +91,24 @@ export function EntityManager({
               </select>
             </label>
             {config.key === "bookings" ? (
-              <label className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
+              <label className="grid min-w-0 gap-1 sm:flex sm:items-center sm:gap-2">
                 Location
-                <select name="location" defaultValue={location || ""} className="h-10 min-w-0 flex-1 rounded-xl border px-3 sm:w-auto">
+                <select name="location" defaultValue={location || ""} className="h-10 min-w-0 w-full rounded-xl border px-3 sm:w-auto">
                   <option value="">All</option>
                   <option>Dubai</option>
                   <option>Abu Dhabi</option>
                 </select>
               </label>
             ) : null}
-            <label className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
+            <label className="grid min-w-0 gap-1 sm:flex sm:items-center sm:gap-2">
               From
-              <Input type="date" name="from" defaultValue={from || ""} className="h-10 min-w-0 flex-1 sm:w-auto" />
+              <Input type="date" name="from" defaultValue={from || ""} className="h-10 w-full sm:w-auto" />
             </label>
-            <label className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
+            <label className="grid min-w-0 gap-1 sm:flex sm:items-center sm:gap-2">
               To
-              <Input type="date" name="to" defaultValue={to || ""} className="h-10 min-w-0 flex-1 sm:w-auto" />
+              <Input type="date" name="to" defaultValue={to || ""} className="h-10 w-full sm:w-auto" />
             </label>
-            <Button type="submit" variant="outline" size="sm">
+            <Button type="submit" variant="outline" size="sm" className="w-full sm:w-auto">
               Filter
             </Button>
             {status || location || from || to ? (
@@ -130,7 +130,7 @@ export function EntityManager({
       />
 
       <Dialog open={open} onOpenChange={(v) => (v ? setOpen(true) : close())}>
-        <DialogContent className="flex max-h-[92dvh] w-[min(96vw,52rem)] max-w-3xl min-h-0 flex-col gap-0 overflow-hidden p-0 sm:p-0">
+        <DialogContent className="flex max-h-[92dvh] w-[min(96vw,52rem)] max-w-3xl min-h-0 flex-col gap-0 overflow-hidden p-0 sm:max-h-[90vh] sm:p-0">
           <h2 className="shrink-0 border-b px-4 py-4 pr-12 font-serif text-2xl sm:px-6">
             {editing ? `Edit ${config.title}` : `New ${config.title}`}
           </h2>

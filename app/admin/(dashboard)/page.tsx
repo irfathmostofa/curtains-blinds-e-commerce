@@ -42,7 +42,7 @@ export default async function AdminDashboardPage() {
           <li key={c.label}>
             <Link href={c.href} className="block rounded-2xl border bg-card p-5">
               <p className="text-sm text-muted-foreground">{c.label}</p>
-              <p className="mt-2 font-serif text-4xl">{c.value}</p>
+              <p className="mt-2 break-words font-serif text-4xl">{c.value}</p>
             </Link>
           </li>
         ))}
@@ -51,9 +51,9 @@ export default async function AdminDashboardPage() {
         <h2 className="font-serif text-2xl">Top products</h2>
         <ul className="mt-4 divide-y rounded-2xl border bg-card">
           {top.map((p) => (
-            <li key={p.id} className="flex justify-between px-4 py-3 text-sm">
-              <span>{p.name}</span>
-              <span>From AED {p.base_price}</span>
+            <li key={p.id} className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
+              <span className="min-w-0 break-words">{p.name}</span>
+              <span className="shrink-0 text-muted-foreground">From AED {p.base_price}</span>
             </li>
           ))}
           {!top.length ? <li className="px-4 py-6 text-sm text-muted-foreground">No bestsellers yet.</li> : null}

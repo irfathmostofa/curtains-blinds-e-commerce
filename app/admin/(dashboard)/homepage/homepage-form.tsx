@@ -168,9 +168,9 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
 
       <form className="space-y-6" onSubmit={onSubmit}>
         <Tabs value={tab} onValueChange={setTab}>
-          <div className="sticky top-0 z-20 -mx-1 space-y-3 rounded-2xl border bg-card/95 p-3 backdrop-blur sm:p-4">
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="min-w-[12rem] flex-1 space-y-1">
+          <div className="sticky top-16 z-20 -mx-1 space-y-3 rounded-2xl border bg-card/95 p-3 backdrop-blur sm:p-4 lg:top-0">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+              <div className="min-w-0 flex-1 space-y-1">
                 <Label htmlFor="hp-search">Find a tab</Label>
                 <Input
                   id="hp-search"
@@ -185,7 +185,7 @@ export function HomepageForm({ initial }: { initial: SiteSettings }) {
                   placeholder="Type intro, hero, reviews…"
                 />
               </div>
-              <Button type="button" disabled={saving} onClick={() => void persist()}>
+              <Button type="button" disabled={saving} className="w-full sm:w-auto" onClick={() => void persist()}>
                 {saving ? "Saving…" : "Save"}
               </Button>
             </div>
@@ -957,7 +957,7 @@ function SectionRow({
 }) {
   const posId = useId();
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-xl border px-3 py-2">
+    <div className="flex flex-col gap-3 rounded-xl border px-3 py-2 sm:flex-row sm:flex-wrap sm:items-center">
       <label className="flex min-w-0 flex-1 items-center gap-3 text-sm">
         <input
           type="checkbox"
