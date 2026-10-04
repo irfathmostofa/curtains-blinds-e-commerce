@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Script from "next/script";
 import { Cinzel, Josefin_Sans, Noto_Naskh_Arabic } from "next/font/google";
-import "./globals.css";
+import "@/app/globals.css";
 import { AnalyticsScripts } from "@/components/analytics-scripts";
 import { resolveSiteName, resolveSiteUrl } from "@/lib/site";
 import { getSiteSettings } from "@/lib/data/catalog";
@@ -36,17 +36,23 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: new URL(siteUrl),
     title: {
-      default: seo.default_title || `${siteName} | Curtains & Blinds in Dubai & Abu Dhabi`,
+      default:
+        seo.default_title ||
+        `${siteName} | Curtains & Blinds in Dubai & Abu Dhabi`,
       template: `%s | ${siteName}`,
     },
     description: seo.default_description,
-    keywords: seo.keywords ? seo.keywords.split(",").map((k) => k.trim()) : undefined,
+    keywords: seo.keywords
+      ? seo.keywords.split(",").map((k) => k.trim())
+      : undefined,
     openGraph: {
       title: seo.default_title,
       description: seo.default_description,
       url: siteUrl,
       siteName,
-      images: seo.og_image ? [{ url: seo.og_image, width: 1200, height: 630 }] : undefined,
+      images: seo.og_image
+        ? [{ url: seo.og_image, width: 1200, height: 630 }]
+        : undefined,
     },
     twitter: {
       card: "summary_large_image",
@@ -80,11 +86,17 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const locale = "en";
   return (
     <html lang={locale} dir={localeDir(locale)}>
-      <body className={`${serif.variable} ${sans.variable} ${arabic.variable} font-sans`}>
+      <body
+        className={`${serif.variable} ${sans.variable} ${arabic.variable} font-sans`}
+      >
         <Script
           id="locale-boot"
           strategy="beforeInteractive"
