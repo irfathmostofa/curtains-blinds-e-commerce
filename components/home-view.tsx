@@ -165,7 +165,9 @@ export function HomeView({
               subtitle={home.reviews.subtitle || undefined}
             />
           </Reveal>
-          <TestimonialCarousel items={testimonials} />
+          <Reveal delay={0.1} direction="scale">
+            <TestimonialCarousel items={testimonials} />
+          </Reveal>
         </div>
       </SectionFrame>
     ),
