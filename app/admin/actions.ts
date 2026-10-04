@@ -17,6 +17,8 @@ import { isUuid, sanitizeEntityPayload, sanitizeVariants } from "@/lib/admin/pay
 import {
   SECRET_SETTING_KEYS,
   formatBusinessHoursSummary,
+  mergeAbout,
+  mergeHomepage,
   normalizeBusinessHoursSchedule,
   normalizeLocations,
   normalizePaymentMethods,
@@ -166,6 +168,8 @@ export async function saveSettings(settings: Record<string, unknown>) {
   store.settings.locations = normalizeLocations(store.settings.locations);
   store.settings.business_hours_schedule = normalizeBusinessHoursSchedule(store.settings.business_hours_schedule);
   store.settings.business_hours = formatBusinessHoursSummary(store.settings.business_hours_schedule);
+  store.settings.homepage = mergeHomepage(store.settings.homepage);
+  store.settings.about = mergeAbout(store.settings.about);
   const next = store.settings;
   const general = {
     company_name: next.company_name,
@@ -202,6 +206,7 @@ export async function saveSettings(settings: Record<string, unknown>) {
       { key: "trust", value: next.trust },
       { key: "seo", value: next.seo },
       { key: "homepage", value: next.homepage },
+      { key: "about", value: next.about },
     ];
     if (incomingHasSecrets) rows.push({ key: "secrets", value: secrets });
     const { error } = await supabase.from("site_settings").upsert(rows);

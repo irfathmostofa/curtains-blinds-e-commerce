@@ -51,6 +51,7 @@ export type EntityConfig = {
 export const adminNav = [
   { href: "/admin", label: "Dashboard", group: "Overview" },
   { href: "/admin/homepage", label: "Homepage", group: "Content" },
+  { href: "/admin/about", label: "About", group: "Content" },
   { href: "/admin/products", label: "Products", group: "Catalogue" },
   { href: "/admin/categories", label: "Categories", group: "Catalogue" },
   { href: "/admin/leads", label: "Leads", group: "Inbox" },

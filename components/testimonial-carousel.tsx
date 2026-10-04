@@ -1,71 +1,39 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
-import { ChevronLeft, ChevronRight, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Star } from "lucide-react";
 import { HtmlContent } from "@/components/html-content";
-import { useLocale } from "@/components/locale-provider";
+import { Stagger, StaggerItem } from "@/components/motion/reveal";
 import type { Testimonial } from "@/lib/types";
 
-export function TestimonialCarousel({ items }: { items: Testimonial[] }) {
-  const [index, setIndex] = useState(0);
-  const [dir, setDir] = useState(1);
-  const { t } = useLocale();
-  if (!items.length) return null;
-  const item = items[index];
-
-  function go(next: number) {
-    setDir(next > index || (index === items.length - 1 && next === 0) ? 1 : -1);
-    setIndex(next);
-  }
-
+function TestimonialCard({ item }: { item: Testimonial }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-8 md:p-12" aria-roledescription="carousel">
-      <AnimatePresence mode="wait" custom={dir}>
-        <motion.blockquote
-          key={item.id}
-          custom={dir}
-          initial={{ opacity: 0, x: dir * 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: dir * -40 }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <div className="mb-4 flex gap-1" aria-label={`${item.rating} out of 5 stars`}>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                className={`h-4 w-4 ${i < item.rating ? "fill-accent text-accent" : "text-border"}`}
-              />
-            ))}
-          </div>
-          <HtmlContent html={item.review_text} className="font-serif text-2xl leading-snug text-foreground" />
-          <footer className="mt-6 text-sm text-muted-foreground">
-            <cite className="not-italic font-medium text-foreground">{item.customer_name}</cite>
-            {` · ${item.source}`}
-          </footer>
-        </motion.blockquote>
-      </AnimatePresence>
-      <div className="mt-8 flex gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          aria-label={t("Previous testimonial")}
-          onClick={() => go(index === 0 ? items.length - 1 : index - 1)}
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          aria-label={t("Next testimonial")}
-          onClick={() => go(index === items.length - 1 ? 0 : index + 1)}
-        >
-          <ChevronRight className="h-4 w-4" />
-        </Button>
+    <blockquote className="flex h-full flex-col rounded-3xl border border-border bg-card p-6 sm:p-8">
+      <div className="mb-4 flex gap-1" aria-label={`${item.rating} out of 5 stars`}>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Star
+            key={i}
+            className={`h-4 w-4 ${i < item.rating ? "fill-accent text-accent" : "text-border"}`}
+          />
+        ))}
       </div>
-    </div>
+      <HtmlContent html={item.review_text} className="font-serif text-xl leading-snug text-foreground lg:text-2xl" />
+      <footer className="mt-6 text-sm text-muted-foreground">
+        <cite className="not-italic font-medium text-foreground">{item.customer_name}</cite>
+        {` · ${item.source}`}
+      </footer>
+    </blockquote>
+  );
+}
+
+export function TestimonialCarousel({ items }: { items: Testimonial[] }) {
+  if (!items.length) return null;
+  return (
+    <Stagger className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6" delay={0.07}>
+      {items.map((item) => (
+        <StaggerItem key={item.id} className="min-w-0 h-full">
+          <TestimonialCard item={item} />
+        </StaggerItem>
+      ))}
+    </Stagger>
   );
 }

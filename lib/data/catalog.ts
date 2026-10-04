@@ -7,6 +7,7 @@ import { getStore } from "@/lib/data/store";
 import {
   DEFAULT_SETTINGS,
   formatBusinessHoursSummary,
+  mergeAbout,
   mergeHomepage,
   normalizeBusinessHoursSchedule,
   normalizeLocations,
@@ -187,6 +188,7 @@ function assembleSettings(
     homepage: mergeHomepage(
       (map.homepage as SiteSettings["homepage"]) || (general.homepage as SiteSettings["homepage"] | undefined)
     ),
+    about: mergeAbout((map.about as SiteSettings["about"]) || (general.about as SiteSettings["about"] | undefined)),
   };
   assembled.business_hours = formatBusinessHoursSummary(assembled.business_hours_schedule);
   if (includeSecrets) {
@@ -199,14 +201,30 @@ function assembleSettings(
 
 const fetchSiteSettings = cached("catalog-site-settings", async (): Promise<SiteSettings> => {
   const supabase = catalogClient();
-  if (!supabase) return omitSecrets({ ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) });
+  if (!supabase) {
+    return omitSecrets({
+      ...DEFAULT_SETTINGS,
+      homepage: mergeHomepage(DEFAULT_SETTINGS.homepage),
+      about: mergeAbout(DEFAULT_SETTINGS.about),
+    });
+  }
   try {
     const { data } = await supabase.from("site_settings").select("key, value").neq("key", "secrets");
-    if (!data?.length) return omitSecrets({ ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) });
+    if (!data?.length) {
+      return omitSecrets({
+        ...DEFAULT_SETTINGS,
+        homepage: mergeHomepage(DEFAULT_SETTINGS.homepage),
+        about: mergeAbout(DEFAULT_SETTINGS.about),
+      });
+    }
     const map = Object.fromEntries(data.map((row: { key: string; value: unknown }) => [row.key, row.value]));
     return omitSecrets(assembleSettings(map, false));
   } catch {
-    return omitSecrets({ ...DEFAULT_SETTINGS, homepage: mergeHomepage(DEFAULT_SETTINGS.homepage) });
+    return omitSecrets({
+      ...DEFAULT_SETTINGS,
+      homepage: mergeHomepage(DEFAULT_SETTINGS.homepage),
+      about: mergeAbout(DEFAULT_SETTINGS.about),
+    });
   }
 });
 
@@ -214,19 +232,31 @@ export async function getAdminSiteSettings(): Promise<SiteSettings> {
   const supabase = createWriteClient();
   if (!supabase) {
     const store = getStore();
-    return { ...store.settings, homepage: mergeHomepage(store.settings.homepage) };
+    return {
+      ...store.settings,
+      homepage: mergeHomepage(store.settings.homepage),
+      about: mergeAbout(store.settings.about),
+    };
   }
   try {
     const { data } = await supabase.from("site_settings").select("key, value");
     if (!data?.length) {
       const store = getStore();
-      return { ...store.settings, homepage: mergeHomepage(store.settings.homepage) };
+      return {
+        ...store.settings,
+        homepage: mergeHomepage(store.settings.homepage),
+        about: mergeAbout(store.settings.about),
+      };
     }
     const map = Object.fromEntries(data.map((row: { key: string; value: unknown }) => [row.key, row.value]));
     return assembleSettings(map, true);
   } catch {
     const store = getStore();
-    return { ...store.settings, homepage: mergeHomepage(store.settings.homepage) };
+    return {
+      ...store.settings,
+      homepage: mergeHomepage(store.settings.homepage),
+      about: mergeAbout(store.settings.about),
+    };
   }
 }
 
@@ -320,7 +350,11 @@ export const getCmsPage = cache(async (slug: string): Promise<CmsPage | undefine
 export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
   if (!catalogClient()) {
     const store = getStore();
-    return omitSecrets({ ...store.settings, homepage: mergeHomepage(store.settings.homepage) });
+    return omitSecrets({
+      ...store.settings,
+      homepage: mergeHomepage(store.settings.homepage),
+      about: mergeAbout(store.settings.about),
+    });
   }
   return fetchSiteSettings();
 });

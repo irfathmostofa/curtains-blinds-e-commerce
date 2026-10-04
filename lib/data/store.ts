@@ -1,5 +1,6 @@
 import {
   DEFAULT_SETTINGS,
+  mergeAbout,
   mergeHomepage,
   normalizeBusinessHoursSchedule,
   normalizeLocations,
@@ -59,6 +60,7 @@ function empty(): Store {
 export function getStore(): Store {
   if (!g.__mdStore) g.__mdStore = empty();
   g.__mdStore.settings.homepage = mergeHomepage(g.__mdStore.settings.homepage);
+  g.__mdStore.settings.about = mergeAbout(g.__mdStore.settings.about);
   g.__mdStore.settings.payment_methods = normalizePaymentMethods(g.__mdStore.settings.payment_methods);
   g.__mdStore.settings.locations = normalizeLocations(g.__mdStore.settings.locations);
   g.__mdStore.settings.business_hours_schedule = normalizeBusinessHoursSchedule(

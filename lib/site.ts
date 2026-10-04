@@ -1,4 +1,8 @@
 import type {
+  AboutContent,
+  AboutSectionId,
+  AboutSectionLayout,
+  AboutTeamMember,
   BusinessHoursSchedule,
   DayHours,
   HeroSlide,
@@ -348,6 +352,78 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       { id: "story", enabled: true },
     ],
   },
+  about: {
+    seo_title: "About Maison Drape",
+    seo_description:
+      "Atelier making custom curtains, blinds and motorised tracks for Dubai and Abu Dhabi homes, hotels and designers.",
+    intro: {
+      eyebrow: "About",
+      title: "An atelier for Gulf light",
+      subtitle:
+        "<p>Maison Drape started as a curtain workroom and grew into a full window-treatment studio: drapes, blinds, motors and trade supply.</p><p>We measure in villas from Palm Jumeirah to Saadiyat, and in apartments where a 3cm reveal decides whether a cassette will sit cleanly. That is the work: not selling a catalogue SKU, but specifying fabric, lining and hardware against real glass, real HVAC and real stack-back.</p>",
+      primary_cta_label: "Book a free visit",
+      primary_cta_href: "/book",
+      secondary_cta_label: "Browse collections",
+      secondary_cta_href: "/products",
+      image_url:
+        "https://images.unsplash.com/photo-1615876234886-fd9a39fda97f?auto=format&fit=crop&w=1400&q=80",
+      image_alt: "Layered sheer and linen curtains in a sunlit living room",
+    },
+    mission_vision: {
+      eyebrow: "Purpose",
+      title: "Mission and vision",
+      subtitle: "Specified for Gulf glare, villa stack-back and hotel programmes — not a catalogue SKU.",
+      mission_title: "Mission",
+      mission_body:
+        "<p>Specify fabric, lining and hardware against real glass, real HVAC and real stack-back. Consultants carry blackout, sunscreen and linen in the same bag. Installers are in-house. Motors are documented for your systems integrator.</p>",
+      vision_title: "Vision",
+      vision_body:
+        "<p>Window treatments that belong in a Gulf home: UV-stable weaves, silent tracks, and a 12-month workmanship warranty written on every job sheet — from Palm Jumeirah villas to Saadiyat apartments.</p>",
+    },
+    team: {
+      eyebrow: "Studio",
+      title: "The workroom",
+      subtitle: "Consultants, installers and a trade desk — one atelier across Dubai and Abu Dhabi.",
+      members: [
+        {
+          name: "Layla Al Mansoori",
+          role: "Principal consultant",
+          bio: "Specifies pinch-pleat, S-wave and motorised tracks for villas and hotel suites.",
+          image_url:
+            "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80",
+          image_alt: "Portrait of Layla Al Mansoori",
+        },
+        {
+          name: "Omar Haddad",
+          role: "Lead installer",
+          bio: "In-house installs across Dubai and Abu Dhabi; cassette reveals and silent motors.",
+          image_url:
+            "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80",
+          image_alt: "Portrait of Omar Haddad",
+        },
+        {
+          name: "Sofia Rahman",
+          role: "Trade programme",
+          bio: "Interior designers and developers: samples, lead times and documented motors.",
+          image_url:
+            "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=800&q=80",
+          image_alt: "Portrait of Sofia Rahman",
+        },
+      ],
+    },
+    cta: {
+      title: "Visit the workroom or we will come to you",
+      subtitle: "Book a complimentary measuring appointment.",
+      button_label: "Book a free visit",
+      button_href: "/book",
+    },
+    section_order: [
+      { id: "intro", enabled: true },
+      { id: "mission_vision", enabled: true },
+      { id: "team", enabled: true },
+      { id: "cta", enabled: true },
+    ],
+  },
 };
 
 export const HOMEPAGE_SECTION_LABELS: Record<HomepageSectionId, string> = {
@@ -369,6 +445,15 @@ export const HOMEPAGE_SECTION_LABELS: Record<HomepageSectionId, string> = {
 };
 
 export const DEFAULT_SECTION_ORDER: HomepageSectionLayout[] = DEFAULT_SETTINGS.homepage.section_order;
+
+export const ABOUT_SECTION_LABELS: Record<AboutSectionId, string> = {
+  intro: "Image and content",
+  mission_vision: "Mission and vision",
+  team: "Team",
+  cta: "Estimate CTA",
+};
+
+export const DEFAULT_ABOUT_SECTION_ORDER: AboutSectionLayout[] = DEFAULT_SETTINGS.about.section_order;
 
 function slideFromHero(hero: HomepageContent["hero"]): HeroSlide {
   return {
@@ -622,5 +707,57 @@ export function mergeHomepage(saved?: Partial<HomepageContent> | null): Homepage
       paragraphs: saved.story?.paragraphs?.length ? saved.story.paragraphs : [...base.story.paragraphs],
     },
     section_order: mergeSectionOrder(saved.section_order),
+  };
+}
+
+function mergeAboutSectionOrder(saved?: AboutSectionLayout[] | null): AboutSectionLayout[] {
+  const defaults = DEFAULT_SETTINGS.about.section_order.map((s) => ({ ...s }));
+  if (!saved?.length) return defaults;
+  const known = new Set<AboutSectionId>(defaults.map((s) => s.id));
+  const fromSaved = saved.filter((s) => known.has(s.id)).map((s) => ({ id: s.id, enabled: s.enabled !== false }));
+  const seen = new Set(fromSaved.map((s) => s.id));
+  const missing = defaults.filter((s) => !seen.has(s.id));
+  const merged = [...fromSaved];
+  for (const section of missing) {
+    const defaultIndex = defaults.findIndex((s) => s.id === section.id);
+    const before = defaults.slice(0, defaultIndex).reverse().find((s) => seen.has(s.id));
+    if (before) {
+      const idx = merged.findIndex((s) => s.id === before.id);
+      merged.splice(idx + 1, 0, { ...section });
+    } else {
+      merged.unshift({ ...section });
+    }
+    seen.add(section.id);
+  }
+  return merged;
+}
+
+function mergeTeamMembers(saved?: AboutTeamMember[] | null): AboutTeamMember[] {
+  const base = DEFAULT_SETTINGS.about.team.members;
+  if (!saved?.length) return base.map((m) => ({ ...m }));
+  return saved.map((member) => ({
+    name: String(member.name || "").trim(),
+    role: String(member.role || "").trim(),
+    bio: String(member.bio || "").trim(),
+    image_url: String(member.image_url || "").trim(),
+    image_alt: String(member.image_alt || "").trim(),
+  }));
+}
+
+export function mergeAbout(saved?: Partial<AboutContent> | null): AboutContent {
+  const base = DEFAULT_SETTINGS.about;
+  if (!saved) return structuredClone(base);
+  return {
+    seo_title: saved.seo_title?.trim() || base.seo_title,
+    seo_description: saved.seo_description?.trim() || base.seo_description,
+    intro: { ...base.intro, ...saved.intro },
+    mission_vision: { ...base.mission_vision, ...saved.mission_vision },
+    team: {
+      ...base.team,
+      ...saved.team,
+      members: mergeTeamMembers(saved.team?.members),
+    },
+    cta: { ...base.cta, ...saved.cta },
+    section_order: mergeAboutSectionOrder(saved.section_order),
   };
 }

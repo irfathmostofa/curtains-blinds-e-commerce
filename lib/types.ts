@@ -282,6 +282,59 @@ export type HomepageContent = {
   section_order: HomepageSectionLayout[];
 };
 
+export type AboutSectionId = "intro" | "mission_vision" | "team" | "cta";
+
+export type AboutSectionLayout = {
+  id: AboutSectionId;
+  enabled: boolean;
+};
+
+export type AboutTeamMember = {
+  name: string;
+  role: string;
+  bio: string;
+  image_url: string;
+  image_alt: string;
+};
+
+export type AboutContent = {
+  seo_title: string;
+  seo_description: string;
+  intro: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    primary_cta_label: string;
+    primary_cta_href: string;
+    secondary_cta_label: string;
+    secondary_cta_href: string;
+    image_url: string;
+    image_alt: string;
+  };
+  mission_vision: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    mission_title: string;
+    mission_body: string;
+    vision_title: string;
+    vision_body: string;
+  };
+  team: {
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    members: AboutTeamMember[];
+  };
+  cta: {
+    title: string;
+    subtitle: string;
+    button_label: string;
+    button_href: string;
+  };
+  section_order: AboutSectionLayout[];
+};
+
 export type SiteSettings = {
   nav_links: NavLink[];
   company_name: string;
@@ -318,6 +371,7 @@ export type SiteSettings = {
   tiktok_test_event_code: string;
   under_construction: boolean;
   homepage: HomepageContent;
+  about: AboutContent;
 };
 
 export type CmsPage = {

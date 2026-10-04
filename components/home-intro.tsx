@@ -8,7 +8,13 @@ import { Reveal } from "@/components/motion/reveal";
 import { useLocale } from "@/components/locale-provider";
 import type { HomepageContent } from "@/lib/types";
 
-export function HomeIntro({ content }: { content: HomepageContent["intro"] }) {
+export function HomeIntro({
+  content,
+  headingAs = "h2",
+}: {
+  content: HomepageContent["intro"];
+  headingAs?: "h1" | "h2";
+}) {
   const { t } = useLocale();
   const hasPrimary = Boolean(content.primary_cta_label && content.primary_cta_href);
   const hasSecondary = Boolean(content.secondary_cta_label && content.secondary_cta_href);
@@ -23,9 +29,15 @@ export function HomeIntro({ content }: { content: HomepageContent["intro"] }) {
             {content.eyebrow ? (
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{t(content.eyebrow)}</p>
             ) : null}
-            <h2 className="mt-3 text-balance font-serif text-3xl leading-[1.15] sm:text-4xl md:text-5xl">
-              {t(content.title)}
-            </h2>
+            {headingAs === "h1" ? (
+              <h1 className="mt-3 text-balance font-serif text-3xl leading-[1.15] sm:text-4xl md:text-5xl">
+                {t(content.title)}
+              </h1>
+            ) : (
+              <h2 className="mt-3 text-balance font-serif text-3xl leading-[1.15] sm:text-4xl md:text-5xl">
+                {t(content.title)}
+              </h2>
+            )}
           </Reveal>
           {content.subtitle ? (
             <Reveal delay={0.08}>

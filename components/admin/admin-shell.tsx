@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 const ICONS: Record<string, typeof Home> = {
   "/admin": LayoutDashboard,
   "/admin/homepage": Home,
+  "/admin/about": LayoutTemplate,
   "/admin/products": Package,
   "/admin/categories": FolderTree,
   "/admin/leads": Newspaper,
