@@ -187,36 +187,59 @@ as $$
   );
 $$;
 
+drop policy if exists "public read categories" on public.categories;
+drop policy if exists "admin write categories" on public.categories;
 create policy "public read categories" on public.categories for select using (true);
 create policy "admin write categories" on public.categories for all using (public.is_admin()) with check (public.is_admin());
 
+drop policy if exists "public read active products" on public.products;
+drop policy if exists "admin write products" on public.products;
 create policy "public read active products" on public.products for select using (is_active = true or public.is_admin());
 create policy "admin write products" on public.products for all using (public.is_admin()) with check (public.is_admin());
 
+drop policy if exists "public read variants" on public.product_variants;
+drop policy if exists "admin write variants" on public.product_variants;
 create policy "public read variants" on public.product_variants for select using (true);
 create policy "admin write variants" on public.product_variants for all using (public.is_admin()) with check (public.is_admin());
 
+drop policy if exists "public insert leads" on public.leads;
+drop policy if exists "admin read leads" on public.leads;
+drop policy if exists "admin write leads" on public.leads;
 create policy "public insert leads" on public.leads for insert with check (true);
 create policy "admin read leads" on public.leads for select using (public.is_admin());
 create policy "admin write leads" on public.leads for update using (public.is_admin());
 
+drop policy if exists "public insert chat_leads" on public.chat_leads;
+drop policy if exists "admin read chat_leads" on public.chat_leads;
+drop policy if exists "admin write chat_leads" on public.chat_leads;
 create policy "public insert chat_leads" on public.chat_leads for insert with check (true);
 create policy "admin read chat_leads" on public.chat_leads for select using (public.is_admin());
 create policy "admin write chat_leads" on public.chat_leads for update using (public.is_admin());
 
+drop policy if exists "public insert bookings" on public.bookings;
+drop policy if exists "admin read bookings" on public.bookings;
+drop policy if exists "admin write bookings" on public.bookings;
 create policy "public insert bookings" on public.bookings for insert with check (true);
 create policy "admin read bookings" on public.bookings for select using (public.is_admin());
 create policy "admin write bookings" on public.bookings for update using (public.is_admin());
 
+drop policy if exists "public read featured testimonials" on public.testimonials;
+drop policy if exists "admin write testimonials" on public.testimonials;
 create policy "public read featured testimonials" on public.testimonials for select using (is_featured = true or public.is_admin());
 create policy "admin write testimonials" on public.testimonials for all using (public.is_admin()) with check (public.is_admin());
 
+drop policy if exists "public read published posts" on public.blog_posts;
+drop policy if exists "admin write posts" on public.blog_posts;
 create policy "public read published posts" on public.blog_posts for select using (published_at is not null or public.is_admin());
 create policy "admin write posts" on public.blog_posts for all using (public.is_admin()) with check (public.is_admin());
 
+drop policy if exists "public read faqs" on public.faqs;
+drop policy if exists "admin write faqs" on public.faqs;
 create policy "public read faqs" on public.faqs for select using (true);
 create policy "admin write faqs" on public.faqs for all using (public.is_admin()) with check (public.is_admin());
 
+drop policy if exists "public read partners" on public.partners;
+drop policy if exists "admin write partners" on public.partners;
 create policy "public read partners" on public.partners for select using (true);
 create policy "admin write partners" on public.partners for all using (public.is_admin()) with check (public.is_admin());
 
@@ -225,9 +248,13 @@ drop policy if exists "admin write settings" on public.site_settings;
 create policy "public read settings" on public.site_settings for select using (key <> 'secrets');
 create policy "admin write settings" on public.site_settings for all using (public.is_admin()) with check (public.is_admin());
 
+drop policy if exists "public read cms" on public.cms_pages;
+drop policy if exists "admin write cms" on public.cms_pages;
 create policy "public read cms" on public.cms_pages for select using (true);
 create policy "admin write cms" on public.cms_pages for all using (public.is_admin()) with check (public.is_admin());
 
+drop policy if exists "admin read analytics_events" on public.analytics_events;
+drop policy if exists "admin write analytics_events" on public.analytics_events;
 create policy "admin read analytics_events" on public.analytics_events for select using (public.is_admin());
 create policy "admin write analytics_events" on public.analytics_events for all using (public.is_admin()) with check (public.is_admin());
 
@@ -251,13 +278,88 @@ create index if not exists faqs_sort_order_idx on public.faqs (sort_order);
 create index if not exists analytics_events_created_at_idx on public.analytics_events (created_at desc);
 create index if not exists analytics_events_event_name_idx on public.analytics_events (event_name);
 
-alter table public.categories add column if not exists seo_keywords text not null default '';
-alter table public.products add column if not exists seo_keywords text not null default '';
-alter table public.blog_posts add column if not exists seo_keywords text not null default '';
-alter table public.bookings add column if not exists notes text not null default '';
-
+drop policy if exists "admin read admin_users" on public.admin_users;
+drop policy if exists "admin write admin_users" on public.admin_users;
 create policy "admin read admin_users" on public.admin_users for select using (public.is_admin());
 create policy "admin write admin_users" on public.admin_users for all using (public.is_admin()) with check (public.is_admin());
+
+insert into public.site_settings (key, value)
+values ('secrets', '{}'::jsonb)
+on conflict (key) do nothing;
+
+update public.site_settings
+set value = coalesce(value, '{}'::jsonb)
+  || jsonb_build_object(
+    'gtm_id', coalesce(value->>'gtm_id', ''),
+    'meta_pixel_id', coalesce(value->>'meta_pixel_id', ''),
+    'instagram_pixel_id', coalesce(value->>'instagram_pixel_id', ''),
+    'tiktok_pixel_id', coalesce(value->>'tiktok_pixel_id', ''),
+    'site_url', coalesce(value->>'site_url', '')
+  )
+where key = 'general';
+
+update public.site_settings
+set value = coalesce(value, '{}'::jsonb)
+  || jsonb_build_object(
+    'marquee', coalesce(value->'marquee', jsonb_build_array(
+      'Free Doorstep Visit',
+      'Instant Estimate Calculator',
+      '1–3 Day Express Installation',
+      'Blackout & Sheer Curtains',
+      'Smart Motorized Tracks',
+      'Downtown Dubai',
+      'Palm Jumeirah',
+      'Dubai Marina',
+      'Business Bay'
+    )),
+    'how_it_works', coalesce(value->'how_it_works', jsonb_build_object(
+      'eyebrow', 'How it works',
+      'title', 'Elegant curtains, delivered in four effortless steps.',
+      'subtitle', 'From the first click to perfectly hung curtains — every step is taken care of by the Reef Deco team. No showroom visit required.',
+      'steps', jsonb_build_array(
+        jsonb_build_object('number','01','title','Book a free site visit','body','Pick a time slot — our specialist comes to your home, office or hotel at zero cost.'),
+        jsonb_build_object('number','02','title','Samples & exact measurement','body','We bring fabric swatches to your doorstep and measure each window precisely.'),
+        jsonb_build_object('number','03','title','Select your curtain type','body','Choose between blackout, sheer, motorized or roller blinds — or let our experts advise.'),
+        jsonb_build_object('number','04','title','Installation in 1–3 days','body','Our team produces and installs your custom curtains within 1 to 3 working days.')
+      )
+    ))
+  )
+where key = 'homepage'
+  and (
+    value ? 'hero'
+    or value ? 'features'
+  );
+
+update public.site_settings
+set value = jsonb_set(
+  coalesce(value, '{}'::jsonb),
+  '{hero,express_label}',
+  to_jsonb(coalesce(value #>> '{hero,express_label}', 'Express')),
+  true
+)
+where key = 'homepage';
+
+update public.site_settings
+set value = jsonb_set(
+  coalesce(value, '{}'::jsonb),
+  '{hero,express_detail}',
+  to_jsonb(coalesce(value #>> '{hero,express_detail}', '1–3 day installation')),
+  true
+)
+where key = 'homepage';
+
+insert into public.cms_pages (slug, title, content, seo_title, seo_description)
+values
+  (
+    'about-us',
+    'An atelier for Gulf light',
+    '<p>Maison Drape started as a curtain workroom and grew into a full window-treatment studio: drapes, blinds, motors and trade supply.</p>
+<p>We measure in villas from Palm Jumeirah to Saadiyat, and in apartments where a 3cm reveal decides whether a cassette will sit cleanly. That is the work: not selling a catalogue SKU, but specifying fabric, lining and hardware against real glass, real HVAC and real stack-back.</p>
+<p>Installers are in-house. Consultants carry blackout, sunscreen and linen in the same bag. Motors are documented for your systems integrator. The 12-month workmanship warranty is written on every job sheet.</p>',
+    'About Maison Drape',
+    'Atelier making custom curtains, blinds and motorised tracks for Dubai and Abu Dhabi homes, hotels and designers.'
+  )
+on conflict (slug) do nothing;
 
 insert into storage.buckets (id, name, public)
 values ('product-images', 'product-images', true),
