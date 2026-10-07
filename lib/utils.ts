@@ -5,12 +5,36 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatAed(amount: number) {
-  return new Intl.NumberFormat("en-AE", {
-    style: "currency",
-    currency: "AED",
-    maximumFractionDigits: 0,
-  }).format(amount);
+const CURRENCY_LOCALES: Record<string, string> = {
+  AED: "en-AE",
+  USD: "en-US",
+  EUR: "en-IE",
+  GBP: "en-GB",
+  SAR: "en-SA",
+  QAR: "en-QA",
+  KWD: "en-KW",
+  BHD: "en-BH",
+  OMR: "en-OM",
+  INR: "en-IN",
+  PKR: "en-PK",
+  EGP: "en-EG",
+};
+
+export function formatMoney(amount: number, currency = "AED") {
+  const code = (currency || "AED").toUpperCase();
+  try {
+    return new Intl.NumberFormat(CURRENCY_LOCALES[code] || "en-US", {
+      style: "currency",
+      currency: code,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${code} ${amount}`;
+  }
+}
+
+export function formatAed(amount: number, currency = "AED") {
+  return formatMoney(amount, currency);
 }
 
 export function slugify(value: string) {

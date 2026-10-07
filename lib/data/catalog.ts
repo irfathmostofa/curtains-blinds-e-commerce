@@ -9,7 +9,10 @@ import {
   formatBusinessHoursSummary,
   mergeAbout,
   mergeHomepage,
+  normalizeBudgetOptions,
   normalizeBusinessHoursSchedule,
+  normalizeCurrency,
+  normalizeFormOptions,
   normalizeLocations,
   normalizePaymentMethods,
   omitSecrets,
@@ -185,6 +188,14 @@ function assembleSettings(
     meta_capi_test_event_code: "",
     tiktok_test_event_code: "",
     under_construction: asBool(general.under_construction, false),
+    currency: normalizeCurrency(general.currency ?? map.currency),
+    form_cities: normalizeFormOptions(map.form_cities ?? general.form_cities, DEFAULT_SETTINGS.form_cities),
+    form_considering: normalizeFormOptions(
+      map.form_considering ?? general.form_considering,
+      DEFAULT_SETTINGS.form_considering
+    ),
+    form_budgets: normalizeBudgetOptions(map.form_budgets ?? general.form_budgets, DEFAULT_SETTINGS.form_budgets),
+    form_rooms: normalizeFormOptions(map.form_rooms ?? general.form_rooms, DEFAULT_SETTINGS.form_rooms),
     homepage: mergeHomepage(
       (map.homepage as SiteSettings["homepage"]) || (general.homepage as SiteSettings["homepage"] | undefined)
     ),

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { EntityManager } from "@/components/admin/entity-manager";
 import { entities, slugMap } from "@/lib/admin/entities";
+import { requireAdminPage } from "@/lib/admin/guard";
 import { loadEntityRows } from "@/lib/admin/load";
 import { getCategories } from "@/lib/data/catalog";
 
@@ -33,6 +34,7 @@ export default async function EntityListPage({
   const key = slugMap[params.entity];
   const config = key ? entities[key] : undefined;
   if (!config) notFound();
+  await requireAdminPage(`/admin/${params.entity}`);
 
   const [rows, categories] = await Promise.all([loadEntityRows(config.key), getCategories()]);
   let list = rows;

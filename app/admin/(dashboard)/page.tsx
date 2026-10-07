@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { ConstructionBanner } from "@/components/admin/construction-banner";
 import { SectionHeading } from "@/components/section-heading";
+import { requireAdminPage } from "@/lib/admin/guard";
+import { canAccessPath } from "@/lib/admin/roles";
+import { formatMoney } from "@/lib/utils";
 import {
   getAdminSiteSettings,
   getBlogPosts,
@@ -13,6 +16,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
+  const session = await requireAdminPage("/admin");
   const [products, leads, bookings, posts, chatLeads, settings] = await Promise.all([
     getProducts({ includeInactive: true }),
     getLeads(),
@@ -31,7 +35,7 @@ export default async function AdminDashboardPage() {
     { label: "Bookings this week", value: bookingsWeek, href: "/admin/bookings" },
     { label: "Active products", value: products.filter((p) => p.is_active).length, href: "/admin/products" },
     { label: "Published posts", value: posts.filter((p) => p.published_at).length, href: "/admin/blog" },
-  ];
+  ].filter((card) => canAccessPath(session.role, card.href));
 
   return (
     <main className="space-y-8">
@@ -53,7 +57,7 @@ export default async function AdminDashboardPage() {
           {top.map((p) => (
             <li key={p.id} className="flex items-start justify-between gap-4 px-4 py-3 text-sm">
               <span className="min-w-0 break-words">{p.name}</span>
-              <span className="shrink-0 text-muted-foreground">From AED {p.base_price}</span>
+              <span className="shrink-0 text-muted-foreground">From {formatMoney(p.base_price, settings.currency)}</span>
             </li>
           ))}
           {!top.length ? <li className="px-4 py-6 text-sm text-muted-foreground">No bestsellers yet.</li> : null}

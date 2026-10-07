@@ -7,10 +7,12 @@ export function ProductViewTracker({
   name,
   slug,
   price,
+  currency = "AED",
 }: {
   name: string;
   slug: string;
   price: number;
+  currency?: string;
 }) {
   useEffect(() => {
     trackClientEvent({
@@ -19,9 +21,9 @@ export function ProductViewTracker({
       contentIds: [slug],
       contentType: "product",
       value: price,
-      currency: "AED",
+      currency,
     });
-  }, [name, slug, price]);
+  }, [name, slug, price, currency]);
 
   return null;
 }

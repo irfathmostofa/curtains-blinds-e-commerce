@@ -19,11 +19,17 @@ import {
   formatBusinessHoursSummary,
   mergeAbout,
   mergeHomepage,
+  normalizeBudgetOptions,
   normalizeBusinessHoursSchedule,
+  normalizeCurrency,
+  normalizeFormOptions,
   normalizeLocations,
   normalizePaymentMethods,
+  DEFAULT_SETTINGS,
 } from "@/lib/site";
 import type { SiteSettings } from "@/lib/types";
+import { getAdminSession } from "@/lib/admin/session";
+import { canWriteEntity } from "@/lib/admin/roles";
 
 const DEMO_COOKIE = "md_admin_session";
 
@@ -48,6 +54,7 @@ export async function adminLogin(_prev: { error: string }, formData: FormData) {
     return { error: "Invalid credentials. Demo: admin@maisondrape.ae / admin123" };
   }
   cookies().set(DEMO_COOKIE, "1", { httpOnly: true, path: "/", maxAge: 60 * 60 * 12, sameSite: "lax" });
+  cookies().set("md_admin_role", "superadmin", { httpOnly: true, path: "/", maxAge: 60 * 60 * 12, sameSite: "lax" });
   redirect("/admin");
 }
 
@@ -57,10 +64,20 @@ export async function adminLogout() {
     await supabase?.auth.signOut();
   }
   cookies().set(DEMO_COOKIE, "", { httpOnly: true, path: "/", maxAge: 0 });
+  cookies().set("md_admin_role", "", { httpOnly: true, path: "/", maxAge: 0 });
   redirect("/admin/login");
 }
 
+async function requireWriteAccess(entity: string) {
+  const session = await getAdminSession();
+  if (!session.loggedIn) return { error: "Sign in to continue." };
+  if (!canWriteEntity(session.role, entity)) return { error: "You do not have permission to edit this." };
+  return null;
+}
+
 export async function upsertEntity(entity: string, payload: Record<string, unknown>) {
+  const denied = await requireWriteAccess(entity);
+  if (denied) return denied;
   const config = entities[entity];
   if (!config) return { error: "Unknown entity" };
 
@@ -124,6 +141,8 @@ export async function upsertEntity(entity: string, payload: Record<string, unkno
 }
 
 export async function deleteEntity(entity: string, id: string) {
+  const denied = await requireWriteAccess(entity);
+  if (denied) return denied;
   const config = entities[entity];
   if (!config) return { error: "Unknown entity" };
   const store = getStore();
@@ -162,6 +181,8 @@ export async function updateBookingStatus(id: string, status: string) {
 }
 
 export async function saveSettings(settings: Record<string, unknown>) {
+  const denied = await requireWriteAccess("settings");
+  if (denied) return denied;
   const store = getStore();
   store.settings = { ...store.settings, ...settings } as typeof store.settings;
   store.settings.payment_methods = normalizePaymentMethods(store.settings.payment_methods);
@@ -170,6 +191,14 @@ export async function saveSettings(settings: Record<string, unknown>) {
   store.settings.business_hours = formatBusinessHoursSummary(store.settings.business_hours_schedule);
   store.settings.homepage = mergeHomepage(store.settings.homepage);
   store.settings.about = mergeAbout(store.settings.about);
+  store.settings.currency = normalizeCurrency(store.settings.currency);
+  store.settings.form_cities = normalizeFormOptions(store.settings.form_cities, DEFAULT_SETTINGS.form_cities);
+  store.settings.form_considering = normalizeFormOptions(
+    store.settings.form_considering,
+    DEFAULT_SETTINGS.form_considering
+  );
+  store.settings.form_budgets = normalizeBudgetOptions(store.settings.form_budgets, DEFAULT_SETTINGS.form_budgets);
+  store.settings.form_rooms = normalizeFormOptions(store.settings.form_rooms, DEFAULT_SETTINGS.form_rooms);
   const next = store.settings;
   const general = {
     company_name: next.company_name,
@@ -186,6 +215,7 @@ export async function saveSettings(settings: Record<string, unknown>) {
     tiktok_pixel_id: next.tiktok_pixel_id,
     payment_methods: normalizePaymentMethods(next.payment_methods),
     under_construction: Boolean(next.under_construction),
+    currency: next.currency,
   };
   const incomingHasSecrets = SECRET_SETTING_KEYS.some((key) => key in settings);
   const secrets = Object.fromEntries(SECRET_SETTING_KEYS.map((key) => [key, next[key] || ""])) as Pick<
@@ -207,6 +237,10 @@ export async function saveSettings(settings: Record<string, unknown>) {
       { key: "seo", value: next.seo },
       { key: "homepage", value: next.homepage },
       { key: "about", value: next.about },
+      { key: "form_cities", value: next.form_cities },
+      { key: "form_considering", value: next.form_considering },
+      { key: "form_budgets", value: next.form_budgets },
+      { key: "form_rooms", value: next.form_rooms },
     ];
     if (incomingHasSecrets) rows.push({ key: "secrets", value: secrets });
     const { error } = await supabase.from("site_settings").upsert(rows);
@@ -217,6 +251,14 @@ export async function saveSettings(settings: Record<string, unknown>) {
 }
 
 export async function uploadProcessedImage(formData: FormData) {
+  const session = await getAdminSession();
+  if (!session.loggedIn) return { error: "Sign in to continue." };
+  if (session.role === "editor") {
+    const folder = String(formData.get("folder") || "product-images");
+    if (!["product-images", "blog-images"].includes(folder)) {
+      return { error: "You do not have permission to upload here." };
+    }
+  }
   const file = formData.get("file");
   const alt = String(formData.get("alt") || "");
   const folder = String(formData.get("folder") || "product-images");

@@ -10,21 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { estimateSchema, type EstimateInput } from "@/lib/validations";
 import { saveDraft, submitEstimate } from "@/app/actions";
 import { trackClientEvent } from "@/lib/analytics/client";
-
-const rooms = ["1–2 rooms", "3–4 rooms", "Whole villa / 5+"];
-const types = [
-  { id: "curtains-and-drapes", label: "Curtains & drapes" },
-  { id: "blinds-and-shades", label: "Blinds & shades" },
-  { id: "motorized", label: "Motorized" },
-  { id: "mix", label: "A mix" },
-];
-const budgets = [
-  { id: "under-5k", label: "Under AED 5,000" },
-  { id: "aed-5k-15k", label: "AED 5,000–15,000" },
-  { id: "aed-15k-plus", label: "AED 15,000+" },
-];
+import { useSiteConfig } from "@/components/site-config";
 
 export function EstimateForm() {
+  const { rooms, considering, budgets, currency } = useSiteConfig();
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -74,7 +63,7 @@ export function EstimateForm() {
         eventId: result.eventId,
         contentName: values.productType,
         contentType: "lead",
-        extra: { rooms: values.rooms, budget: values.budget, source: "get-estimate" },
+        extra: { rooms: values.rooms, budget: values.budget, source: "get-estimate", currency },
       });
     }
     setDone(true);
@@ -102,9 +91,9 @@ export function EstimateForm() {
             content: (
               <fieldset className="grid gap-3">
                 {rooms.map((r) => (
-                  <label key={r} className="flex items-center gap-3 rounded-xl border p-4">
-                    <input type="radio" value={r} {...form.register("rooms")} />
-                    {r}
+                  <label key={r.id} className="flex items-center gap-3 rounded-xl border p-4">
+                    <input type="radio" value={r.label} {...form.register("rooms")} />
+                    {r.label}
                   </label>
                 ))}
               </fieldset>
@@ -115,7 +104,7 @@ export function EstimateForm() {
             title: "What are you considering?",
             content: (
               <fieldset className="grid gap-3">
-                {types.map((t) => (
+                {considering.map((t) => (
                   <label key={t.id} className="flex items-center gap-3 rounded-xl border p-4">
                     <input type="radio" value={t.id} {...form.register("productType")} />
                     {t.label}

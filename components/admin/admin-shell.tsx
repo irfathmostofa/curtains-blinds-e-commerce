@@ -23,7 +23,7 @@ import {
   X,
 } from "lucide-react";
 import { adminLogout } from "@/app/admin/actions";
-import { adminNav } from "@/lib/admin/entities";
+import { navForRole, ROLE_LABELS, type AdminRole } from "@/lib/admin/roles";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -47,20 +47,23 @@ const ICONS: Record<string, typeof Home> = {
 
 function NavLinks({
   pathname,
+  role,
   onNavigate,
 }: {
   pathname: string;
+  role: AdminRole;
   onNavigate?: () => void;
 }) {
+  const items = useMemo(() => navForRole(role), [role]);
   const groups = useMemo(() => {
-    const map = new Map<string, (typeof adminNav)[number][]>();
-    adminNav.forEach((item) => {
+    const map = new Map<string, ReturnType<typeof navForRole>>();
+    items.forEach((item) => {
       const list = map.get(item.group) || [];
       list.push(item);
       map.set(item.group, list);
     });
     return Array.from(map.entries());
-  }, []);
+  }, [items]);
 
   return (
     <nav aria-label="Admin" className="flex flex-col gap-5">
@@ -98,7 +101,13 @@ function NavLinks({
   );
 }
 
-export function AdminShell({ children }: { children: ReactNode }) {
+export function AdminShell({
+  children,
+  role = "superadmin",
+}: {
+  children: ReactNode;
+  role?: AdminRole;
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -140,8 +149,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
             onClick={() => setOpen(false)}
           />
           <aside className="absolute inset-y-0 left-0 flex w-[min(20rem,86vw)] max-w-full flex-col overflow-y-auto border-r bg-card p-5 pt-20 shadow-xl">
-            <NavLinks pathname={pathname} onNavigate={() => setOpen(false)} />
-            <SidebarFooter onNavigate={() => setOpen(false)} />
+            <NavLinks pathname={pathname} role={role} onNavigate={() => setOpen(false)} />
+            <SidebarFooter role={role} onNavigate={() => setOpen(false)} />
           </aside>
         </div>
       ) : null}
@@ -152,9 +161,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
             Maison Admin
           </Link>
           <div className="mt-6 flex-1">
-            <NavLinks pathname={pathname} />
+            <NavLinks pathname={pathname} role={role} />
           </div>
-          <SidebarFooter />
+          <SidebarFooter role={role} />
         </aside>
         <div className="min-w-0 overflow-x-hidden p-4 sm:p-6 lg:p-8">{children}</div>
       </div>
@@ -162,9 +171,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
   );
 }
 
-function SidebarFooter({ onNavigate }: { onNavigate?: () => void }) {
+function SidebarFooter({ role, onNavigate }: { role: AdminRole; onNavigate?: () => void }) {
   return (
     <div className="mt-8 space-y-3 border-t border-border/70 pt-5">
+      <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+        {ROLE_LABELS[role]}
+      </p>
       <Link
         href="/"
         onClick={onNavigate}

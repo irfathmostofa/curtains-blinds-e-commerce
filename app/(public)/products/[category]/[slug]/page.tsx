@@ -56,7 +56,7 @@ export default async function ProductPage({ params }: { params: { category: stri
   return (
     <main className="container space-y-8 pt-4 pb-10 md:pt-5">
       <RememberProduct slug={product.slug} />
-      <ProductViewTracker name={product.name} slug={product.slug} price={product.base_price} />
+      <ProductViewTracker name={product.name} slug={product.slug} price={product.base_price} currency={settings.currency} />
       <JsonLd
         data={productJsonLd({
           name: product.name,
@@ -66,6 +66,7 @@ export default async function ProductPage({ params }: { params: { category: stri
           path,
           rating: settings.trust.rating,
           reviewCount: settings.trust.reviews,
+          currency: settings.currency,
         })}
       />
       <JsonLd data={faqJsonLd(faqs)} />

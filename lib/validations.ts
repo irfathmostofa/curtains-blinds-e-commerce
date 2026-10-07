@@ -19,7 +19,7 @@ export const estimateSchema = z.object({
 });
 
 export const bookingSchema = z.object({
-  location: z.enum(["Dubai", "Abu Dhabi"]),
+  location: z.string().min(1, "Choose a city"),
   preferredDate: z.string().min(1, "Choose a date"),
   preferredTime: z.string().min(1, "Choose a time slot"),
   address: z.string().trim().min(3, "Enter your address"),

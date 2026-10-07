@@ -10,13 +10,13 @@ import { MultiStepForm } from "@/components/multi-step-form";
 import { bookingSchema } from "@/lib/validations";
 import { submitBooking } from "@/app/actions";
 import { trackClientEvent } from "@/lib/analytics/client";
+import { useSiteConfig } from "@/components/site-config";
 import { cn } from "@/lib/utils";
 
 const slots = ["09:00–11:00", "10:00–12:00", "12:00–14:00", "16:00–18:00", "18:00–20:00"];
-const cities = ["Dubai", "Abu Dhabi"] as const;
 
 const empty = {
-  location: "Dubai" as (typeof cities)[number],
+  location: "",
   preferredDate: "",
   preferredTime: "",
   address: "",
@@ -37,11 +37,15 @@ const stepFields: FieldName[][] = [
 ];
 
 export function BookingForm() {
+  const { cities, currency } = useSiteConfig();
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
-  const [values, setValues] = useState(empty);
+  const [values, setValues] = useState(() => ({
+    ...empty,
+    location: cities[0]?.label || "",
+  }));
 
   function setField<K extends FieldName>(key: K, value: (typeof empty)[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -103,7 +107,7 @@ export function BookingForm() {
         eventId: result.eventId,
         contentName: "Free measuring visit",
         contentType: "booking",
-        extra: { location: parsed.data.location, preferred_date: parsed.data.preferredDate },
+        extra: { location: parsed.data.location, preferred_date: parsed.data.preferredDate, currency },
       });
     }
     setDone(true);
@@ -141,20 +145,20 @@ export function BookingForm() {
               <div className="grid gap-3 sm:grid-cols-2">
                 {cities.map((city) => (
                   <button
-                    key={city}
+                    key={city.id}
                     type="button"
-                    onClick={() => setField("location", city)}
+                    onClick={() => setField("location", city.label)}
                     className={cn(
                       "rounded-2xl border px-4 py-5 text-left transition",
-                      values.location === city
+                      values.location === city.label
                         ? "border-accent bg-accent/10 shadow-sm"
                         : "hover:border-accent/40 hover:bg-secondary/60"
                     )}
                   >
-                    <span className="block font-medium">{city}</span>
-                    <span className="mt-1 block text-sm text-muted-foreground">
-                      {city === "Dubai" ? "Villas, apartments and hotels" : "Mussafah, islands and city homes"}
-                    </span>
+                    <span className="block font-medium">{city.label}</span>
+                    {city.hint ? (
+                      <span className="mt-1 block text-sm text-muted-foreground">{city.hint}</span>
+                    ) : null}
                   </button>
                 ))}
               </div>

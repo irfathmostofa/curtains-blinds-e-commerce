@@ -143,6 +143,7 @@ export function productJsonLd(input: {
   path: string;
   rating?: number;
   reviewCount?: number;
+  currency?: string;
 }) {
   return {
     "@context": "https://schema.org",
@@ -153,7 +154,7 @@ export function productJsonLd(input: {
     url: absoluteUrl(input.path, resolveSiteUrl()),
     offers: {
       "@type": "Offer",
-      priceCurrency: "AED",
+      priceCurrency: input.currency || "AED",
       price: input.price,
       availability: "https://schema.org/InStock",
     },

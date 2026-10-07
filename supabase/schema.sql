@@ -5,7 +5,7 @@ create extension if not exists "pgcrypto";
 create table if not exists public.admin_users (
   id uuid primary key references auth.users (id) on delete cascade,
   email text unique not null,
-  role text not null default 'admin' check (role in ('admin', 'editor'))
+  role text not null default 'admin' check (role in ('superadmin', 'admin', 'editor'))
 );
 
 create table if not exists public.categories (

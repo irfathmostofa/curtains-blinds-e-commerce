@@ -3,8 +3,10 @@ import type {
   AboutSectionId,
   AboutSectionLayout,
   AboutTeamMember,
+  BudgetOption,
   BusinessHoursSchedule,
   DayHours,
+  FormOption,
   HeroSlide,
   HomepageContent,
   HomepageSectionId,
@@ -14,6 +16,7 @@ import type {
   SiteSettings,
   Weekday,
 } from "@/lib/types";
+import { slugify } from "@/lib/utils";
 
 export const SITE_NAME = "Maison Drape";
 
@@ -135,6 +138,27 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   meta_capi_test_event_code: "",
   tiktok_test_event_code: "",
   under_construction: false,
+  currency: "AED",
+  form_cities: [
+    { id: "dubai", label: "Dubai", hint: "Villas, apartments and hotels" },
+    { id: "abu-dhabi", label: "Abu Dhabi", hint: "Mussafah, islands and city homes" },
+  ],
+  form_considering: [
+    { id: "curtains-and-drapes", label: "Curtains & drapes" },
+    { id: "blinds-and-shades", label: "Blinds & shades" },
+    { id: "motorized", label: "Motorized" },
+    { id: "mix", label: "A mix" },
+  ],
+  form_budgets: [
+    { id: "under-5k", label: "Under AED 5,000", max: 5000 },
+    { id: "aed-5k-15k", label: "AED 5,000–15,000", min: 5000, max: 15000 },
+    { id: "aed-15k-plus", label: "AED 15,000+", min: 15000 },
+  ],
+  form_rooms: [
+    { id: "1-2-rooms", label: "1–2 rooms" },
+    { id: "3-4-rooms", label: "3–4 rooms" },
+    { id: "whole-villa", label: "Whole villa / 5+" },
+  ],
   homepage: {
     hero: {
       variant: "classic",
@@ -532,6 +556,91 @@ export function normalizeLocations(value: unknown): LocationInfo[] {
       return { city, address, phone, mapEmbedUrl };
     })
     .filter(Boolean) as LocationInfo[];
+}
+
+const KNOWN_CURRENCIES = new Set([
+  "AED",
+  "USD",
+  "EUR",
+  "GBP",
+  "SAR",
+  "QAR",
+  "KWD",
+  "BHD",
+  "OMR",
+  "INR",
+  "PKR",
+  "EGP",
+]);
+
+export function normalizeCurrency(value: unknown): string {
+  const raw = String(value || "").trim().toUpperCase();
+  if (KNOWN_CURRENCIES.has(raw)) return raw;
+  if (/^[A-Z]{3}$/.test(raw)) return raw;
+  return DEFAULT_SETTINGS.currency;
+}
+
+function asOptionId(value: unknown, label: string, fallback: string) {
+  const raw = String(value || "").trim();
+  if (raw) return slugify(raw) || fallback;
+  return slugify(label) || fallback;
+}
+
+export function normalizeFormOptions(value: unknown, fallback: FormOption[]): FormOption[] {
+  if (!Array.isArray(value)) return fallback.map((item) => ({ ...item }));
+  const next = value
+    .map((item, index) => {
+      if (typeof item === "string") {
+        const label = item.trim();
+        if (!label) return null;
+        return { id: asOptionId("", label, `option-${index + 1}`), label, hint: "" };
+      }
+      if (!item || typeof item !== "object") return null;
+      const row = item as Partial<FormOption>;
+      const label = String(row.label || "").trim();
+      if (!label) return null;
+      return {
+        id: asOptionId(row.id, label, `option-${index + 1}`),
+        label,
+        hint: String(row.hint || "").trim(),
+      };
+    })
+    .filter(Boolean) as FormOption[];
+  return next.length ? next : fallback.map((item) => ({ ...item }));
+}
+
+export function normalizeBudgetOptions(value: unknown, fallback: BudgetOption[]): BudgetOption[] {
+  if (!Array.isArray(value)) return fallback.map((item) => ({ ...item }));
+  const next = value
+    .map((item, index) => {
+      if (typeof item === "string") {
+        const label = item.trim();
+        if (!label) return null;
+        return { id: asOptionId("", label, `budget-${index + 1}`), label, hint: "" };
+      }
+      if (!item || typeof item !== "object") return null;
+      const row = item as Partial<BudgetOption>;
+      const label = String(row.label || "").trim();
+      if (!label) return null;
+      const min = Number(row.min);
+      const max = Number(row.max);
+      return {
+        id: asOptionId(row.id, label, `budget-${index + 1}`),
+        label,
+        hint: String(row.hint || "").trim(),
+        min: Number.isFinite(min) && min > 0 ? min : undefined,
+        max: Number.isFinite(max) && max > 0 ? max : undefined,
+      };
+    })
+    .filter(Boolean) as BudgetOption[];
+  return next.length ? next : fallback.map((item) => ({ ...item }));
+}
+
+export function cityLabels(settings?: Pick<SiteSettings, "form_cities" | "locations"> | null) {
+  const fromForm = (settings?.form_cities || []).map((item) => item.label).filter(Boolean);
+  if (fromForm.length) return fromForm;
+  const fromLocations = (settings?.locations || []).map((item) => item.city).filter(Boolean);
+  return fromLocations.length ? fromLocations : DEFAULT_SETTINGS.form_cities.map((item) => item.label);
 }
 
 export function normalizeBusinessHoursSchedule(value: unknown): BusinessHoursSchedule {

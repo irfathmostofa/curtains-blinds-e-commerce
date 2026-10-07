@@ -7,7 +7,8 @@ import { startNavigationProgress } from "@/components/navigation-progress";
 import { useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { PRICE_MAX } from "@/lib/catalog-query";
-import { cn, formatAed } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
+import { useSiteConfig } from "@/components/site-config";
 import type { Category } from "@/lib/types";
 
 type Counts = Record<string, number>;
@@ -35,6 +36,7 @@ export function ProductFilters({
   lockedCategory?: string;
 }) {
   const { t } = useLocale();
+  const { currency } = useSiteConfig();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -117,8 +119,8 @@ export function ProductFilters({
           {t("Price")}
         </legend>
         <div className="flex items-center justify-between text-sm">
-          <span>{formatAed(0)}</span>
-          <span className="font-medium">{formatAed(priceMax)}</span>
+          <span>{formatMoney(0, currency)}</span>
+          <span className="font-medium">{formatMoney(priceMax, currency)}</span>
         </div>
         <input
           type="range"
@@ -150,7 +152,7 @@ export function ProductFilters({
                 max === cap ? "border-accent bg-accent/10 text-foreground" : "border-border text-muted-foreground hover:border-accent/40"
               )}
             >
-              {t("Under")} {formatAed(cap)}
+              {t("Under")} {formatMoney(cap, currency)}
             </button>
           ))}
         </div>

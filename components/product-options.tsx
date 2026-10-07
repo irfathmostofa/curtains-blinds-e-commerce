@@ -6,8 +6,11 @@ import { VariantSelector } from "@/components/variant-selector";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
+import { useSiteConfig } from "@/components/site-config";
+import { formatMoney } from "@/lib/utils";
 
 export function ProductOptions({ product }: { product: Product }) {
+  const { currency } = useSiteConfig();
   const variants = product.variants || [];
   const [variantId, setVariantId] = useState(variants[0]?.id);
   const [fabric, setFabric] = useState(product.fabric_options[0]);
@@ -20,7 +23,7 @@ export function ProductOptions({ product }: { product: Product }) {
       {variants.length ? (
         <VariantSelector
           label="Size & specification"
-          variants={variants.map((v) => ({ id: v.id, label: `${v.size_label} · AED ${v.price}` }))}
+          variants={variants.map((v) => ({ id: v.id, label: `${v.size_label} · ${formatMoney(v.price, currency)}` }))}
           value={variantId}
           onSelect={setVariantId}
         />
@@ -40,7 +43,7 @@ export function ProductOptions({ product }: { product: Product }) {
             <tr>
               <th className="px-4 py-3 font-medium">Specification</th>
               <th className="px-4 py-3 font-medium">SKU</th>
-              <th className="px-4 py-3 font-medium">Price (AED)</th>
+              <th className="px-4 py-3 font-medium">Price ({currency})</th>
             </tr>
           </thead>
           <tbody>
@@ -48,7 +51,7 @@ export function ProductOptions({ product }: { product: Product }) {
               <tr key={v.id} className="border-t">
                 <td className="px-4 py-3">{v.size_label}</td>
                 <td className="px-4 py-3">{v.sku}</td>
-                <td className="px-4 py-3">{v.price}</td>
+                <td className="px-4 py-3">{formatMoney(v.price, currency)}</td>
               </tr>
             ))}
           </tbody>

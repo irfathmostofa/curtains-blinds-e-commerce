@@ -180,7 +180,8 @@ export function sanitizeEntityPayload(entity: string, payload: Record<string, un
   }
 
   if (entity === "users") {
-    raw.role = asString(raw.role, "editor") === "admin" ? "admin" : "editor";
+    const role = asString(raw.role, "editor");
+    raw.role = role === "superadmin" || role === "admin" || role === "editor" ? role : "editor";
     raw.email = asString(raw.email).trim().toLowerCase();
   }
 

@@ -153,6 +153,17 @@ export type LocationInfo = {
   mapEmbedUrl: string;
 };
 
+export type FormOption = {
+  id: string;
+  label: string;
+  hint?: string;
+};
+
+export type BudgetOption = FormOption & {
+  min?: number;
+  max?: number;
+};
+
 export type Weekday = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
 
 export type DayHours = {
@@ -370,6 +381,11 @@ export type SiteSettings = {
   meta_capi_test_event_code: string;
   tiktok_test_event_code: string;
   under_construction: boolean;
+  currency: string;
+  form_cities: FormOption[];
+  form_considering: FormOption[];
+  form_budgets: BudgetOption[];
+  form_rooms: FormOption[];
   homepage: HomepageContent;
   about: AboutContent;
 };
@@ -392,4 +408,4 @@ export type SeoConfig = {
   keywords?: string | string[];
 };
 
-export type AdminRole = "admin" | "editor";
+export type AdminRole = "superadmin" | "admin" | "editor";

@@ -228,10 +228,7 @@ export const entities: Record<string, EntityConfig> = {
       { name: "name", label: "Name", type: "text", required: true },
       { name: "phone", label: "Phone", type: "tel", required: true },
       { name: "email", label: "Email", type: "email" },
-      { name: "location", label: "Location", type: "select", required: true, options: [
-        { label: "Dubai", value: "Dubai" },
-        { label: "Abu Dhabi", value: "Abu Dhabi" },
-      ] },
+      { name: "location", label: "Location", type: "text", required: true },
       { name: "address", label: "Address", type: "textarea", required: true },
       { name: "preferred_date", label: "Preferred date", type: "date", required: true },
       { name: "preferred_time_slot", label: "Time slot", type: "text", required: true },
@@ -368,6 +365,7 @@ export const entities: Record<string, EntityConfig> = {
       { name: "id", label: "Auth user ID", type: "text", required: true, hint: "Must match an existing Auth user UUID." },
       { name: "email", label: "Email", type: "email", required: true },
       { name: "role", label: "Role", type: "select", options: [
+        { label: "Super admin", value: "superadmin" },
         { label: "Admin", value: "admin" },
         { label: "Editor", value: "editor" },
       ] },

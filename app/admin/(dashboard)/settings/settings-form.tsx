@@ -13,11 +13,15 @@ import { SOCIAL_PLATFORMS, SocialIcon, socialPlatformByValue } from "@/component
 import {
   WEEKDAY_LABELS,
   WEEKDAYS,
+  normalizeBudgetOptions,
   normalizeBusinessHoursSchedule,
+  normalizeCurrency,
+  normalizeFormOptions,
   normalizeLocations,
   normalizePaymentMethods,
+  DEFAULT_SETTINGS,
 } from "@/lib/site";
-import type { DayHours, PaymentMethod, SiteSettings, Weekday } from "@/lib/types";
+import type { BudgetOption, DayHours, FormOption, PaymentMethod, SiteSettings, Weekday } from "@/lib/types";
 
 const PAYMENT_SUGGESTIONS = [
   "Visa",
@@ -38,6 +42,11 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
     payment_methods: normalizePaymentMethods(initial.payment_methods),
     locations: normalizeLocations(initial.locations),
     business_hours_schedule: normalizeBusinessHoursSchedule(initial.business_hours_schedule),
+    currency: normalizeCurrency(initial.currency),
+    form_cities: normalizeFormOptions(initial.form_cities, DEFAULT_SETTINGS.form_cities),
+    form_considering: normalizeFormOptions(initial.form_considering, DEFAULT_SETTINGS.form_considering),
+    form_budgets: normalizeBudgetOptions(initial.form_budgets, DEFAULT_SETTINGS.form_budgets),
+    form_rooms: normalizeFormOptions(initial.form_rooms, DEFAULT_SETTINGS.form_rooms),
   }));
   const [message, setMessage] = useState<string | null>(null);
   const [pendingNetwork, setPendingNetwork] = useState("");
@@ -112,6 +121,45 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
     setSettings((s) => ({ ...s, locations: s.locations.filter((_, i) => i !== index) }));
   }
 
+  function patchOption(key: "form_cities" | "form_considering" | "form_rooms", index: number, partial: Partial<FormOption>) {
+    setSettings((s) => ({
+      ...s,
+      [key]: s[key].map((item, i) => (i === index ? { ...item, ...partial } : item)),
+    }));
+  }
+
+  function addOption(key: "form_cities" | "form_considering" | "form_rooms", label = "") {
+    setSettings((s) => ({
+      ...s,
+      [key]: [...s[key], { id: "", label, hint: "" }],
+    }));
+  }
+
+  function removeOption(key: "form_cities" | "form_considering" | "form_rooms", index: number) {
+    setSettings((s) => ({
+      ...s,
+      [key]: s[key].filter((_, i) => i !== index),
+    }));
+  }
+
+  function patchBudget(index: number, partial: Partial<BudgetOption>) {
+    setSettings((s) => ({
+      ...s,
+      form_budgets: s.form_budgets.map((item, i) => (i === index ? { ...item, ...partial } : item)),
+    }));
+  }
+
+  function addBudget() {
+    setSettings((s) => ({
+      ...s,
+      form_budgets: [...s.form_budgets, { id: "", label: "", hint: "" }],
+    }));
+  }
+
+  function removeBudget(index: number) {
+    setSettings((s) => ({ ...s, form_budgets: s.form_budgets.filter((_, i) => i !== index) }));
+  }
+
   function patchHoursDay(day: Weekday, partial: Partial<DayHours>) {
     setSettings((s) => ({
       ...s,
@@ -154,6 +202,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               <TabsTrigger value="access">Access</TabsTrigger>
               <TabsTrigger value="contact">Contact</TabsTrigger>
               <TabsTrigger value="visit">Visit</TabsTrigger>
+              <TabsTrigger value="forms">Forms</TabsTrigger>
               <TabsTrigger value="hours">Hours</TabsTrigger>
               <TabsTrigger value="social">Social & payments</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -286,6 +335,114 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
             <Button type="button" variant="outline" size="sm" onClick={addLocation}>
               Add location
             </Button>
+          </section>
+        </TabsContent>
+
+        <TabsContent value="forms">
+          <section className="space-y-6 rounded-2xl border bg-card p-4 sm:p-6">
+            <div>
+              <h2 className="font-serif text-xl">Booking and estimate forms</h2>
+              <p className="text-xs text-muted-foreground">
+                Control currency, city choices, considering options and budget ranges shown on public forms.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="currency">Currency</Label>
+              <select
+                id="currency"
+                className="h-10 w-full rounded-xl border bg-background px-3 text-sm"
+                value={settings.currency}
+                onChange={(e) => patch({ currency: e.target.value })}
+              >
+                {["AED", "USD", "EUR", "GBP", "SAR", "QAR", "KWD", "BHD", "OMR", "INR"].map((code) => (
+                  <option key={code} value={code}>
+                    {code}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted-foreground">Used on product prices, estimates, bookings and analytics.</p>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="font-medium">Cities</h3>
+              {settings.form_cities.map((city, index) => (
+                <div key={index} className="grid gap-3 rounded-xl border p-3 sm:grid-cols-[1fr_1fr_auto]">
+                  <Input
+                    value={city.label}
+                    placeholder="Dubai"
+                    onChange={(e) => patchOption("form_cities", index, { label: e.target.value })}
+                  />
+                  <Input
+                    value={city.hint || ""}
+                    placeholder="Hint shown under the city"
+                    onChange={(e) => patchOption("form_cities", index, { hint: e.target.value })}
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={() => removeOption("form_cities", index)}>
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" onClick={() => addOption("form_cities")}>
+                Add city
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="font-medium">Considering</h3>
+              {settings.form_considering.map((item, index) => (
+                <div key={index} className="grid gap-3 rounded-xl border p-3 sm:grid-cols-[1fr_auto]">
+                  <Input
+                    value={item.label}
+                    placeholder="Curtains & drapes"
+                    onChange={(e) => patchOption("form_considering", index, { label: e.target.value })}
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={() => removeOption("form_considering", index)}>
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" onClick={() => addOption("form_considering")}>
+                Add considering option
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="font-medium">Budget ranges</h3>
+              {settings.form_budgets.map((item, index) => (
+                <div key={index} className="grid gap-3 rounded-xl border p-3 sm:grid-cols-[1fr_auto]">
+                  <Input
+                    value={item.label}
+                    placeholder={`Under ${settings.currency} 5,000`}
+                    onChange={(e) => patchBudget(index, { label: e.target.value })}
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={() => removeBudget(index)}>
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" onClick={addBudget}>
+                Add budget range
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="font-medium">Rooms</h3>
+              {settings.form_rooms.map((item, index) => (
+                <div key={index} className="grid gap-3 rounded-xl border p-3 sm:grid-cols-[1fr_auto]">
+                  <Input
+                    value={item.label}
+                    placeholder="1–2 rooms"
+                    onChange={(e) => patchOption("form_rooms", index, { label: e.target.value })}
+                  />
+                  <Button type="button" variant="outline" size="sm" onClick={() => removeOption("form_rooms", index)}>
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" onClick={() => addOption("form_rooms")}>
+                Add room option
+              </Button>
+            </div>
           </section>
         </TabsContent>
 

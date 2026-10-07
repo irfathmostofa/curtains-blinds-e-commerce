@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { submitChatLead } from "@/app/actions";
 import { trackClientEvent } from "@/lib/analytics/client";
-import { formatAed } from "@/lib/utils";
-import type { ChatMessage } from "@/lib/types";
+import { formatMoney } from "@/lib/utils";
+import type { ChatMessage, FormOption } from "@/lib/types";
 import { DatePicker } from "./date-picker";
 import { useLocale } from "./locale-provider";
+import { DEFAULT_SETTINGS } from "@/lib/site";
 
 type Step =
   | "welcome"
@@ -37,15 +38,6 @@ type Draft = {
   booking_time: string;
 };
 
-const PRODUCTS = [
-  { id: "curtains-and-drapes", label: "Curtains & drapes" },
-  { id: "blinds-and-shades", label: "Blinds & shades" },
-  { id: "motorized", label: "Motorized tracks" },
-  { id: "mix", label: "A mix" },
-];
-
-const ROOMS = ["1–2 rooms", "3–4 rooms", "Whole villa / 5+"];
-const LOCATIONS = ["Downtown Dubai", "Palm Jumeirah", "Dubai Marina", "Business Bay", "Abu Dhabi", "Other Dubai"];
 const SLOTS = ["09:00–11:00", "10:00–12:00", "12:00–14:00", "16:00–18:00", "18:00–20:00"];
 
 const STEPS: Step[] = ["name", "phone", "email", "product", "rooms", "location", "estimate", "booking", "done"];
@@ -78,8 +70,21 @@ function progressFor(step: Step) {
   return Math.round(((index + 1) / STEPS.length) * 100);
 }
 
-export function AiChatbot() {
+export function AiChatbot({
+  currency = DEFAULT_SETTINGS.currency,
+  cities = DEFAULT_SETTINGS.form_cities,
+  considering = DEFAULT_SETTINGS.form_considering,
+  rooms = DEFAULT_SETTINGS.form_rooms,
+}: {
+  currency?: string;
+  cities?: FormOption[];
+  considering?: FormOption[];
+  rooms?: FormOption[];
+}) {
   const { t } = useLocale();
+  const productOptions = considering.length ? considering : DEFAULT_SETTINGS.form_considering;
+  const roomOptions = rooms.length ? rooms : DEFAULT_SETTINGS.form_rooms;
+  const cityOptions = cities.length ? cities : DEFAULT_SETTINGS.form_cities;
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<Step>("welcome");
   const [draft, setDraft] = useState<Draft>(emptyDraft);
@@ -125,7 +130,7 @@ export function AiChatbot() {
       contentName: next.product_interest,
       contentType: "chat_lead",
       value: next.estimate_max,
-      currency: "AED",
+      currency,
       extra: { source: "ai-chatbot", location: next.location, rooms: next.rooms },
     });
     setStep("done");
@@ -180,7 +185,7 @@ export function AiChatbot() {
     }
   }
 
-  function chooseProduct(item: (typeof PRODUCTS)[number]) {
+  function chooseProduct(item: FormOption) {
     const next = { ...draft, product_interest: item.id };
     setDraft(next);
     push("user", t(item.label));
@@ -192,10 +197,10 @@ export function AiChatbot() {
     }, 360);
   }
 
-  function chooseRooms(rooms: string) {
-    const next = { ...draft, rooms };
+  function chooseRooms(roomLabel: string) {
+    const next = { ...draft, rooms: roomLabel };
     setDraft(next);
-    push("user", t(rooms));
+    push("user", t(roomLabel));
     setTyping(true);
     window.setTimeout(() => {
       setTyping(false);
@@ -216,7 +221,7 @@ export function AiChatbot() {
         "bot",
         t("Suggested estimate for {location}: {range}. Would you like to book a free doorstep visit?")
           .replace("{location}", t(location))
-          .replace("{range}", `${formatAed(range.min)}–${formatAed(range.max)}`)
+          .replace("{range}", `${formatMoney(range.min, currency)}–${formatMoney(range.max, currency)}`)
       );
       setStep("estimate");
     }, 480);
@@ -377,7 +382,7 @@ export function AiChatbot() {
 
               {step === "product" ? (
                 <QuickReplies>
-                  {PRODUCTS.map((p) => (
+                  {productOptions.map((p) => (
                     <Chip key={p.id} onClick={() => chooseProduct(p)}>
                       {t(p.label)}
                     </Chip>
@@ -387,9 +392,9 @@ export function AiChatbot() {
 
               {step === "rooms" ? (
                 <QuickReplies>
-                  {ROOMS.map((r) => (
-                    <Chip key={r} onClick={() => chooseRooms(r)}>
-                      {t(r)}
+                  {roomOptions.map((r) => (
+                    <Chip key={r.id} onClick={() => chooseRooms(r.label)}>
+                      {t(r.label)}
                     </Chip>
                   ))}
                 </QuickReplies>
@@ -397,9 +402,9 @@ export function AiChatbot() {
 
               {step === "location" ? (
                 <QuickReplies>
-                  {LOCATIONS.map((l) => (
-                    <Chip key={l} onClick={() => chooseLocation(l)}>
-                      {t(l)}
+                  {cityOptions.map((l) => (
+                    <Chip key={l.id} onClick={() => chooseLocation(l.label)}>
+                      {t(l.label)}
                     </Chip>
                   ))}
                 </QuickReplies>
@@ -410,7 +415,7 @@ export function AiChatbot() {
                   <div className="border-b bg-secondary/70 px-4 py-3">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-accent">{t("Suggested range")}</p>
                     <p className="mt-1 font-serif text-xl">
-                      {formatAed(draft.estimate_min)}–{formatAed(draft.estimate_max)}
+                      {formatMoney(draft.estimate_min, currency)}–{formatMoney(draft.estimate_max, currency)}
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {t(draft.location)} · {t(draft.rooms)}

@@ -208,7 +208,7 @@ export async function submitChatLead(input: unknown) {
       { label: "Product", value: payload.product_interest },
       { label: "Rooms", value: payload.rooms },
       { label: "Location", value: payload.location },
-      { label: "Estimate", value: `AED ${payload.estimate_min}–${payload.estimate_max}` },
+      { label: "Estimate", value: `${(await getSiteSettings()).currency} ${payload.estimate_min}–${payload.estimate_max}` },
       { label: "Booking date", value: payload.booking_date || "" },
       { label: "Booking time", value: payload.booking_time || "" },
     ],
@@ -220,7 +220,7 @@ export async function submitChatLead(input: unknown) {
     contentName: payload.product_interest,
     contentType: "chat_lead",
     value: payload.estimate_max,
-    currency: "AED",
+    currency: (await getSiteSettings()).currency || "AED",
     user: { email: payload.email, phone: payload.phone, name: payload.name },
     extra: {
       rooms: payload.rooms,
