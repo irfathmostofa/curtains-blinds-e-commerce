@@ -375,6 +375,9 @@ export type SiteSettings = {
   tiktok_pixel_id: string;
   resend_api_key: string;
   resend_from_email: string;
+  whatsapp_access_token: string;
+  whatsapp_phone_number_id: string;
+  whatsapp_template_name: string;
   meta_capi_access_token: string;
   instagram_capi_access_token: string;
   tiktok_access_token: string;

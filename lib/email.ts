@@ -11,6 +11,7 @@ type NotifyInput = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
 const PUBLIC_INBOX_HOSTS = new Set(["gmail.com", "googlemail.com", "yahoo.com", "outlook.com", "hotmail.com", "live.com", "icloud.com"]);
+const WHATSAPP_GRAPH_URL = "https://graph.facebook.com/v21.0";
 
 function escapeHtml(value: string) {
   return value
@@ -54,13 +55,90 @@ export function formatFromAddress(from: string, company: string) {
   return `${company} <${email}>`;
 }
 
+function digitsOnly(value: string) {
+  return value.replace(/[^\d]/g, "");
+}
+
+function buildPlainText(heading: string, rows: { label: string; value: string }[], company: string) {
+  const body = rows
+    .map((row) => `${row.label}: ${row.value || "—"}`)
+    .join(" | ");
+  return `${heading} | ${body} | ${company}`.replace(/\s+/g, " ").trim();
+}
+
+function truncate(value: string, max = 1024) {
+  const clean = value.replace(/[\n\t\r]+/g, " ").replace(/ {4,}/g, "   ").trim();
+  if (clean.length <= max) return clean;
+  return `${clean.slice(0, max - 1)}…`;
+}
+
+async function sendAdminWhatsApp(
+  settings: Awaited<ReturnType<typeof getAdminSiteSettings>>,
+  input: NotifyInput,
+  company: string
+) {
+  const token = settings.whatsapp_access_token?.trim();
+  const phoneNumberId = settings.whatsapp_phone_number_id?.trim();
+  const to = digitsOnly(settings.whatsapp || "");
+  if (!token || !phoneNumberId || !to) return;
+
+  const text = truncate(buildPlainText(input.heading, input.rows, company));
+  const template = settings.whatsapp_template_name?.trim() || "admin_lead_alert";
+  const payload = {
+    messaging_product: "whatsapp",
+    to,
+    type: "template",
+    template: {
+      name: template,
+      language: { code: "en" },
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: truncate(input.heading, 60) },
+            { type: "text", text },
+          ],
+        },
+      ],
+    },
+  };
+
+  try {
+    const res = await fetch(`${WHATSAPP_GRAPH_URL}/${phoneNumberId}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      console.error("Failed to send admin WhatsApp notification", res.status, detail);
+    }
+  } catch (error) {
+    console.error("Failed to send admin WhatsApp notification", error);
+  }
+}
+
 export async function notifyAdmin(input: NotifyInput) {
   const settings = await getAdminSiteSettings();
+  const company = resolveSiteName(settings);
+  await Promise.all([
+    sendAdminEmail(settings, input, company),
+    sendAdminWhatsApp(settings, input, company),
+  ]);
+}
+
+async function sendAdminEmail(
+  settings: Awaited<ReturnType<typeof getAdminSiteSettings>>,
+  input: NotifyInput,
+  company: string
+) {
   const apiKey = settings.resend_api_key?.trim();
   const to = parseEmailAddress(settings.email || "");
   if (!apiKey || !to) return;
 
-  const company = resolveSiteName(settings);
   const from = formatFromAddress(settings.resend_from_email || "", company);
   const replyTo = parseEmailAddress(input.replyTo || "") || undefined;
 

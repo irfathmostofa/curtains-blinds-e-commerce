@@ -206,7 +206,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               <TabsTrigger value="hours">Hours</TabsTrigger>
               <TabsTrigger value="social">Social & payments</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
-              <TabsTrigger value="email">Email</TabsTrigger>
+              <TabsTrigger value="email">Alerts</TabsTrigger>
               <TabsTrigger value="seo">SEO</TabsTrigger>
             </TabsList>
             {message ? <p className="text-sm">{message}</p> : null}
@@ -269,6 +269,9 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
             <div className="space-y-2">
               <Label htmlFor="wa">WhatsApp number</Label>
               <Input id="wa" value={settings.whatsapp} onChange={(e) => patch({ whatsapp: e.target.value })} />
+              <p className="text-xs text-muted-foreground">
+                Public chat button and admin WhatsApp alerts both use this number. Include country code, for example 971500000000.
+              </p>
             </div>
           </div>
             <div className="space-y-2">
@@ -750,6 +753,50 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               />
               <p className="text-xs text-muted-foreground">
                 Must be a domain you verified in Resend. Leave blank to send from onboarding@resend.dev while testing. Do not put a Gmail address here.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section className="mt-4 space-y-4 rounded-2xl border bg-card p-4 sm:p-6">
+          <div>
+            <h2 className="font-serif text-xl">WhatsApp alerts</h2>
+            <p className="text-xs text-muted-foreground">
+              Meta Cloud API sends the same estimate, booking and chatbot alerts to the WhatsApp number on the Contact tab. Leave the token blank to skip WhatsApp.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="wa-token">WhatsApp access token</Label>
+              <Input
+                id="wa-token"
+                type="password"
+                autoComplete="off"
+                placeholder="EAAxxxxxxxx"
+                value={settings.whatsapp_access_token}
+                onChange={(e) => patch({ whatsapp_access_token: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="wa-phone-id">Phone number ID</Label>
+              <Input
+                id="wa-phone-id"
+                autoComplete="off"
+                placeholder="123456789012345"
+                value={settings.whatsapp_phone_number_id}
+                onChange={(e) => patch({ whatsapp_phone_number_id: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="wa-template">Template name</Label>
+              <Input
+                id="wa-template"
+                autoComplete="off"
+                placeholder="admin_lead_alert"
+                value={settings.whatsapp_template_name}
+                onChange={(e) => patch({ whatsapp_template_name: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Approved template with two body variables: heading and message. Defaults to admin_lead_alert.
               </p>
             </div>
           </div>
