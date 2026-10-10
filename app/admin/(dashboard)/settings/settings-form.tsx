@@ -49,6 +49,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
     form_rooms: normalizeFormOptions(initial.form_rooms, DEFAULT_SETTINGS.form_rooms),
   }));
   const [message, setMessage] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [pendingNetwork, setPendingNetwork] = useState("");
   const [tab, setTab] = useState("access");
   const seo = settings.seo;
@@ -188,12 +189,19 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
         className="space-y-8"
         onSubmit={async (e) => {
           e.preventDefault();
-          const result = await saveSettings(settings);
-          if (result && "error" in result && result.error) {
-            setMessage(result.error);
-            return;
+          if (saving) return;
+          setSaving(true);
+          setMessage(null);
+          try {
+            const result = await saveSettings(settings);
+            if (result && "error" in result && result.error) {
+              setMessage(result.error);
+              return;
+            }
+            setMessage("Saved.");
+          } finally {
+            setSaving(false);
           }
-          setMessage("Saved.");
         }}
       >
         <Tabs value={tab} onValueChange={setTab}>
@@ -874,7 +882,9 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
         </Tabs>
 
         {message ? <p className="text-sm">{message}</p> : null}
-        <Button type="submit" className="w-full sm:w-auto">Save settings</Button>
+        <Button type="submit" disabled={saving} className="w-full sm:w-auto">
+          {saving ? "Saving…" : "Save settings"}
+        </Button>
       </form>
     </main>
   );

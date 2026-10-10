@@ -182,6 +182,7 @@ export function FormBuilder({
   const [slugLocked, setSlugLocked] = useState(Boolean(initial?.slug));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [variants, setVariants] = useState<{ id?: string; size_label: string; price: string; sku: string }[]>(() => {
     if (!Array.isArray(initial?.variants)) return [];
     return (initial.variants as { id?: string; size_label?: string; price?: number; sku?: string }[]).map((v) => ({
@@ -285,13 +286,16 @@ export function FormBuilder({
       payload.logo_alt = images[0].alt || payload.logo_alt;
     }
     if (config.idField === "slug") delete payload.id;
-    const result = await upsertEntity(config.key, payload);
-    setSaving(false);
-    if ("error" in result && result.error) {
-      setError(result.error);
-      return;
+    try {
+      const result = await upsertEntity(config.key, payload);
+      if ("error" in result && result.error) {
+        setError(result.error);
+        return;
+      }
+      onDone?.();
+    } finally {
+      setSaving(false);
     }
-    onDone?.();
   }
 
   return (
@@ -479,7 +483,7 @@ export function FormBuilder({
       <div className="flex shrink-0 flex-col gap-2 border-t bg-card px-4 py-3 sm:px-6">
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Button type="submit" disabled={saving} className="min-w-28 w-full sm:w-auto">
+          <Button type="submit" disabled={saving || deleting} className="min-w-28 w-full sm:w-auto">
             {saving ? "Saving…" : "Save"}
           </Button>
           {initial && (initial.id || initial.slug) ? (
@@ -487,17 +491,25 @@ export function FormBuilder({
               type="button"
               variant="outline"
               className="w-full sm:w-auto"
+              disabled={saving || deleting}
               onClick={async () => {
-                const id = String(config.idField === "slug" ? initial.slug : initial.id);
-                const result = await deleteEntity(config.key, id);
-                if ("error" in result && result.error) {
-                  setError(result.error);
-                  return;
+                if (deleting) return;
+                setDeleting(true);
+                setError(null);
+                try {
+                  const id = String(config.idField === "slug" ? initial.slug : initial.id);
+                  const result = await deleteEntity(config.key, id);
+                  if ("error" in result && result.error) {
+                    setError(result.error);
+                    return;
+                  }
+                  onDone?.();
+                } finally {
+                  setDeleting(false);
                 }
-                onDone?.();
               }}
             >
-              Delete
+              {deleting ? "Deleting…" : "Delete"}
             </Button>
           ) : null}
         </div>
