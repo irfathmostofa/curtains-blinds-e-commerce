@@ -109,6 +109,7 @@ export function AdminShell({
   role?: AdminRole;
 }) {
   const [open, setOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -122,9 +123,31 @@ export function AdminShell({
     };
   }, [open]);
 
+  useEffect(() => {
+    const sync = () => {
+      const visible = Boolean(document.querySelector('[role="dialog"][data-state="open"]'));
+      setDialogOpen(visible);
+      if (visible) setOpen(false);
+    };
+    const observer = new MutationObserver(sync);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-state"],
+    });
+    sync();
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="min-h-dvh overflow-x-hidden bg-ivory">
-      <header className="sticky top-0 z-[70] flex items-center justify-between gap-3 border-b bg-card px-4 py-3 lg:hidden">
+      <header
+        className={cn(
+          "sticky top-0 z-[70] flex items-center justify-between gap-3 border-b bg-card px-4 py-3 lg:hidden",
+          dialogOpen && "hidden"
+        )}
+      >
         <Link href="/admin" className="truncate font-serif text-lg">
           Maison Admin
         </Link>
