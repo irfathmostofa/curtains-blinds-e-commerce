@@ -6,28 +6,34 @@ import { Button } from "@/components/ui/button";
 import { HtmlContent } from "@/components/html-content";
 import { Reveal } from "@/components/motion/reveal";
 import { useLocale } from "@/components/locale-provider";
+import { DEFAULT_SETTINGS } from "@/lib/site";
 import type { HomepageContent } from "@/lib/types";
 
 export function HomeIntro({
   content,
   headingAs = "h2",
+  companyName = DEFAULT_SETTINGS.company_name,
 }: {
   content: HomepageContent["intro"];
   headingAs?: "h1" | "h2";
+  companyName?: string;
 }) {
   const { t } = useLocale();
   const hasPrimary = Boolean(content.primary_cta_label && content.primary_cta_href);
   const hasSecondary = Boolean(content.secondary_cta_label && content.secondary_cta_href);
   const imageUrl = content.image_url?.trim();
   const isLocal = Boolean(imageUrl && (imageUrl.startsWith("data:") || imageUrl.startsWith("/")));
+  const eyebrowText = content.eyebrow?.trim();
+  const eyebrow =
+    !eyebrowText || eyebrowText === DEFAULT_SETTINGS.homepage.intro.eyebrow ? companyName : eyebrowText;
 
   return (
     <div className="container py-14 sm:py-16">
       <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <div className="space-y-6">
           <Reveal>
-            {content.eyebrow ? (
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{t(content.eyebrow)}</p>
+            {eyebrow ? (
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">{t(eyebrow)}</p>
             ) : null}
             {headingAs === "h1" ? (
               <h1 className="mt-3 text-balance font-serif text-3xl leading-[1.15] sm:text-4xl md:text-5xl">

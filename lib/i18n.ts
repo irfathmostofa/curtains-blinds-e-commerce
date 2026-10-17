@@ -129,8 +129,8 @@ const ar: Record<string, string> = {
   "Design Consultations": "استشارات تصميم",
   "How it works": "كيف نعمل",
   "Elegant curtains, delivered in four effortless steps.": "ستائر أنيقة، تُسلَّم في أربع خطوات يسيرة.",
-  "From the first click to perfectly hung curtains — every step is taken care of by the Reef Deco team. No showroom visit required.":
-    "من أول نقرة حتى الستائر المعلقة بإتقان — يتولى فريق ريف ديكو كل خطوة. لا حاجة لزيارة المعرض.",
+  "From the first click to perfectly hung curtains — every step is taken care of by our team. No showroom visit required.":
+    "من أول نقرة حتى الستائر المعلقة بإتقان — يتولى فريقنا كل خطوة. لا حاجة لزيارة المعرض.",
   "Book a free site visit": "احجز زيارة موقع مجانية",
   "Pick a time slot — our specialist comes to your home, office or hotel at zero cost.":
     "اختر وقتاً — يأتي المختص إلى منزلك أو مكتبك أو فندقك دون تكلفة.",
@@ -149,7 +149,7 @@ const ar: Record<string, string> = {
   "Close chat": "إغلاق المحادثة",
   "Studio concierge": "كونسيرج الاستوديو",
   "Need an estimate?": "تحتاج عرض سعر؟",
-  "Maison Drape concierge": "كونسيرج ميزون دريب",
+  "{company} concierge": "كونسيرج {company}",
   "Online · typically replies instantly": "متصل · يرد عادة فوراً",
   "Your full name": "اسمك الكامل",
   "Mobile number": "رقم الجوال",

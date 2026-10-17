@@ -70,18 +70,31 @@ function progressFor(step: Step) {
   return Math.round(((index + 1) / STEPS.length) * 100);
 }
 
+function initialsFor(value: string) {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "MD";
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 export function AiChatbot({
+  companyName = DEFAULT_SETTINGS.company_name,
   currency = DEFAULT_SETTINGS.currency,
   cities = DEFAULT_SETTINGS.form_cities,
   considering = DEFAULT_SETTINGS.form_considering,
   rooms = DEFAULT_SETTINGS.form_rooms,
 }: {
+  companyName?: string;
   currency?: string;
   cities?: FormOption[];
   considering?: FormOption[];
   rooms?: FormOption[];
 }) {
   const { t } = useLocale();
+  const conciergeName = t("{company} concierge").replace("{company}", companyName);
+  const avatarInitials = initialsFor(companyName);
   const productOptions = considering.length ? considering : DEFAULT_SETTINGS.form_considering;
   const roomOptions = rooms.length ? rooms : DEFAULT_SETTINGS.form_rooms;
   const cityOptions = cities.length ? cities : DEFAULT_SETTINGS.form_cities;
@@ -325,7 +338,7 @@ export function AiChatbot({
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-serif text-lg leading-tight">{t("Maison Drape concierge")}</p>
+                  <p className="truncate font-serif text-lg leading-tight">{conciergeName}</p>
                   <p className="mt-0.5 flex items-center gap-1.5 text-xs text-primary-foreground/75">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                     {t("Online · typically replies instantly")}
@@ -352,7 +365,7 @@ export function AiChatbot({
                 <div key={`${m.role}-${i}`} className={`flex items-end gap-2 ${m.role === "user" ? "justify-end" : ""}`}>
                   {m.role === "bot" ? (
                     <div className="mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
-                      MD
+                      {avatarInitials}
                     </div>
                   ) : null}
                   <div

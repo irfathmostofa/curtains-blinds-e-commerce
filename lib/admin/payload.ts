@@ -1,5 +1,6 @@
 import { entityAllowedColumns } from "@/lib/admin/entities";
 import { normalizeRichText } from "@/lib/html";
+import { DEFAULT_SETTINGS } from "@/lib/site";
 import { slugify } from "@/lib/utils";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -80,7 +81,11 @@ function asTimestamp(value: unknown) {
   return d.toISOString();
 }
 
-export function sanitizeEntityPayload(entity: string, payload: Record<string, unknown>) {
+export function sanitizeEntityPayload(
+  entity: string,
+  payload: Record<string, unknown>,
+  options?: { companyName?: string }
+) {
   const allowed = entityAllowedColumns(entity);
   const raw: Record<string, unknown> = { ...payload };
   delete raw.category;
@@ -154,7 +159,7 @@ export function sanitizeEntityPayload(entity: string, payload: Record<string, un
     raw.content = normalizeRichText(raw.content);
     raw.cover_image_url = asString(raw.cover_image_url);
     raw.cover_image_alt = asString(raw.cover_image_alt);
-    raw.author = asString(raw.author, "Maison Drape Studio");
+    raw.author = asString(raw.author).trim() || options?.companyName?.trim() || DEFAULT_SETTINGS.company_name;
     raw.published_at = asTimestamp(raw.published_at);
     raw.seo_title = asString(raw.seo_title);
     raw.seo_description = asString(raw.seo_description);

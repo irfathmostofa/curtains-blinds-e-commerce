@@ -9,6 +9,7 @@ import { createAdminClient, createWriteClient } from "@/lib/supabase/admin";
 import { isSupabaseConfigured } from "@/lib/utils";
 import { loginSchema } from "@/lib/validations";
 import { getStore } from "@/lib/data/store";
+import { getSiteSettings } from "@/lib/data/catalog";
 import { processImage } from "@/lib/images/process";
 import { slugify } from "@/lib/utils";
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -97,10 +98,15 @@ export async function upsertEntity(entity: string, payload: Record<string, unkno
     id = crypto.randomUUID();
   }
 
-  const row = sanitizeEntityPayload(entity, {
-    ...payload,
-    ...(idField === "id" ? { id } : { slug: id }),
-  });
+  const settings = await getSiteSettings();
+  const row = sanitizeEntityPayload(
+    entity,
+    {
+      ...payload,
+      ...(idField === "id" ? { id } : { slug: id }),
+    },
+    { companyName: settings.company_name }
+  );
   if (entity === "products" && !isUuid(row.category_id)) {
     return { error: "Choose a category from the list. Run supabase/migrations/20260929_seed_catalogue.sql if none appear." };
   }

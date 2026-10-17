@@ -81,7 +81,7 @@ export function HomeView({
     marquee: <MarqueeStrip items={home.marquee} />,
     intro: (
       <SectionFrame className="py-0">
-        <HomeIntro content={home.intro} />
+        <HomeIntro content={home.intro} companyName={settings.company_name} />
       </SectionFrame>
     ),
     how_it_works: (

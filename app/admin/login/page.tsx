@@ -1,12 +1,19 @@
 import { LoginForm } from "./login-form";
+import { getSiteSettings } from "@/lib/data/catalog";
 import { buildMetadata } from "@/lib/seo";
 
-export const metadata = buildMetadata({
-  title: "Admin login",
-  description: "Maison Drape administration",
-  path: "/admin/login",
-  noIndex: true,
-});
+export async function generateMetadata() {
+  const settings = await getSiteSettings();
+  return buildMetadata(
+    {
+      title: "Admin login",
+      description: `${settings.company_name} administration`,
+      path: "/admin/login",
+      noIndex: true,
+    },
+    settings
+  );
+}
 
 export default function AdminLoginPage() {
   return (

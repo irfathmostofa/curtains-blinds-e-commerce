@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { getBlogPost, getBlogPosts } from "@/lib/data/catalog";
+import { getBlogPost, getBlogPosts, getSiteSettings } from "@/lib/data/catalog";
 import { articleJsonLd, buildMetadata } from "@/lib/seo";
 import { JsonLd } from "@/components/json-ld";
 import { CTABanner } from "@/components/cta-banner";
@@ -22,14 +22,18 @@ export async function generateMetadata({
 }) {
   const post = await getBlogPost(params.slug);
   if (!post) return {};
-  return buildMetadata({
-    title: post.seo_title || post.title,
-    description: post.seo_description || post.excerpt || stripHtml(post.content).slice(0, 160),
-    path: `/blog/${post.slug}`,
-    image: post.cover_image_url,
-    type: "article",
-    keywords: post.seo_keywords || post.title,
-  });
+  const settings = await getSiteSettings();
+  return buildMetadata(
+    {
+      title: post.seo_title || post.title,
+      description: post.seo_description || post.excerpt || stripHtml(post.content).slice(0, 160),
+      path: `/blog/${post.slug}`,
+      image: post.cover_image_url,
+      type: "article",
+      keywords: post.seo_keywords || post.title,
+    },
+    settings
+  );
 }
 
 export default async function BlogPostPage({
@@ -39,6 +43,7 @@ export default async function BlogPostPage({
 }) {
   const post = await getBlogPost(params.slug);
   if (!post) notFound();
+  const settings = await getSiteSettings();
   return (
     <main className="container space-y-6 pt-4 pb-10 md:pt-5">
       <JsonLd
@@ -49,6 +54,7 @@ export default async function BlogPostPage({
           path: `/blog/${post.slug}`,
           author: post.author,
           date: post.published_at || new Date().toISOString(),
+          publisher: settings.company_name,
         })}
       />
       <Breadcrumbs

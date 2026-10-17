@@ -30,7 +30,7 @@ export function SiteShell({
       <Footer settings={settings} />
       <WhatsAppFloatingButton phone={settings.whatsapp} />
       <BackToTop />
-      <AiChatbot currency={settings.currency} cities={settings.form_cities} considering={settings.form_considering} rooms={settings.form_rooms} />
+      <AiChatbot companyName={settings.company_name} currency={settings.currency} cities={settings.form_cities} considering={settings.form_considering} rooms={settings.form_rooms} />
       <CookieConsentBanner />
     </SiteConfigProvider>
   );

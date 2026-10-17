@@ -61,7 +61,7 @@ set value = coalesce(value, '{}'::jsonb)
     'how_it_works', coalesce(value->'how_it_works', jsonb_build_object(
       'eyebrow', 'How it works',
       'title', 'Elegant curtains, delivered in four effortless steps.',
-      'subtitle', 'From the first click to perfectly hung curtains — every step is taken care of by the Reef Deco team. No showroom visit required.',
+      'subtitle', 'From the first click to perfectly hung curtains — every step is taken care of by our team. No showroom visit required.',
       'steps', jsonb_build_array(
         jsonb_build_object('number','01','title','Book a free site visit','body','Pick a time slot — our specialist comes to your home, office or hotel at zero cost.'),
         jsonb_build_object('number','02','title','Samples & exact measurement','body','We bring fabric swatches to your doorstep and measure each window precisely.'),

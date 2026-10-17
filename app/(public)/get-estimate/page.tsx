@@ -1,14 +1,20 @@
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { SectionHeading } from "@/components/section-heading";
+import { getSiteSettings } from "@/lib/data/catalog";
 import { buildMetadata } from "@/lib/seo";
 import { EstimateForm } from "./estimate-form";
 
-export const metadata = buildMetadata({
-  title: "Get a Curtains & Blinds Estimate",
-  description:
-    "Tell us room count, product type and budget. Maison Drape replies the same working day with a starting estimate for Dubai and Abu Dhabi.",
-  path: "/get-estimate",
-});
+export async function generateMetadata() {
+  const settings = await getSiteSettings();
+  return buildMetadata(
+    {
+      title: "Get a Curtains & Blinds Estimate",
+      description: `Tell us room count, product type and budget. ${settings.company_name} replies the same working day with a starting estimate for Dubai and Abu Dhabi.`,
+      path: "/get-estimate",
+    },
+    settings
+  );
+}
 
 export default function GetEstimatePage() {
   return (

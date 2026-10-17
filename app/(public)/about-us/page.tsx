@@ -6,11 +6,14 @@ import { buildMetadata } from "@/lib/seo";
 export async function generateMetadata() {
   const settings = await getSiteSettings();
   const about = settings.about;
-  return buildMetadata({
-    title: about.seo_title || about.intro.title || "About Maison Drape",
-    description: about.seo_description,
-    path: "/about-us",
-  });
+  return buildMetadata(
+    {
+      title: about.seo_title || about.intro.title || `About ${settings.company_name}`,
+      description: about.seo_description,
+      path: "/about-us",
+    },
+    settings
+  );
 }
 
 export default async function AboutPage() {

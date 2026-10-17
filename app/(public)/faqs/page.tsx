@@ -1,17 +1,23 @@
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { FAQAccordion } from "@/components/faq-accordion";
 import { SectionHeading } from "@/components/section-heading";
-import { getFaqs } from "@/lib/data/catalog";
+import { getFaqs, getSiteSettings } from "@/lib/data/catalog";
 import { buildMetadata, faqJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/json-ld";
 
 export const revalidate = 3600;
 
-export const metadata = buildMetadata({
-  title: "Curtains & Blinds FAQs",
-  description: "Lead times, free visits, motors, warranties and trade pricing for Maison Drape in Dubai and Abu Dhabi.",
-  path: "/faqs",
-});
+export async function generateMetadata() {
+  const settings = await getSiteSettings();
+  return buildMetadata(
+    {
+      title: "Curtains & Blinds FAQs",
+      description: `Lead times, free visits, motors, warranties and trade pricing for ${settings.company_name} in Dubai and Abu Dhabi.`,
+      path: "/faqs",
+    },
+    settings
+  );
+}
 
 export default async function FaqsPage() {
   const faqs = await getFaqs();

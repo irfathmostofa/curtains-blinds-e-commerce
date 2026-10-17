@@ -176,7 +176,7 @@ export function FormBuilder({
       return next;
     }
     if (config.key === "products") return { is_active: true, fabric_options: [] };
-    if (config.key === "posts") return { author: "Maison Drape Studio", content: "" };
+    if (config.key === "posts") return { author: "", content: "" };
     return {};
   });
   const [slugLocked, setSlugLocked] = useState(Boolean(initial?.slug));

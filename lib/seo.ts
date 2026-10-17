@@ -177,6 +177,7 @@ export function articleJsonLd(input: {
   path: string;
   author: string;
   date: string;
+  publisher?: string;
 }) {
   return {
     "@context": "https://schema.org",
@@ -187,6 +188,6 @@ export function articleJsonLd(input: {
     url: absoluteUrl(input.path, resolveSiteUrl()),
     author: { "@type": "Person", name: input.author },
     datePublished: input.date,
-    publisher: { "@type": "Organization", name: resolveSiteName() },
+    publisher: { "@type": "Organization", name: input.publisher || resolveSiteName() },
   };
 }

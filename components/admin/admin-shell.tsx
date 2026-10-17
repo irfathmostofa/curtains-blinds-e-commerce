@@ -23,6 +23,7 @@ import {
   X,
 } from "lucide-react";
 import { adminLogout } from "@/app/admin/actions";
+import { DEFAULT_SETTINGS } from "@/lib/site";
 import { navForRole, ROLE_LABELS, type AdminRole } from "@/lib/admin/roles";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -104,13 +105,16 @@ function NavLinks({
 export function AdminShell({
   children,
   role = "superadmin",
+  companyName = DEFAULT_SETTINGS.company_name,
 }: {
   children: ReactNode;
   role?: AdminRole;
+  companyName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const pathname = usePathname();
+  const brand = companyName.trim() || DEFAULT_SETTINGS.company_name;
 
   useEffect(() => {
     setOpen(false);
@@ -149,7 +153,7 @@ export function AdminShell({
         )}
       >
         <Link href="/admin" className="truncate font-serif text-lg">
-          Maison Admin
+          {brand} Admin
         </Link>
         <Button
           type="button"
@@ -181,7 +185,7 @@ export function AdminShell({
       <div className="lg:grid lg:min-h-dvh lg:grid-cols-[16.5rem_minmax(0,1fr)]">
         <aside className="sticky top-0 hidden h-dvh flex-col overflow-y-auto border-r bg-card p-5 lg:flex">
           <Link href="/admin" className="font-serif text-xl">
-            Maison Admin
+            {brand} Admin
           </Link>
           <div className="mt-6 flex-1">
             <NavLinks pathname={pathname} role={role} />

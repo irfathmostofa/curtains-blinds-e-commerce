@@ -258,7 +258,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       eyebrow: "How it works",
       title: "Elegant curtains, delivered in four effortless steps.",
       subtitle:
-        "From the first click to perfectly hung curtains — every step is taken care of by the Reef Deco team. No showroom visit required.",
+        "From the first click to perfectly hung curtains — every step is taken care of by our team. No showroom visit required.",
       steps: [
         {
           number: "01",

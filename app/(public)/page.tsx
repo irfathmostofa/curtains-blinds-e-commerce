@@ -12,14 +12,19 @@ import { buildMetadata, faqJsonLd, localBusinessJsonLd, organizationJsonLd } fro
 
 export const revalidate = 60;
 
-export const metadata = buildMetadata({
-  title: "Bespoke Curtains & Blinds in Dubai & Abu Dhabi",
-  description:
-    "Maison Drape designs and installs custom curtains, blinds and motorised tracks. Free in-home visit, 12-month warranty, Dubai and Abu Dhabi.",
-  path: "/",
-  keywords:
-    "curtains Dubai, custom curtains Dubai, blackout curtains Dubai, blinds Abu Dhabi, motorised curtains UAE, free curtain measuring Dubai",
-});
+export async function generateMetadata() {
+  const settings = await getSiteSettings();
+  return buildMetadata(
+    {
+      title: "Bespoke Curtains & Blinds in Dubai & Abu Dhabi",
+      description: `${settings.company_name} designs and installs custom curtains, blinds and motorised tracks. Free in-home visit, 12-month warranty, Dubai and Abu Dhabi.`,
+      path: "/",
+      keywords:
+        "curtains Dubai, custom curtains Dubai, blackout curtains Dubai, blinds Abu Dhabi, motorised curtains UAE, free curtain measuring Dubai",
+    },
+    settings
+  );
+}
 
 export default async function HomePage() {
   const [settings, categories, products, bestsellers, testimonials, partners, faqs] = await Promise.all([
