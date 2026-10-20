@@ -19,6 +19,7 @@ export function SiteShell({
     <SiteConfigProvider
       value={{
         currency: settings.currency,
+        showProductPrices: settings.show_product_prices !== false,
         cities: settings.form_cities,
         considering: settings.form_considering,
         budgets: settings.form_budgets,

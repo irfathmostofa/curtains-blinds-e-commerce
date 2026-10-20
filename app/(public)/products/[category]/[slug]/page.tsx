@@ -62,7 +62,7 @@ export default async function ProductPage({ params }: { params: { category: stri
           name: product.name,
           description: stripHtml(product.description),
           image: product.images[0]?.url || "",
-          price: product.base_price,
+          price: settings.show_product_prices === false ? 0 : product.base_price,
           path,
           rating: settings.trust.rating,
           reviewCount: settings.trust.reviews,

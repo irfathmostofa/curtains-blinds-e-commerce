@@ -36,7 +36,7 @@ export function ProductFilters({
   lockedCategory?: string;
 }) {
   const { t } = useLocale();
-  const { currency } = useSiteConfig();
+  const { currency, showProductPrices } = useSiteConfig();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -63,11 +63,11 @@ export function ProductFilters({
   const activeCount = useMemo(() => {
     let n = 0;
     if (!lockedCategory && category) n += 1;
-    if (sort) n += 1;
-    if (min > 0 || (Number.isFinite(max) && max < PRICE_MAX)) n += 1;
+    if (sort && (showProductPrices || (sort !== "price-asc" && sort !== "price-desc"))) n += 1;
+    if (showProductPrices && (min > 0 || (Number.isFinite(max) && max < PRICE_MAX))) n += 1;
     if (bestseller) n += 1;
     return n;
-  }, [bestseller, category, lockedCategory, max, min, sort]);
+  }, [bestseller, category, lockedCategory, max, min, showProductPrices, sort]);
 
   function go(overrides: Record<string, string | null>) {
     startNavigationProgress();
@@ -114,6 +114,7 @@ export function ProductFilters({
         )}
       </fieldset>
 
+      {showProductPrices ? (
       <fieldset className="space-y-2.5">
         <legend className="mb-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
           {t("Price")}
@@ -157,6 +158,7 @@ export function ProductFilters({
           ))}
         </div>
       </fieldset>
+      ) : null}
 
       <fieldset>
         <legend className="mb-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -179,8 +181,12 @@ export function ProductFilters({
         </legend>
         {[
           { value: "", label: t("Featured") },
-          { value: "price-asc", label: t("Price: low to high") },
-          { value: "price-desc", label: t("Price: high to low") },
+          ...(showProductPrices
+            ? [
+                { value: "price-asc", label: t("Price: low to high") },
+                { value: "price-desc", label: t("Price: high to low") },
+              ]
+            : []),
           { value: "name", label: t("Name A–Z") },
         ].map((opt) => (
           <FilterRow

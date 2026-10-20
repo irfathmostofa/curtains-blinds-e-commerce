@@ -195,6 +195,7 @@ function assembleSettings(
     meta_capi_test_event_code: "",
     tiktok_test_event_code: "",
     under_construction: asBool(general.under_construction, false),
+    show_product_prices: asBool(general.show_product_prices, true),
     currency: normalizeCurrency(general.currency ?? map.currency),
     form_cities: normalizeFormOptions(map.form_cities ?? general.form_cities, DEFAULT_SETTINGS.form_cities),
     form_considering: normalizeFormOptions(

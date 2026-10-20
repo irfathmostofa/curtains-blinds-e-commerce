@@ -11,6 +11,7 @@ export function PriceTag({
   note?: string;
 }) {
   const config = useSiteConfig();
+  if (!config.showProductPrices) return null;
   const code = currency || config.currency || "AED";
   return (
     <p className="text-sm text-muted-foreground">

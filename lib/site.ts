@@ -147,6 +147,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   meta_capi_test_event_code: "",
   tiktok_test_event_code: "",
   under_construction: false,
+  show_product_prices: true,
   currency: "AED",
   form_cities: [
     { id: "dubai", label: "Dubai", hint: "Villas, apartments and hotels" },

@@ -45,6 +45,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
     locations: normalizeLocations(initial.locations),
     business_hours_schedule: normalizeBusinessHoursSchedule(initial.business_hours_schedule),
     currency: normalizeCurrency(initial.currency),
+    show_product_prices: initial.show_product_prices !== false,
     form_cities: normalizeFormOptions(initial.form_cities, DEFAULT_SETTINGS.form_cities),
     form_considering: normalizeFormOptions(initial.form_considering, DEFAULT_SETTINGS.form_considering),
     form_budgets: normalizeBudgetOptions(initial.form_budgets, DEFAULT_SETTINGS.form_budgets),
@@ -241,6 +242,20 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               onChange={(e) => patch({ under_construction: e.target.checked })}
             />
             Under construction mode
+          </label>
+          <label className="flex items-start gap-3 rounded-xl border px-3 py-3 text-sm">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 accent-[hsl(var(--accent))]"
+              checked={settings.show_product_prices !== false}
+              onChange={(e) => patch({ show_product_prices: e.target.checked })}
+            />
+            <span>
+              Show product prices
+              <span className="mt-1 block text-xs text-muted-foreground">
+                When off, catalog cards, product pages and price filters hide amounts. Quotes still come from a visit or estimate.
+              </span>
+            </span>
           </label>
         </section>
         </TabsContent>

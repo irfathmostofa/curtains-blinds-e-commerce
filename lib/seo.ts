@@ -152,12 +152,16 @@ export function productJsonLd(input: {
     description: input.description,
     image: input.image,
     url: absoluteUrl(input.path, resolveSiteUrl()),
-    offers: {
-      "@type": "Offer",
-      priceCurrency: input.currency || "AED",
-      price: input.price,
-      availability: "https://schema.org/InStock",
-    },
+    ...(input.price > 0
+      ? {
+          offers: {
+            "@type": "Offer",
+            priceCurrency: input.currency || "AED",
+            price: input.price,
+            availability: "https://schema.org/InStock",
+          },
+        }
+      : {}),
     ...(input.rating
       ? {
           aggregateRating: {

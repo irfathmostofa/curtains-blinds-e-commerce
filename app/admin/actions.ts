@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, readdir, writeFile } from "fs/promises";
 import path from "path";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, createWriteClient } from "@/lib/supabase/admin";
@@ -202,6 +202,7 @@ export async function saveSettings(settings: Record<string, unknown>) {
   store.settings.homepage = mergeHomepage(store.settings.homepage);
   store.settings.about = mergeAbout(store.settings.about);
   store.settings.currency = normalizeCurrency(store.settings.currency);
+  store.settings.show_product_prices = store.settings.show_product_prices !== false;
   store.settings.form_cities = normalizeFormOptions(store.settings.form_cities, DEFAULT_SETTINGS.form_cities);
   store.settings.form_considering = normalizeFormOptions(
     store.settings.form_considering,
@@ -226,6 +227,7 @@ export async function saveSettings(settings: Record<string, unknown>) {
     tiktok_pixel_id: next.tiktok_pixel_id,
     payment_methods: normalizePaymentMethods(next.payment_methods),
     under_construction: Boolean(next.under_construction),
+    show_product_prices: next.show_product_prices !== false,
     currency: next.currency,
   };
   const incomingHasSecrets = SECRET_SETTING_KEYS.some((key) => key in settings);
@@ -322,4 +324,88 @@ async function saveLocalImage(
 function allowedBucket(folder: string) {
   const buckets = ["product-images", "blog-images", "partner-logos", "payment-logos"];
   return buckets.includes(folder) ? folder : "product-images";
+}
+
+function isThumbName(name: string) {
+  return /-thumb\.(webp|png|jpe?g|avif)$/i.test(name);
+}
+
+function isImageName(name: string) {
+  return /\.(webp|png|jpe?g|avif|gif)$/i.test(name);
+}
+
+function altFromFilename(name: string) {
+  return name
+    .replace(/-\d+(\-thumb)?\.(webp|png|jpe?g|avif|gif)$/i, "")
+    .replace(/\.(webp|png|jpe?g|avif|gif)$/i, "")
+    .replace(/[-_]+/g, " ")
+    .trim();
+}
+
+export type UploadedImageItem = {
+  url: string;
+  thumbnailUrl: string;
+  name: string;
+  alt: string;
+};
+
+export async function listUploadedImages(folder?: string) {
+  const session = await getAdminSession();
+  if (!session.loggedIn) return { error: "Sign in to continue." };
+
+  const bucket = allowedBucket(folder || "product-images");
+
+  const items: UploadedImageItem[] = [];
+  const seen = new Set<string>();
+  const buckets =
+    session.role === "editor"
+      ? ["product-images", "blog-images"]
+      : ["product-images", "blog-images", "partner-logos", "payment-logos"];
+  const orderedBuckets = [bucket, ...buckets.filter((name) => name !== bucket)];
+
+  const admin = createAdminClient();
+  if (admin) {
+    for (const name of orderedBuckets) {
+      const { data } = await admin.storage.from(name).list("", {
+        limit: 200,
+        sortBy: { column: "created_at", order: "desc" },
+      });
+      for (const file of data || []) {
+        if (!file.name || file.name.endsWith("/") || isThumbName(file.name) || !isImageName(file.name)) continue;
+        const url = admin.storage.from(name).getPublicUrl(file.name).data.publicUrl;
+        if (seen.has(url)) continue;
+        seen.add(url);
+        const thumbName = file.name.replace(/\.(webp|png|jpe?g|avif|gif)$/i, "-thumb.webp");
+        items.push({
+          url,
+          thumbnailUrl: admin.storage.from(name).getPublicUrl(thumbName).data.publicUrl,
+          name: file.name,
+          alt: altFromFilename(file.name),
+        });
+      }
+    }
+  }
+
+  try {
+    const dir = path.join(process.cwd(), "public", "uploads");
+    const files = await readdir(dir);
+    const thumbs = new Set(files.filter((name) => isThumbName(name)));
+    for (const name of files.slice().reverse()) {
+      if (name.startsWith(".") || isThumbName(name) || !isImageName(name)) continue;
+      const url = `/uploads/${name}`;
+      if (seen.has(url)) continue;
+      seen.add(url);
+      const thumbName = name.replace(/\.(webp|png|jpe?g|avif|gif)$/i, "-thumb.webp");
+      items.push({
+        url,
+        thumbnailUrl: thumbs.has(thumbName) ? `/uploads/${thumbName}` : url,
+        name,
+        alt: altFromFilename(name),
+      });
+    }
+  } catch {
+    return { items };
+  }
+
+  return { items };
 }

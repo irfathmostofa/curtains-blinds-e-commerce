@@ -6,6 +6,7 @@ import type { BudgetOption, FormOption } from "@/lib/types";
 
 export type SiteConfigValue = {
   currency: string;
+  showProductPrices: boolean;
   cities: FormOption[];
   considering: FormOption[];
   budgets: BudgetOption[];
@@ -14,6 +15,7 @@ export type SiteConfigValue = {
 
 const SiteConfigContext = createContext<SiteConfigValue>({
   currency: DEFAULT_SETTINGS.currency,
+  showProductPrices: DEFAULT_SETTINGS.show_product_prices,
   cities: DEFAULT_SETTINGS.form_cities,
   considering: DEFAULT_SETTINGS.form_considering,
   budgets: DEFAULT_SETTINGS.form_budgets,

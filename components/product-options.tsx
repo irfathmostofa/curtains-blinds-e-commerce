@@ -10,7 +10,7 @@ import { useSiteConfig } from "@/components/site-config";
 import { formatMoney } from "@/lib/utils";
 
 export function ProductOptions({ product }: { product: Product }) {
-  const { currency } = useSiteConfig();
+  const { currency, showProductPrices } = useSiteConfig();
   const variants = product.variants || [];
   const [variantId, setVariantId] = useState(variants[0]?.id);
   const [fabric, setFabric] = useState(product.fabric_options[0]);
@@ -19,11 +19,14 @@ export function ProductOptions({ product }: { product: Product }) {
 
   return (
     <div className="space-y-8">
-      <PriceTag amount={price} />
+      {showProductPrices ? <PriceTag amount={price} /> : null}
       {variants.length ? (
         <VariantSelector
           label="Size & specification"
-          variants={variants.map((v) => ({ id: v.id, label: `${v.size_label} · ${formatMoney(v.price, currency)}` }))}
+          variants={variants.map((v) => ({
+            id: v.id,
+            label: showProductPrices ? `${v.size_label} · ${formatMoney(v.price, currency)}` : v.size_label,
+          }))}
           value={variantId}
           onSelect={setVariantId}
         />
@@ -36,14 +39,15 @@ export function ProductOptions({ product }: { product: Product }) {
           onSelect={setFabric}
         />
       ) : null}
+      {variants.length ? (
       <div className="overflow-x-auto rounded-2xl border">
         <table className="w-full text-sm">
-          <caption className="sr-only">Price table</caption>
+          <caption className="sr-only">{showProductPrices ? "Price table" : "Specification table"}</caption>
           <thead className="bg-secondary text-left">
             <tr>
               <th className="px-4 py-3 font-medium">Specification</th>
               <th className="px-4 py-3 font-medium">SKU</th>
-              <th className="px-4 py-3 font-medium">Price ({currency})</th>
+              {showProductPrices ? <th className="px-4 py-3 font-medium">Price ({currency})</th> : null}
             </tr>
           </thead>
           <tbody>
@@ -51,12 +55,13 @@ export function ProductOptions({ product }: { product: Product }) {
               <tr key={v.id} className="border-t">
                 <td className="px-4 py-3">{v.size_label}</td>
                 <td className="px-4 py-3">{v.sku}</td>
-                <td className="px-4 py-3">{formatMoney(v.price, currency)}</td>
+                {showProductPrices ? <td className="px-4 py-3">{formatMoney(v.price, currency)}</td> : null}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      ) : null}
       <div className="flex flex-wrap gap-3">
         <Button asChild>
           <Link href="/book">Book a free visit</Link>

@@ -386,6 +386,7 @@ export type SiteSettings = {
   meta_capi_test_event_code: string;
   tiktok_test_event_code: string;
   under_construction: boolean;
+  show_product_prices: boolean;
   currency: string;
   form_cities: FormOption[];
   form_considering: FormOption[];
