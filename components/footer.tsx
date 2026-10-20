@@ -62,9 +62,13 @@ export function Footer({ settings }: { settings: SiteSettings }) {
           </h2>
           <div className="mt-4 space-y-4 text-sm text-primary-foreground/80">
             {settings.locations.length ? (
-              settings.locations.map((loc) => (
+              settings.locations.map((loc) => {
+                const phones = (loc.phones?.length ? loc.phones : loc.phone ? [loc.phone] : []).filter(
+                  (item) => item.trim()
+                );
+                return (
                 <address
-                  key={`${loc.city}-${loc.phone}-${loc.address}`}
+                  key={`${loc.city}-${phones.join("-")}-${loc.address}`}
                   className="not-italic"
                 >
                   {loc.city ? (
@@ -73,15 +77,14 @@ export function Footer({ settings }: { settings: SiteSettings }) {
                     </p>
                   ) : null}
                   {loc.address ? <p>{t(loc.address)}</p> : null}
-                  {loc.phone ? (
-                    <p>
-                      <a href={`tel:${loc.phone.replace(/\s/g, "")}`}>
-                        {loc.phone}
-                      </a>
+                  {phones.map((phone) => (
+                    <p key={phone}>
+                      <a href={`tel:${phone.replace(/\s/g, "")}`}>{phone}</a>
                     </p>
-                  ) : null}
+                  ))}
                 </address>
-              ))
+                );
+              })
             ) : (
               <p>{t("Visit details coming soon.")}</p>
             )}
@@ -92,16 +95,18 @@ export function Footer({ settings }: { settings: SiteSettings }) {
             {t("Contact")}
           </h2>
           <ul className="mt-4 space-y-2 text-sm text-primary-foreground/80">
-            <li>
-              <a href={`mailto:${settings.email}`}>{settings.email}</a>
-            </li>
-            <li>
-              <a
-                href={`https://wa.me/${settings.whatsapp.replace(/[^\d]/g, "")}`}
-              >
-                {t("WhatsApp")}
-              </a>
-            </li>
+            {(settings.phones?.length ? settings.phones : settings.phone ? [settings.phone] : [])
+              .filter((item) => item.trim())
+              .map((phone) => (
+                <li key={phone}>
+                  <a href={`tel:${phone.replace(/\s/g, "")}`}>{phone}</a>
+                </li>
+              ))}
+            {settings.email ? (
+              <li>
+                <a href={`mailto:${settings.email}`}>{settings.email}</a>
+              </li>
+            ) : null}
           </ul>
           <div className="mt-4 space-y-2 text-sm text-primary-foreground/80">
             {availability ? (

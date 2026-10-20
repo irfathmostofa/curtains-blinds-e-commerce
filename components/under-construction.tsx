@@ -9,9 +9,23 @@ export function UnderConstruction({ settings }: { settings: SiteSettings }) {
         The site is being prepared. Please check back soon.
       </p>
       <p className="mt-8 text-sm text-muted-foreground">
-        {settings.email ? <a href={`mailto:${settings.email}`}>{settings.email}</a> : null}
-        {settings.email && settings.phone ? " · " : null}
-        {settings.phone ? <a href={`tel:${settings.phone.replace(/\s/g, "")}`}>{settings.phone}</a> : null}
+        {[
+          settings.email ? <a key="email" href={`mailto:${settings.email}`}>{settings.email}</a> : null,
+          ...(settings.phones?.length ? settings.phones : settings.phone ? [settings.phone] : [])
+            .filter((item) => item.trim())
+            .map((phone) => (
+              <a key={phone} href={`tel:${phone.replace(/\s/g, "")}`}>
+                {phone}
+              </a>
+            )),
+        ]
+          .filter(Boolean)
+          .map((node, index) => (
+            <span key={index}>
+              {index > 0 ? " · " : null}
+              {node}
+            </span>
+          ))}
       </p>
     </main>
   );

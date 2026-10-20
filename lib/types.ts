@@ -150,6 +150,7 @@ export type LocationInfo = {
   city: string;
   address: string;
   phone: string;
+  phones: string[];
   mapEmbedUrl: string;
 };
 
@@ -352,6 +353,7 @@ export type SiteSettings = {
   site_url: string;
   tagline: string;
   phone: string;
+  phones: string[];
   email: string;
   whatsapp: string;
   social_links: { label: string; href: string }[];

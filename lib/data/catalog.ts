@@ -15,6 +15,8 @@ import {
   normalizeFormOptions,
   normalizeLocations,
   normalizePaymentMethods,
+  normalizePhoneList,
+  primaryPhone,
   omitSecrets,
   SECRET_SETTING_KEYS,
 } from "@/lib/site";
@@ -159,12 +161,14 @@ function assembleSettings(
 ): SiteSettings {
   const general = asRecord(map.general);
   const secrets = asRecord(map.secrets);
+  const phones = normalizePhoneList(general.phones, general.phone);
   const assembled: SiteSettings = {
     ...DEFAULT_SETTINGS,
     company_name: str(general.company_name, DEFAULT_SETTINGS.company_name),
     site_url: str(general.site_url, DEFAULT_SETTINGS.site_url),
     tagline: str(general.tagline, DEFAULT_SETTINGS.tagline),
-    phone: str(general.phone, DEFAULT_SETTINGS.phone),
+    phones: phones.length ? phones : [...DEFAULT_SETTINGS.phones],
+    phone: primaryPhone(phones, str(general.phone, DEFAULT_SETTINGS.phone)),
     email: str(general.email, DEFAULT_SETTINGS.email),
     whatsapp: str(general.whatsapp, DEFAULT_SETTINGS.whatsapp),
     business_hours_schedule: normalizeBusinessHoursSchedule(

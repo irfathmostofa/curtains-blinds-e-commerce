@@ -19,6 +19,7 @@ import {
   normalizeFormOptions,
   normalizeLocations,
   normalizePaymentMethods,
+  normalizePhoneList,
   DEFAULT_SETTINGS,
 } from "@/lib/site";
 import type { BudgetOption, DayHours, FormOption, PaymentMethod, SiteSettings, Weekday } from "@/lib/types";
@@ -40,6 +41,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   const [settings, setSettings] = useState<SiteSettings>(() => ({
     ...initial,
     payment_methods: normalizePaymentMethods(initial.payment_methods),
+    phones: normalizePhoneList(initial.phones, initial.phone),
     locations: normalizeLocations(initial.locations),
     business_hours_schedule: normalizeBusinessHoursSchedule(initial.business_hours_schedule),
     currency: normalizeCurrency(initial.currency),
@@ -114,7 +116,10 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   function addLocation() {
     setSettings((s) => ({
       ...s,
-      locations: [...s.locations, { city: "", address: "", phone: s.phone || "", mapEmbedUrl: "" }],
+      locations: [
+        ...s.locations,
+        { city: "", address: "", phone: "", phones: [], mapEmbedUrl: "" },
+      ],
     }));
   }
 
@@ -257,9 +262,49 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
                 onChange={(e) => patch({ site_url: e.target.value })}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" value={settings.phone} onChange={(e) => patch({ phone: e.target.value })} />
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Phone numbers</Label>
+              <div className="space-y-2">
+                {(settings.phones.length ? settings.phones : [""]).map((phone, index) => {
+                  const contactPhones = settings.phones.length ? settings.phones : [""];
+                  return (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      id={`contact-phone-${index}`}
+                      type="tel"
+                      value={phone}
+                      placeholder="+971 4 555 1200"
+                      onChange={(e) => {
+                        const phones = contactPhones.map((item, i) => (i === index ? e.target.value : item));
+                        patch({ phones, phone: phones.find((item) => item.trim()) || "" });
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const phones = contactPhones.filter((_, i) => i !== index);
+                        patch({ phones, phone: phones.find((item) => item.trim()) || "" });
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                  );
+                })}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => patch({ phones: [...settings.phones, ""] })}
+                >
+                  Add phone number
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Shown in the footer Contact column. WhatsApp stays on the floating button only.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Inbox email</Label>
@@ -295,26 +340,58 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               <h2 className="font-serif text-xl">Visit locations</h2>
               <p className="text-xs text-muted-foreground">Shown in the footer Visit column and on the About page.</p>
             </div>
-            {settings.locations.map((loc, index) => (
+            {settings.locations.map((loc, index) => {
+              const locPhones = loc.phones?.length ? loc.phones : loc.phone ? [loc.phone] : [""];
+              return (
               <div key={index} className="space-y-3 rounded-xl border p-3">
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor={`loc-city-${index}`}>City</Label>
+                  <Input
+                    id={`loc-city-${index}`}
+                    value={loc.city}
+                    placeholder="Dubai"
+                    onChange={(e) => patchLocation(index, { city: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Phone numbers</Label>
                   <div className="space-y-2">
-                    <Label htmlFor={`loc-city-${index}`}>City</Label>
-                    <Input
-                      id={`loc-city-${index}`}
-                      value={loc.city}
-                      placeholder="Dubai"
-                      onChange={(e) => patchLocation(index, { city: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`loc-phone-${index}`}>Phone</Label>
-                    <Input
-                      id={`loc-phone-${index}`}
-                      value={loc.phone}
-                      placeholder="+971 4 555 1200"
-                      onChange={(e) => patchLocation(index, { phone: e.target.value })}
-                    />
+                    {locPhones.map((phone, phoneIndex) => (
+                      <div key={phoneIndex} className="flex gap-2">
+                        <Input
+                          id={`loc-phone-${index}-${phoneIndex}`}
+                          type="tel"
+                          value={phone}
+                          placeholder="+971 4 555 1200"
+                          onChange={(e) => {
+                            const phones = locPhones.map((item, i) => (i === phoneIndex ? e.target.value : item));
+                            patchLocation(index, { phones, phone: phones.find((item) => item.trim()) || "" });
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const phones = locPhones.filter((_, i) => i !== phoneIndex);
+                            patchLocation(index, { phones, phone: phones.find((item) => item.trim()) || "" });
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const phones = [...locPhones, ""];
+                        patchLocation(index, { phones, phone: phones.find((item) => item.trim()) || "" });
+                      }}
+                    >
+                      Add phone number
+                    </Button>
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -339,7 +416,8 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
                   Remove location
                 </Button>
               </div>
-            ))}
+              );
+            })}
             {!settings.locations.length ? (
               <p className="text-sm text-muted-foreground">No visit locations yet. Add one below.</p>
             ) : null}

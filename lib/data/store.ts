@@ -5,6 +5,8 @@ import {
   normalizeBusinessHoursSchedule,
   normalizeLocations,
   normalizePaymentMethods,
+  normalizePhoneList,
+  primaryPhone,
 } from "@/lib/site";
 import type {
   BlogPost,
@@ -63,6 +65,8 @@ export function getStore(): Store {
   g.__mdStore.settings.about = mergeAbout(g.__mdStore.settings.about);
   g.__mdStore.settings.payment_methods = normalizePaymentMethods(g.__mdStore.settings.payment_methods);
   g.__mdStore.settings.locations = normalizeLocations(g.__mdStore.settings.locations);
+  g.__mdStore.settings.phones = normalizePhoneList(g.__mdStore.settings.phones, g.__mdStore.settings.phone);
+  g.__mdStore.settings.phone = primaryPhone(g.__mdStore.settings.phones, g.__mdStore.settings.phone);
   g.__mdStore.settings.business_hours_schedule = normalizeBusinessHoursSchedule(
     g.__mdStore.settings.business_hours_schedule
   );

@@ -59,6 +59,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   site_url: SITE_URL,
   tagline: "Bespoke curtains, blinds and motorised window treatments across the UAE.",
   phone: "+971 4 555 1200",
+  phones: ["+971 4 555 1200"],
   email: "hello@maisondrape.ae",
   whatsapp: "971500000000",
   business_hours: "Saturday–Thursday, 9:00–20:00",
@@ -101,6 +102,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       city: "Dubai",
       address: "Al Quoz Industrial Area 1, Warehouse 14, Dubai, UAE",
       phone: "+971 4 555 1200",
+      phones: ["+971 4 555 1200"],
       mapEmbedUrl:
         "https://maps.google.com/maps?q=Al%20Quoz%20Dubai&t=&z=13&ie=UTF8&iwloc=&output=embed",
     },
@@ -108,6 +110,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
       city: "Abu Dhabi",
       address: "Mussafah Industrial, Street 10, Abu Dhabi, UAE",
       phone: "+971 2 555 1188",
+      phones: ["+971 2 555 1188"],
       mapEmbedUrl:
         "https://maps.google.com/maps?q=Mussafah%20Abu%20Dhabi&t=&z=13&ie=UTF8&iwloc=&output=embed",
     },
@@ -548,18 +551,41 @@ function normalizeTime(value: unknown, fallback: string) {
   return `${String(hour).padStart(2, "0")}:${match[2]}`;
 }
 
+export function normalizePhoneList(value: unknown, extra?: unknown): string[] {
+  const collected: string[] = [];
+  const push = (entry: unknown) => {
+    if (Array.isArray(entry)) {
+      entry.forEach(push);
+      return;
+    }
+    String(entry || "")
+      .split(/[\n,;|]+/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .forEach((item) => collected.push(item));
+  };
+  push(value);
+  push(extra);
+  return Array.from(new Set(collected));
+}
+
+export function primaryPhone(phones: string[], fallback = ""): string {
+  return phones[0] || fallback;
+}
+
 export function normalizeLocations(value: unknown): LocationInfo[] {
-  if (!Array.isArray(value)) return DEFAULT_SETTINGS.locations.map((loc) => ({ ...loc }));
+  if (!Array.isArray(value)) return DEFAULT_SETTINGS.locations.map((loc) => ({ ...loc, phones: [...loc.phones] }));
   return value
     .map((item) => {
       if (!item || typeof item !== "object") return null;
-      const row = item as Partial<LocationInfo>;
+      const row = item as Partial<LocationInfo> & { phones?: unknown };
       const city = String(row.city || "").trim();
       const address = String(row.address || "").trim();
-      const phone = String(row.phone || "").trim();
+      const phones = normalizePhoneList(row.phones, row.phone);
+      const phone = primaryPhone(phones);
       const mapEmbedUrl = String(row.mapEmbedUrl || "").trim();
-      if (!city && !address && !phone) return null;
-      return { city, address, phone, mapEmbedUrl };
+      if (!city && !address && !phones.length) return null;
+      return { city, address, phone, phones, mapEmbedUrl };
     })
     .filter(Boolean) as LocationInfo[];
 }

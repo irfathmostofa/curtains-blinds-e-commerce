@@ -77,7 +77,7 @@ export function organizationJsonLd(settings: SiteSettings) {
     "@type": "Organization",
     name: settings.company_name,
     url: resolveSiteUrl(settings),
-    telephone: settings.phone,
+    telephone: (settings.phones?.length ? settings.phones : [settings.phone]).filter((item) => item.trim()),
     email: settings.email,
     sameAs: settings.social_links.map((s) => s.href),
   };
@@ -95,7 +95,7 @@ export function localBusinessJsonLd(settings: SiteSettings) {
     "@context": "https://schema.org",
     "@type": "HomeAndConstructionBusiness",
     name: `${settings.company_name} ${loc.city}`,
-    telephone: loc.phone,
+    telephone: (loc.phones?.length ? loc.phones : loc.phone ? [loc.phone] : []).filter((item) => item.trim()),
     email: settings.email,
     address: {
       "@type": "PostalAddress",

@@ -26,6 +26,8 @@ import {
   normalizeFormOptions,
   normalizeLocations,
   normalizePaymentMethods,
+  normalizePhoneList,
+  primaryPhone,
   DEFAULT_SETTINGS,
 } from "@/lib/site";
 import type { SiteSettings } from "@/lib/types";
@@ -193,6 +195,8 @@ export async function saveSettings(settings: Record<string, unknown>) {
   store.settings = { ...store.settings, ...settings } as typeof store.settings;
   store.settings.payment_methods = normalizePaymentMethods(store.settings.payment_methods);
   store.settings.locations = normalizeLocations(store.settings.locations);
+  store.settings.phones = normalizePhoneList(store.settings.phones, store.settings.phone);
+  store.settings.phone = primaryPhone(store.settings.phones, store.settings.phone);
   store.settings.business_hours_schedule = normalizeBusinessHoursSchedule(store.settings.business_hours_schedule);
   store.settings.business_hours = formatBusinessHoursSummary(store.settings.business_hours_schedule);
   store.settings.homepage = mergeHomepage(store.settings.homepage);
@@ -211,6 +215,7 @@ export async function saveSettings(settings: Record<string, unknown>) {
     site_url: next.site_url,
     tagline: next.tagline,
     phone: next.phone,
+    phones: next.phones,
     email: next.email,
     whatsapp: next.whatsapp,
     business_hours: next.business_hours,
