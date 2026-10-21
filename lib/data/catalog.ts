@@ -5,6 +5,16 @@ import { createPublicClient } from "@/lib/supabase/server";
 import { createWriteClient } from "@/lib/supabase/admin";
 import { getStore } from "@/lib/data/store";
 import {
+  blogPosts as seedBlogPosts,
+  categories as seedCategories,
+  cmsPages as seedCmsPages,
+  faqs as seedFaqs,
+  partners as seedPartners,
+  productVariants as seedVariants,
+  products as seedProducts,
+  testimonials as seedTestimonials,
+} from "@/lib/data/fallback";
+import {
   DEFAULT_SETTINGS,
   formatBusinessHoursSummary,
   mergeAbout,
@@ -45,6 +55,14 @@ function hydrate(product: Product, categories: Category[], variants: ProductVari
   };
 }
 
+function withSeed<T>(rows: T[], seed: T[]): T[] {
+  return rows.length ? rows : seed.map((item) => structuredClone(item));
+}
+
+function seedHydratedProducts(): Product[] {
+  return seedProducts.map((product) => hydrate(product, seedCategories, seedVariants));
+}
+
 function catalogClient() {
   return createPublicClient();
 }
@@ -80,66 +98,88 @@ function cached<T>(key: string, fn: () => Promise<T>) {
 }
 
 const fetchCategories = cached("catalog-categories", async () =>
-  queryRows(async (supabase) => {
-    const { data } = await supabase.from("categories").select("*").order("sort_order");
-    return data as Category[] | null;
-  })
+  withSeed(
+    await queryRows(async (supabase) => {
+      const { data } = await supabase.from("categories").select("*").order("sort_order");
+      return data as Category[] | null;
+    }),
+    seedCategories
+  )
 );
 
 const fetchVariants = cached("catalog-variants", async () =>
-  queryRows(async (supabase) => {
-    const { data } = await supabase.from("product_variants").select("*");
-    return data as ProductVariant[] | null;
-  })
+  withSeed(
+    await queryRows(async (supabase) => {
+      const { data } = await supabase.from("product_variants").select("*");
+      return data as ProductVariant[] | null;
+    }),
+    seedVariants
+  )
 );
 
 const fetchActiveProducts = cached("catalog-products-active", async () => {
   const supabase = catalogClient();
-  if (!supabase) return [] as Product[];
+  if (!supabase) return seedHydratedProducts();
   const [catRes, varRes, prodRes] = await Promise.all([
     supabase.from("categories").select("*").order("sort_order"),
     supabase.from("product_variants").select("*"),
     supabase.from("products").select("*").eq("is_active", true).order("created_at", { ascending: false }),
   ]);
-  const categories = (catRes.data as Category[]) ?? [];
-  const variants = (varRes.data as ProductVariant[]) ?? [];
+  const categories = withSeed((catRes.data as Category[]) ?? [], seedCategories);
+  const variants = withSeed((varRes.data as ProductVariant[]) ?? [], seedVariants);
   const products = (prodRes.data as Product[]) ?? [];
+  if (!products.length) return seedHydratedProducts();
   return products.map((p) => hydrate(p, categories, variants));
 });
 
 const fetchFaqs = cached("catalog-faqs", async () =>
-  queryRows(async (supabase) => {
-    const { data } = await supabase.from("faqs").select("*").order("sort_order");
-    return data as Faq[] | null;
-  })
+  withSeed(
+    await queryRows(async (supabase) => {
+      const { data } = await supabase.from("faqs").select("*").order("sort_order");
+      return data as Faq[] | null;
+    }),
+    seedFaqs
+  )
 );
 
 const fetchPartners = cached("catalog-partners", async () =>
-  queryRows(async (supabase) => {
-    const { data } = await supabase.from("partners").select("*").order("sort_order");
-    return data as Partner[] | null;
-  })
+  withSeed(
+    await queryRows(async (supabase) => {
+      const { data } = await supabase.from("partners").select("*").order("sort_order");
+      return data as Partner[] | null;
+    }),
+    seedPartners
+  )
 );
 
 const fetchFeaturedTestimonials = cached("catalog-testimonials-featured", async () =>
-  queryRows(async (supabase) => {
-    const { data } = await supabase.from("testimonials").select("*").eq("is_featured", true).order("created_at", { ascending: false });
-    return data as Testimonial[] | null;
-  })
+  withSeed(
+    await queryRows(async (supabase) => {
+      const { data } = await supabase.from("testimonials").select("*").eq("is_featured", true).order("created_at", { ascending: false });
+      return data as Testimonial[] | null;
+    }),
+    seedTestimonials
+  )
 );
 
 const fetchPublishedPosts = cached("catalog-blog-published", async () =>
-  queryRows(async (supabase) => {
-    const { data } = await supabase.from("blog_posts").select("*").not("published_at", "is", null).order("published_at", { ascending: false });
-    return data as BlogPost[] | null;
-  })
+  withSeed(
+    await queryRows(async (supabase) => {
+      const { data } = await supabase.from("blog_posts").select("*").not("published_at", "is", null).order("published_at", { ascending: false });
+      return data as BlogPost[] | null;
+    }),
+    seedBlogPosts
+  )
 );
 
 const fetchCmsPages = cached("catalog-cms-pages", async () =>
-  queryRows(async (supabase) => {
-    const { data } = await supabase.from("cms_pages").select("*").order("slug");
-    return data as CmsPage[] | null;
-  })
+  withSeed(
+    await queryRows(async (supabase) => {
+      const { data } = await supabase.from("cms_pages").select("*").order("slug");
+      return data as CmsPage[] | null;
+    }),
+    seedCmsPages
+  )
 );
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -298,7 +338,8 @@ export const getProducts = cache(async (opts?: { includeInactive?: boolean }): P
       return data as Product[] | null;
     }),
   ]);
-  return products.map((p) => hydrate(p, categories, variants));
+  if (!products.length) return seedHydratedProducts();
+  return products.map((p) => hydrate(p, withSeed(categories, seedCategories), withSeed(variants, seedVariants)));
 });
 
 export const getCategoryBySlug = cache(async (slug: string): Promise<Category | undefined> => {
@@ -328,10 +369,13 @@ export const getRelatedProducts = cache(async (productId: string, categoryId: st
 
 export async function getTestimonials(opts?: { includeHidden?: boolean }): Promise<Testimonial[]> {
   if (opts?.includeHidden) {
-    return queryRows(async (supabase) => {
-      const { data } = await supabase.from("testimonials").select("*").order("created_at", { ascending: false });
-      return data as Testimonial[] | null;
-    });
+    return withSeed(
+      await queryRows(async (supabase) => {
+        const { data } = await supabase.from("testimonials").select("*").order("created_at", { ascending: false });
+        return data as Testimonial[] | null;
+      }),
+      seedTestimonials
+    );
   }
   return fetchFeaturedTestimonials();
 }
@@ -345,10 +389,11 @@ export const getFaqs = cache(async (category?: string): Promise<Faq[]> => {
 
 export async function getBlogPosts(opts?: { includeDrafts?: boolean }): Promise<BlogPost[]> {
   if (opts?.includeDrafts) {
-    return queryAdminRows(getStore().posts, async (supabase) => {
+    const rows = await queryAdminRows(getStore().posts, async (supabase) => {
       const { data, error } = await supabase.from("blog_posts").select("*").order("published_at", { ascending: false });
       return { data: data as BlogPost[] | null, error };
     });
+    return withSeed(rows, seedBlogPosts);
   }
   const posts = await fetchPublishedPosts();
   return posts.filter((p) => p.published_at);

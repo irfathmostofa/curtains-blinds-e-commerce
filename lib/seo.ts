@@ -88,8 +88,8 @@ export function localBusinessJsonLd(settings: SiteSettings) {
   const openingHoursSpecification = WEEKDAYS.filter((day) => !schedule.days[day].closed).map((day) => ({
     "@type": "OpeningHoursSpecification",
     dayOfWeek: WEEKDAY_LABELS[day],
-    opens: schedule.days[day].open,
-    closes: schedule.days[day].close,
+    opens: schedule.days[day].all_day ? "00:00" : schedule.days[day].open,
+    closes: schedule.days[day].all_day ? "23:59" : schedule.days[day].close,
   }));
   return settings.locations.map((loc) => ({
     "@context": "https://schema.org",

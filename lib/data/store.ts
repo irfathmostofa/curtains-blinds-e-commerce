@@ -8,6 +8,16 @@ import {
   normalizePhoneList,
   primaryPhone,
 } from "@/lib/site";
+import {
+  blogPosts,
+  categories,
+  cmsPages,
+  faqs,
+  partners,
+  productVariants,
+  products,
+  testimonials,
+} from "@/lib/data/fallback";
 import type {
   BlogPost,
   Booking,
@@ -43,17 +53,17 @@ const g = globalThis as unknown as { __mdStore?: Store };
 
 function empty(): Store {
   return {
-    categories: [],
-    products: [],
-    variants: [],
+    categories: structuredClone(categories),
+    products: structuredClone(products),
+    variants: structuredClone(productVariants),
     leads: [],
     chatLeads: [],
     bookings: [],
-    testimonials: [],
-    posts: [],
-    faqs: [],
-    partners: [],
-    pages: [],
+    testimonials: structuredClone(testimonials),
+    posts: structuredClone(blogPosts),
+    faqs: structuredClone(faqs),
+    partners: structuredClone(partners),
+    pages: structuredClone(cmsPages),
     settings: structuredClone(DEFAULT_SETTINGS),
     users: [],
   };

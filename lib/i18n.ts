@@ -27,6 +27,7 @@ const ar: Record<string, string> = {
   "Closed today": "مغلق اليوم",
   Today: "اليوم",
   Closed: "مغلق",
+  "24hrs": "٢٤ ساعة",
   Sunday: "الأحد",
   Monday: "الاثنين",
   Tuesday: "الثلاثاء",

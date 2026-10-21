@@ -578,29 +578,46 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               {WEEKDAYS.map((day) => {
                 const hours = settings.business_hours_schedule.days[day];
                 return (
-                  <div key={day} className="grid items-center gap-2 rounded-xl border px-3 py-2 sm:grid-cols-[7rem_auto_1fr_1fr]">
+                  <div key={day} className="grid items-center gap-2 rounded-xl border px-3 py-2 sm:grid-cols-[7rem_auto_auto_1fr_1fr]">
                     <p className="text-sm font-medium">{WEEKDAY_LABELS[day]}</p>
                     <label className="flex items-center gap-2 text-xs text-muted-foreground">
                       <input
                         type="checkbox"
                         className="h-4 w-4 accent-[hsl(var(--accent))]"
                         checked={hours.closed}
-                        onChange={(e) => patchHoursDay(day, { closed: e.target.checked })}
+                        disabled={hours.all_day}
+                        onChange={(e) => patchHoursDay(day, { closed: e.target.checked, all_day: false })}
                       />
                       Closed
+                    </label>
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-[hsl(var(--accent))]"
+                        checked={hours.all_day}
+                        onChange={(e) =>
+                          patchHoursDay(
+                            day,
+                            e.target.checked
+                              ? { all_day: true, closed: false, open: "00:00", close: "23:59" }
+                              : { all_day: false }
+                          )
+                        }
+                      />
+                      24hrs
                     </label>
                     <Input
                       type="time"
                       aria-label={`${WEEKDAY_LABELS[day]} opens`}
                       value={hours.open}
-                      disabled={hours.closed}
+                      disabled={hours.closed || hours.all_day}
                       onChange={(e) => patchHoursDay(day, { open: e.target.value })}
                     />
                     <Input
                       type="time"
                       aria-label={`${WEEKDAY_LABELS[day]} closes`}
                       value={hours.close}
-                      disabled={hours.closed}
+                      disabled={hours.closed || hours.all_day}
                       onChange={(e) => patchHoursDay(day, { close: e.target.value })}
                     />
                   </div>

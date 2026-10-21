@@ -130,7 +130,9 @@ export function Footer({ settings }: { settings: SiteSettings }) {
                 const hours = schedule.days[day];
                 const range = hours.closed
                   ? t("Closed")
-                  : `${formatClock(hours.open)}–${formatClock(hours.close)}`;
+                  : hours.all_day
+                    ? t("24hrs")
+                    : `${formatClock(hours.open)}–${formatClock(hours.close)}`;
                 return (
                   <li
                     key={day}

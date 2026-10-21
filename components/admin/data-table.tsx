@@ -3,6 +3,14 @@
 import { Button } from "@/components/ui/button";
 import type { EntityConfig } from "@/lib/admin/entities";
 
+function imageSrc(row: Record<string, unknown>) {
+  if (Array.isArray(row.images) && row.images.length) {
+    const first = row.images[0] as { thumbnailUrl?: string; url?: string };
+    return first.thumbnailUrl || first.url || "";
+  }
+  return String(row.image_url || row.cover_image_url || row.logo_url || "");
+}
+
 function displayValue(value: unknown) {
   if (value === true) return "Yes";
   if (value === false) return "No";
@@ -16,6 +24,18 @@ function displayValue(value: unknown) {
   }
   if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
   return String(value);
+}
+
+function Cell({ colKey, row }: { colKey: string; row: Record<string, unknown> }) {
+  if (colKey === "image") {
+    const src = imageSrc(row);
+    if (!src) return <span className="text-muted-foreground">—</span>;
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={src} alt="" className="h-12 w-12 rounded-lg object-cover" />
+    );
+  }
+  return <>{displayValue(row[colKey])}</>;
 }
 
 export function DataTable({
@@ -46,7 +66,7 @@ export function DataTable({
               <tr key={String(row.id || row.slug || i)} className="border-t">
                 {config.columns.map((col) => (
                   <td key={col.key} className="max-w-[220px] truncate px-4 py-3">
-                    {displayValue(row[col.key])}
+                    <Cell colKey={col.key} row={row} />
                   </td>
                 ))}
                 <td className="px-4 py-3">
@@ -67,7 +87,9 @@ export function DataTable({
               {config.columns.map((col) => (
                 <div key={col.key} className="flex justify-between gap-3">
                   <dt className="text-muted-foreground">{col.label}</dt>
-                  <dd className="truncate font-medium">{displayValue(row[col.key])}</dd>
+                  <dd className="truncate font-medium">
+                    <Cell colKey={col.key} row={row} />
+                  </dd>
                 </div>
               ))}
             </dl>

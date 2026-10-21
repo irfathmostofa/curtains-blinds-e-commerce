@@ -103,6 +103,7 @@ export const entities: Record<string, EntityConfig> = {
     table: "products",
     creatable: true,
     columns: [
+      { key: "image", label: "Image" },
       { key: "name", label: "Name" },
       { key: "slug", label: "Slug" },
       { key: "base_price", label: "From (AED)" },
@@ -132,6 +133,7 @@ export const entities: Record<string, EntityConfig> = {
     table: "categories",
     creatable: true,
     columns: [
+      { key: "image", label: "Image" },
       { key: "name", label: "Name" },
       { key: "slug", label: "Slug" },
       { key: "sort_order", label: "Order" },

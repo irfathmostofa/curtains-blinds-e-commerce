@@ -169,6 +169,7 @@ export type Weekday = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
 
 export type DayHours = {
   closed: boolean;
+  all_day: boolean;
   open: string;
   close: string;
 };

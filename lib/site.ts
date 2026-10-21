@@ -66,13 +66,13 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   business_hours_schedule: {
     timezone: "Asia/Dubai",
     days: {
-      sun: { closed: false, open: "09:00", close: "20:00" },
-      mon: { closed: false, open: "09:00", close: "20:00" },
-      tue: { closed: false, open: "09:00", close: "20:00" },
-      wed: { closed: false, open: "09:00", close: "20:00" },
-      thu: { closed: false, open: "09:00", close: "20:00" },
-      fri: { closed: true, open: "09:00", close: "20:00" },
-      sat: { closed: false, open: "09:00", close: "20:00" },
+      sun: { closed: false, all_day: false, open: "09:00", close: "20:00" },
+      mon: { closed: false, all_day: false, open: "09:00", close: "20:00" },
+      tue: { closed: false, all_day: false, open: "09:00", close: "20:00" },
+      wed: { closed: false, all_day: false, open: "09:00", close: "20:00" },
+      thu: { closed: false, all_day: false, open: "09:00", close: "20:00" },
+      fri: { closed: true, all_day: false, open: "09:00", close: "20:00" },
+      sat: { closed: false, all_day: false, open: "09:00", close: "20:00" },
     },
   },
   social_links: [
@@ -684,10 +684,12 @@ export function normalizeBusinessHoursSchedule(value: unknown): BusinessHoursSch
   for (const day of WEEKDAYS) {
     const src = raw.days?.[day];
     const base = fallback.days[day];
+    const allDay = Boolean((src as DayHours | undefined)?.all_day);
     days[day] = {
-      closed: Boolean(src?.closed ?? base.closed),
-      open: normalizeTime(src?.open, base.open),
-      close: normalizeTime(src?.close, base.close),
+      closed: allDay ? false : Boolean(src?.closed ?? base.closed),
+      all_day: allDay,
+      open: allDay ? "00:00" : normalizeTime(src?.open, base.open),
+      close: allDay ? "23:59" : normalizeTime(src?.close, base.close),
     };
   }
   return { timezone, days };
@@ -713,7 +715,7 @@ export function formatBusinessHoursSummary(schedule: BusinessHoursSchedule) {
   const groups: { start: Weekday; end: Weekday; text: string }[] = [];
   for (const day of WEEKDAYS) {
     const hours = schedule.days[day];
-    const text = hours.closed ? "Closed" : `${formatClock(hours.open)}–${formatClock(hours.close)}`;
+    const text = hours.closed ? "Closed" : hours.all_day ? "24hrs" : `${formatClock(hours.open)}–${formatClock(hours.close)}`;
     const last = groups[groups.length - 1];
     if (last && last.text === text) {
       last.end = day;
@@ -762,7 +764,9 @@ export function getAvailability(schedule: BusinessHoursSchedule, now = new Date(
   const open = minutesFromMidnight(today.open);
   const close = minutesFromMidnight(today.close);
   const overnight = close <= open;
-  const isOpen = !today.closed && (overnight ? minutes >= open || minutes < close : minutes >= open && minutes < close);
+  const isOpen =
+    !today.closed &&
+    (today.all_day || (overnight ? minutes >= open || minutes < close : minutes >= open && minutes < close));
   return {
     isOpen,
     weekday,
@@ -770,7 +774,9 @@ export function getAvailability(schedule: BusinessHoursSchedule, now = new Date(
     label: isOpen ? "Open now" : "Closed now",
     todayLabel: today.closed
       ? "Closed today"
-      : `Today ${formatClock(today.open)}–${formatClock(today.close)}`,
+      : today.all_day
+        ? "Today 24hrs"
+        : `Today ${formatClock(today.open)}–${formatClock(today.close)}`,
   };
 }
 
