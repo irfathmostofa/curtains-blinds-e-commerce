@@ -7,14 +7,14 @@ export async function processImage(file: File, basename: string) {
 
   const full = await sharp(buffer)
     .rotate()
-    .resize({ width: 1600, withoutEnlargement: true })
-    .webp({ quality: 80 })
+    .resize({ width: 1600, withoutEnlargement: true, kernel: sharp.kernel.lanczos3 })
+    .webp({ quality: 92, effort: 4, smartSubsample: true })
     .toBuffer();
 
   const thumb = await sharp(buffer)
     .rotate()
-    .resize({ width: 400, withoutEnlargement: true })
-    .webp({ quality: 80 })
+    .resize({ width: 400, withoutEnlargement: true, kernel: sharp.kernel.lanczos3 })
+    .webp({ quality: 88, effort: 4, smartSubsample: true })
     .toBuffer();
 
   return {

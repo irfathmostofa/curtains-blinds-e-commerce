@@ -159,7 +159,7 @@ export function ImageUploader({
       >
         <p className="text-sm font-medium">Drop an image or click to browse</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Converted to WebP, max 1600px, quality 80, EXIF stripped. Thumbnail at 400px.
+          Converted to WebP, max 1600px, high quality, EXIF stripped. Thumbnail at 400px.
         </p>
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
