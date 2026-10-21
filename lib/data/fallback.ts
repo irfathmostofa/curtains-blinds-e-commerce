@@ -72,6 +72,20 @@ export const products: Product[] = [
       },
     ],
     fabric_options: ["Natural flax", "Sand", "Stone grey", "Ivory"],
+    faqs: [
+      {
+        question: "Is Belgian linen pinch-pleat made to measure?",
+        answer: "Yes. Each drape is cut to your exact drop after a complimentary measuring visit, with cotton sateen lining and optional blackout interlining.",
+      },
+      {
+        question: "Which colours are available?",
+        answer: "Natural flax, sand, stone grey and ivory. Your consultant brings the full linen book so you can match existing interiors.",
+      },
+      {
+        question: "How long does installation take?",
+        answer: "Standard lead time is 7–12 working days after fabric confirmation. Villa drops to 340cm follow the same schedule.",
+      },
+    ],
     is_bestseller: true,
     is_active: true,
     seo_title: "Belgian Linen Pinch-Pleat Drapes Dubai | From AED 890",
@@ -94,6 +108,16 @@ export const products: Product[] = [
       },
     ],
     fabric_options: ["Cloud white", "Warm ivory", "Pale taupe"],
+    faqs: [
+      {
+        question: "Will S-wave sheers still keep the view?",
+        answer: "Yes. The voile diffuses Gulf sunlight without blocking the skyline, and it sits on a discreet ceiling or wall track.",
+      },
+      {
+        question: "Can I pair this with blackout drapes?",
+        answer: "That is the usual specification: sheer S-wave in front, blackout behind, so bedrooms stay dark at night and dressed by day.",
+      },
+    ],
     is_bestseller: true,
     is_active: true,
     seo_title: "S-Wave Sheer Curtains Dubai | Light-Filtering Voile",
@@ -116,6 +140,16 @@ export const products: Product[] = [
       },
     ],
     fabric_options: ["Charcoal", "Navy", "Taupe", "Cream"],
+    faqs: [
+      {
+        question: "How dark is the triple-weave blackout?",
+        answer: "Hotel-grade triple-weave blocks both light and radiant heat, so bedrooms, nurseries and media rooms can go fully dark without a separate lining.",
+      },
+      {
+        question: "Does it help with UAE afternoon heat?",
+        answer: "Yes. The dense weave cuts glare and heat on west and south elevations. We still recommend a 20cm overlap past the frame to stop edge leaks.",
+      },
+    ],
     is_bestseller: false,
     is_active: true,
     seo_title: "Blackout Curtains Dubai | Triple-Weave Heat Control",
@@ -138,6 +172,16 @@ export const products: Product[] = [
       },
     ],
     fabric_options: ["Pearl", "Greige", "Graphite"],
+    faqs: [
+      {
+        question: "Does sunscreen mesh keep the skyline?",
+        answer: "Yes. 5% openness cuts UV and glare while keeping the view. Cassette or open-roll hardware is specified to the window.",
+      },
+      {
+        question: "Can I add a blackout layer later?",
+        answer: "A dual cassette is the usual upgrade: sunscreen by day, blackout by night, one fascia. Ask on the measuring visit.",
+      },
+    ],
     is_bestseller: true,
     is_active: true,
     seo_title: "Sunscreen Roller Blinds Dubai | UV & Glare Control",
@@ -160,6 +204,16 @@ export const products: Product[] = [
       },
     ],
     fabric_options: ["White", "Beige", "Grey"],
+    faqs: [
+      {
+        question: "How do zebra blinds control privacy?",
+        answer: "Alternating sheer and opaque bands align to open for daylight or close for privacy, without raising the blind.",
+      },
+      {
+        question: "Are they practical in kitchens?",
+        answer: "Yes. The finish is low-maintenance and suited to kitchens and studies where you want fast day-to-night control.",
+      },
+    ],
     is_bestseller: true,
     is_active: true,
     seo_title: "Zebra Blinds Dubai | Dual-Layer Day & Night Shades",
@@ -182,6 +236,16 @@ export const products: Product[] = [
       },
     ],
     fabric_options: ["Linen oatmeal", "Cotton sage", "Velvet moss"],
+    faqs: [
+      {
+        question: "Do roman shades stack neatly?",
+        answer: "Yes. Soft-fold romans are tailored for even, architectural folds and a precise stack when raised.",
+      },
+      {
+        question: "Can I specify blackout?",
+        answer: "Choose linen, cotton or blackout interlining. We confirm the lining on the complimentary measuring visit.",
+      },
+    ],
     is_bestseller: false,
     is_active: true,
     seo_title: "Roman Shades Dubai | Soft-Fold Custom Fabric Blinds",
@@ -204,6 +268,16 @@ export const products: Product[] = [
       },
     ],
     fabric_options: ["Works with all Maison fabrics"],
+    faqs: [
+      {
+        question: "Which smart home systems does the silent track work with?",
+        answer: "The motor pairs with Lutron, Control4, Apple Home, Google Home and most RF remotes. We commission it with your integrator when needed.",
+      },
+      {
+        question: "How quiet is the motor at night?",
+        answer: "It is a tubular motor on an aluminium track specified for bedrooms and penthouses. Clients typically report it stays unobtrusive after lights-out.",
+      },
+    ],
     is_bestseller: true,
     is_active: true,
     seo_title: "Motorized Curtain Tracks Dubai | Silent Smart Home",
@@ -226,6 +300,16 @@ export const products: Product[] = [
       },
     ],
     fabric_options: ["Sunscreen 5%", "Blackout", "Dim-out"],
+    faqs: [
+      {
+        question: "Do I need an electrician for battery motors?",
+        answer: "No. The rechargeable motor is wire-free, which is why it suits finished apartments where chasing cables is not an option.",
+      },
+      {
+        question: "How often do I charge it?",
+        answer: "Typical use is months between charges. Your consultant will confirm battery size against window width and fabric weight.",
+      },
+    ],
     is_bestseller: false,
     is_active: true,
     seo_title: "Battery Motor Roller Blinds UAE | Wire-Free Automation",

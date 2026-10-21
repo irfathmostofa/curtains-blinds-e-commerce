@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/lib/types";
 import { PriceTag } from "@/components/price-tag";
 import { Badge } from "@/components/ui/badge";
 import { useLocale } from "@/components/locale-provider";
+import { ProductQuickView } from "@/components/product-quick-view";
 
 export function ProductCard({
   product,
@@ -17,17 +19,18 @@ export function ProductCard({
   const href = `/products/${product.category?.slug || "curtains-and-drapes"}/${product.slug}`;
   const image = product.images[0];
   const { t } = useLocale();
+  const [quickView, setQuickView] = useState(false);
 
   return (
     <article
       className={
         compact
-          ? "group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-          : "group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition duration-500 hover:-translate-y-1.5 hover:shadow-xl"
+          ? "group relative flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+          : "group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition duration-500 hover:-translate-y-1.5 hover:shadow-xl"
       }
     >
       <Link href={href} className="flex h-full flex-col">
-        <div className={compact ? "relative aspect-[5/4] overflow-hidden bg-secondary" : "relative aspect-[4/5] overflow-hidden bg-secondary"}>
+        <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
           {image ? (
             <Image
               src={image.url}
@@ -61,6 +64,22 @@ export function ProductCard({
           )}
         </div>
       </Link>
+      <button
+        type="button"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          setQuickView(true);
+        }}
+        className={
+          compact
+            ? "absolute right-2 top-2 z-10 rounded-full bg-card/95 px-2.5 py-1 text-[10px] font-medium text-foreground shadow-sm opacity-100 transition hover:bg-card sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100"
+            : "absolute right-3 top-3 z-10 rounded-full bg-card/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-sm opacity-100 transition hover:bg-card md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100"
+        }
+      >
+        {t("Quick view")}
+      </button>
+      <ProductQuickView product={product} href={href} open={quickView} onOpenChange={setQuickView} />
     </article>
   );
 }

@@ -5,15 +5,18 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import type { ImageAsset } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { ImageMagnifier } from "@/components/image-magnifier";
+import { useLocale } from "@/components/locale-provider";
 
 export function ImageGallery({ images }: { images: ImageAsset[] }) {
   const [active, setActive] = useState(0);
+  const { t } = useLocale();
   if (!images.length) return null;
   const current = images[active];
 
   return (
     <div className="space-y-3">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-secondary">
+      <ImageMagnifier src={current.url} className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-secondary">
         <AnimatePresence mode="wait">
           <motion.div
             key={current.url}
@@ -33,7 +36,8 @@ export function ImageGallery({ images }: { images: ImageAsset[] }) {
             />
           </motion.div>
         </AnimatePresence>
-      </div>
+      </ImageMagnifier>
+      <p className="text-xs text-muted-foreground">{t("Hover to zoom")}</p>
       {images.length > 1 ? (
         <ul className="grid grid-cols-4 gap-2" aria-label="Product images">
           {images.map((image, i) => (
@@ -42,7 +46,7 @@ export function ImageGallery({ images }: { images: ImageAsset[] }) {
                 type="button"
                 onClick={() => setActive(i)}
                 className={cn(
-                  "relative aspect-square w-full overflow-hidden rounded-xl border transition hover:opacity-90",
+                  "relative aspect-[4/3] w-full overflow-hidden rounded-xl border transition hover:opacity-90",
                   i === active ? "border-accent ring-2 ring-accent/30" : "border-transparent"
                 )}
                 aria-label={`Show image ${i + 1}`}

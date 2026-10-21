@@ -90,6 +90,13 @@ const ar: Record<string, string> = {
   reviews: "مراجعة",
   Bestseller: "الأكثر طلباً",
   "View details": "عرض التفاصيل",
+  "Quick view": "نظرة سريعة",
+  Share: "مشاركة",
+  "Link copied": "تم نسخ الرابط",
+  "View full details": "عرض التفاصيل كاملة",
+  "Fabric options": "خيارات القماش",
+  "Hover to zoom": "مرّر للتكبير",
+  "Questions we hear on this range": "أسئلة نسمعها عن هذا المنتج",
   From: "من",
   "Bespoke curtains, blinds and motorised window treatments across the UAE.":
     "ستائر وبلاندز ومعالجات نوافذ آلية مفصلة في أنحاء الإمارات.",

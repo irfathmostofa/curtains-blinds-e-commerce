@@ -1,5 +1,6 @@
 import { entityAllowedColumns } from "@/lib/admin/entities";
 import { normalizeRichText } from "@/lib/html";
+import { asProductFaqs } from "@/lib/product-faqs";
 import { DEFAULT_SETTINGS } from "@/lib/site";
 import { slugify } from "@/lib/utils";
 
@@ -103,6 +104,7 @@ export function sanitizeEntityPayload(
     raw.is_bestseller = asBool(raw.is_bestseller);
     raw.is_active = raw.is_active === undefined ? true : asBool(raw.is_active);
     raw.fabric_options = asTags(raw.fabric_options);
+    raw.faqs = asProductFaqs(raw.faqs);
     raw.images = asImages(raw.images);
     raw.description = normalizeRichText(raw.description);
     raw.seo_title = asString(raw.seo_title);

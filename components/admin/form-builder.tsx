@@ -175,7 +175,7 @@ export function FormBuilder({
       if ("answer" in next) next.answer = normalizeRichText(next.answer);
       return next;
     }
-    if (config.key === "products") return { is_active: true, fabric_options: [] };
+    if (config.key === "products") return { is_active: true, fabric_options: [], faqs: [] };
     if (config.key === "posts") return { author: "", content: "" };
     return {};
   });
@@ -191,6 +191,12 @@ export function FormBuilder({
       price: String(v.price ?? ""),
       sku: String(v.sku || ""),
     }));
+  });
+  const [productFaqs, setProductFaqs] = useState<{ question: string; answer: string }[]>(() => {
+    if (!Array.isArray(initial?.faqs)) return [];
+    return (initial.faqs as { question?: string; answer?: string }[])
+      .map((item) => ({ question: String(item.question || ""), answer: String(item.answer || "") }))
+      .filter((item) => item.question || item.answer);
   });
   const [images, setImages] = useState<{ url: string; alt: string; thumbnailUrl?: string }[]>(() => {
     if (Array.isArray(initial?.images)) return initial?.images as { url: string; alt: string }[];
@@ -267,6 +273,7 @@ export function FormBuilder({
     if (config.key === "products") {
       payload.images = images;
       payload.variants = variants.filter((v) => v.size_label.trim());
+      payload.faqs = productFaqs.filter((item) => item.question.trim() && item.answer.trim());
     }
     if (config.key === "categories" && images[0]) {
       payload.image_url = images[0].url;
@@ -306,7 +313,7 @@ export function FormBuilder({
           <div
             key={field.name}
             className={
-              field.type === "richtext" || field.type === "textarea" || field.type === "tags" || field.type === "slug"
+              field.type === "richtext" || field.type === "textarea" || field.type === "tags" || field.type === "slug" || field.type === "json"
                 ? "space-y-2 sm:col-span-2"
                 : field.type === "checkbox"
                   ? "space-y-2 sm:col-span-1"
@@ -375,6 +382,50 @@ export function FormBuilder({
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">No variants yet. Base price still shows on the product card.</p>
+          )}
+        </section>
+      ) : null}
+
+      {config.key === "products" ? (
+        <section className="space-y-3 rounded-2xl border p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-serif text-lg">Product FAQs</h3>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setProductFaqs((rows) => [...rows, { question: "", answer: "" }])}
+            >
+              Add question
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">Shown on the product page. Leave empty to use default product questions.</p>
+          {productFaqs.length ? (
+            <div className="grid gap-3">
+              {productFaqs.map((row, i) => (
+                <div key={i} className="grid gap-2 rounded-xl border p-3">
+                  <Input
+                    placeholder="Question"
+                    value={row.question}
+                    onChange={(e) =>
+                      setProductFaqs((rows) => rows.map((item, idx) => (idx === i ? { ...item, question: e.target.value } : item)))
+                    }
+                  />
+                  <Textarea
+                    placeholder="Answer"
+                    value={row.answer}
+                    onChange={(e) =>
+                      setProductFaqs((rows) => rows.map((item, idx) => (idx === i ? { ...item, answer: e.target.value } : item)))
+                    }
+                  />
+                  <Button type="button" variant="ghost" size="sm" className="justify-self-start" onClick={() => setProductFaqs((rows) => rows.filter((_, idx) => idx !== i))}>
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No custom FAQs yet. The product page still shows default questions.</p>
           )}
         </section>
       ) : null}

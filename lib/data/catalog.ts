@@ -30,6 +30,7 @@ import {
   omitSecrets,
   SECRET_SETTING_KEYS,
 } from "@/lib/site";
+import { asProductFaqs } from "@/lib/product-faqs";
 import type {
   BlogPost,
   Booking,
@@ -50,6 +51,7 @@ const CATALOG_REVALIDATE = 60;
 function hydrate(product: Product, categories: Category[], variants: ProductVariant[]): Product {
   return {
     ...product,
+    faqs: asProductFaqs(product.faqs),
     category: categories.find((c) => c.id === product.category_id),
     variants: variants.filter((v) => v.product_id === product.id),
   };

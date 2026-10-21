@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/product-card";
 import { ProductOptions } from "@/components/product-options";
 import { RememberProduct } from "@/components/remember-product";
 import { ProductViewTracker } from "@/components/product-view-tracker";
+import { ShareButton } from "@/components/share-button";
 import {
   getFaqs,
   getProductBySlug,
@@ -18,6 +19,7 @@ import { buildMetadata, faqJsonLd, productJsonLd } from "@/lib/seo";
 import { JsonLd } from "@/components/json-ld";
 import { HtmlContent } from "@/components/html-content";
 import { stripHtml } from "@/lib/html";
+import { resolveProductFaqs } from "@/lib/product-faqs";
 
 export const revalidate = 60;
 
@@ -45,11 +47,12 @@ export default async function ProductPage({ params }: { params: { category: stri
   const product = await getProductBySlug(params.slug);
   if (!product || product.category?.slug !== params.category) notFound();
 
-  const [related, faqs, settings] = await Promise.all([
+  const [related, catalogFaqs, settings] = await Promise.all([
     getRelatedProducts(product.id, product.category_id, 3),
-    getFaqs("products"),
+    getFaqs(),
     getSiteSettings(),
   ]);
+  const faqs = resolveProductFaqs(product, catalogFaqs);
 
   const path = `/products/${params.category}/${product.slug}`;
 
@@ -69,7 +72,7 @@ export default async function ProductPage({ params }: { params: { category: stri
           currency: settings.currency,
         })}
       />
-      <JsonLd data={faqJsonLd(faqs)} />
+      {faqs.length ? <JsonLd data={faqJsonLd(faqs)} /> : null}
       <Breadcrumbs
         items={[
           { name: "Home", path: "/" },
@@ -82,15 +85,20 @@ export default async function ProductPage({ params }: { params: { category: stri
         <ImageGallery images={product.images} />
         <div className="space-y-6">
           <p className="text-xs uppercase tracking-[0.2em] text-accent">{product.category?.name}</p>
-          <h1 className="font-serif text-4xl">{product.name}</h1>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <h1 className="font-serif text-4xl">{product.name}</h1>
+            <ShareButton title={product.name} path={path} />
+          </div>
           <HtmlContent html={product.description} />
           <ProductOptions product={product} />
         </div>
       </div>
-      <section className="space-y-4">
-        <h2 className="font-serif text-3xl">Questions we hear on this range</h2>
-        <FAQAccordion items={faqs} />
-      </section>
+      {faqs.length ? (
+        <section className="space-y-4">
+          <h2 className="font-serif text-3xl">Questions we hear on this range</h2>
+          <FAQAccordion items={faqs} />
+        </section>
+      ) : null}
       {related.length ? (
         <section className="space-y-6">
           <h2 className="font-serif text-3xl">Related pieces</h2>

@@ -386,6 +386,7 @@ export function entityAllowedColumns(key: string): string[] {
       "base_price",
       "images",
       "fabric_options",
+      "faqs",
       "is_bestseller",
       "is_active",
       "seo_title",

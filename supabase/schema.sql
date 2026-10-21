@@ -31,6 +31,7 @@ create table if not exists public.products (
   base_price numeric not null default 0,
   images jsonb not null default '[]'::jsonb,
   fabric_options jsonb not null default '[]'::jsonb,
+  faqs jsonb not null default '[]'::jsonb,
   is_bestseller boolean not null default false,
   is_active boolean not null default true,
   seo_title text not null default '',

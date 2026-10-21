@@ -26,6 +26,11 @@ export type ProductVariant = {
   sku: string;
 };
 
+export type ProductFaq = {
+  question: string;
+  answer: string;
+};
+
 export type Product = {
   id: string;
   category_id: string;
@@ -35,6 +40,7 @@ export type Product = {
   base_price: number;
   images: ImageAsset[];
   fabric_options: string[];
+  faqs?: ProductFaq[];
   is_bestseller: boolean;
   is_active: boolean;
   seo_title: string;
