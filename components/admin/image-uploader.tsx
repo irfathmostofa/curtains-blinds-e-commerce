@@ -1,12 +1,20 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { listUploadedImages, uploadProcessedImage, type UploadedImageItem } from "@/app/admin/actions";
+import { Images, Trash2, Upload } from "lucide-react";
+import {
+  deleteUploadedImages,
+  listUploadedImages,
+  uploadProcessedImage,
+  type UploadedImageItem,
+} from "@/app/admin/actions";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-type Asset = { url: string; alt: string; thumbnailUrl?: string };
+type Asset = { url: string; alt: string; thumbnailUrl?: string; name?: string; bucket?: string };
 
 export function ImageUploader({
   folder = "product-images",
@@ -24,6 +32,7 @@ export function ImageUploader({
   inputId?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const modalInputRef = useRef<HTMLInputElement>(null);
   const [alt, setAlt] = useState(suggestedAlt || "");
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -36,8 +45,13 @@ export function ImageUploader({
   const [libraryError, setLibraryError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [pickedUrl, setPickedUrl] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
+    if (!open || loaded) return;
     let cancelled = false;
     setLibraryBusy(true);
     setLibraryError(null);
@@ -49,10 +63,17 @@ export function ImageUploader({
         return;
       }
       setLibrary(result.items || []);
+      setLoaded(true);
     });
     return () => {
       cancelled = true;
     };
+  }, [open, loaded, folder]);
+
+  useEffect(() => {
+    setLoaded(false);
+    setLibrary([]);
+    setSelected([]);
   }, [folder]);
 
   const filteredLibrary = useMemo(() => {
@@ -66,6 +87,9 @@ export function ImageUploader({
     );
   }, [library, query]);
 
+  const allVisibleSelected =
+    filteredLibrary.length > 0 && filteredLibrary.every((item) => selected.includes(item.url));
+
   function rememberAsset(asset: Asset & { name?: string }) {
     setLibrary((items) => {
       if (items.some((item) => item.url === asset.url)) return items;
@@ -75,6 +99,7 @@ export function ImageUploader({
           thumbnailUrl: asset.thumbnailUrl || asset.url,
           name: asset.name || asset.url.split("/").pop() || "image",
           alt: asset.alt,
+          bucket: asset.bucket,
         },
         ...items,
       ];
@@ -89,6 +114,42 @@ export function ImageUploader({
     setMeta(item.name);
     setPickedUrl(item.url);
     onUploaded({ url: item.url, thumbnailUrl: item.thumbnailUrl, alt: localAlt });
+    setOpen(false);
+  }
+
+  function toggleSelected(url: string) {
+    setSelected((urls) => (urls.includes(url) ? urls.filter((item) => item !== url) : [...urls, url]));
+  }
+
+  function toggleSelectAll() {
+    if (allVisibleSelected) {
+      const visible = new Set(filteredLibrary.map((item) => item.url));
+      setSelected((urls) => urls.filter((url) => !visible.has(url)));
+      return;
+    }
+    setSelected((urls) => Array.from(new Set([...urls, ...filteredLibrary.map((item) => item.url)])));
+  }
+
+  async function removeItems(targets: UploadedImageItem[]) {
+    if (!targets.length) return;
+    setDeleting(true);
+    setLibraryError(null);
+    const result = await deleteUploadedImages(
+      targets.map((item) => ({ url: item.url, name: item.name, bucket: item.bucket }))
+    );
+    setDeleting(false);
+    if ("error" in result && result.error && !result.deleted?.length) {
+      setLibraryError(result.error);
+      return;
+    }
+    const removed = new Set(result.deleted || []);
+    setLibrary((items) => items.filter((item) => !removed.has(item.url)));
+    setSelected((urls) => urls.filter((url) => !removed.has(url)));
+    if (pickedUrl && removed.has(pickedUrl)) {
+      setPickedUrl(null);
+      setPreview(null);
+      setMeta(null);
+    }
   }
 
   async function handleFile(file: File) {
@@ -122,7 +183,7 @@ export function ImageUploader({
     }
     const asset = result as Asset;
     setPickedUrl(asset.url);
-    rememberAsset({ ...asset, alt: localAlt, name: file.name });
+    rememberAsset({ ...asset, alt: localAlt, name: asset.name || file.name });
     onUploaded({ ...asset, alt: localAlt });
     setTimeout(() => setProgress(0), 600);
   }
@@ -187,57 +248,134 @@ export function ImageUploader({
       ) : null}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-      <div className="space-y-2">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-sm font-medium">Previously uploaded</p>
-          {library.length > 6 ? (
-            <Input
-              id={`${inputId}-library`}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search uploads"
-              className="h-8 max-w-[12rem]"
-              aria-label="Search previous uploads"
-            />
-          ) : null}
-        </div>
-        {libraryBusy ? (
-          <p className="text-xs text-muted-foreground">Loading previous uploads…</p>
-        ) : libraryError ? (
-          <p className="text-sm text-destructive">{libraryError}</p>
-        ) : filteredLibrary.length ? (
-          <ul className="grid max-h-52 grid-cols-4 gap-2 overflow-y-auto sm:grid-cols-6">
-            {filteredLibrary.map((item) => {
-              const selected = pickedUrl === item.url;
-              return (
-                <li key={item.url}>
-                  <button
-                    type="button"
-                    onClick={() => pickExisting(item)}
-                    className={cn(
-                      "block w-full overflow-hidden rounded-lg border transition hover:border-accent",
-                      selected && "border-accent ring-2 ring-accent"
-                    )}
-                    title={item.alt || item.name}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={item.thumbnailUrl || item.url}
-                      alt={item.alt || item.name}
-                      className="h-16 w-full object-cover"
-                    />
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            {query.trim() ? "No matching uploads." : "No previous uploads yet. New uploads will appear here."}
-          </p>
-        )}
-        <p className="text-xs text-muted-foreground">Pick an existing image to reuse it without uploading again.</p>
-      </div>
+      <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)}>
+        <Images className="mr-2 h-4 w-4" />
+        Media library
+      </Button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="flex max-h-[92dvh] w-[min(96vw,56rem)] max-w-4xl min-h-0 flex-col gap-0 overflow-hidden p-0">
+          <div className="shrink-0 space-y-3 border-b px-4 py-4 pr-12 sm:px-6">
+            <DialogTitle className="font-serif text-2xl">Media library</DialogTitle>
+            <p className="text-xs text-muted-foreground">
+              Pick an image to use it, or delete unused files from storage.
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search media"
+                className="h-9 max-w-xs"
+                aria-label="Search media library"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => modalInputRef.current?.click()}
+                disabled={busy || deleting}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Upload
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={toggleSelectAll}
+                disabled={!filteredLibrary.length || deleting}
+              >
+                {allVisibleSelected ? "Clear selection" : "Select all"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="text-destructive"
+                onClick={() => void removeItems(library.filter((item) => selected.includes(item.url)))}
+                disabled={!selected.length || deleting}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete selected ({selected.length})
+              </Button>
+            </div>
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6">
+            {libraryBusy ? (
+              <p className="text-sm text-muted-foreground">Loading media…</p>
+            ) : libraryError ? (
+              <p className="text-sm text-destructive">{libraryError}</p>
+            ) : filteredLibrary.length ? (
+              <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                {filteredLibrary.map((item) => {
+                  const isPicked = pickedUrl === item.url;
+                  const isChecked = selected.includes(item.url);
+                  return (
+                    <li key={item.url} className="group relative overflow-hidden rounded-xl border">
+                      <label className="absolute left-2 top-2 z-10">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleSelected(item.url)}
+                          className="h-4 w-4 accent-accent"
+                          aria-label={`Select ${item.alt || item.name}`}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        className="absolute right-2 top-2 z-10 rounded-full bg-card/90 p-1.5 text-destructive opacity-0 shadow-sm transition group-hover:opacity-100 focus:opacity-100"
+                        onClick={() => void removeItems([item])}
+                        disabled={deleting}
+                        aria-label={`Delete ${item.alt || item.name}`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => pickExisting(item)}
+                        className={cn(
+                          "block w-full overflow-hidden text-left transition hover:opacity-95",
+                          isPicked && "ring-2 ring-accent"
+                        )}
+                        title={item.alt || item.name}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={item.thumbnailUrl || item.url}
+                          alt={item.alt || item.name}
+                          className="h-28 w-full object-cover"
+                        />
+                        <span className="block truncate px-2 py-1.5 text-xs text-muted-foreground">
+                          {item.alt || item.name}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {query.trim() ? "No matching media." : "No media yet. Upload an image to start the library."}
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <input
+        ref={modalInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/avif"
+        multiple={multiple}
+        className="hidden"
+        disabled={busy}
+        onChange={(e) => {
+          const files = Array.from(e.target.files || []);
+          files.forEach((file) => void handleFile(file));
+          e.target.value = "";
+        }}
+      />
     </div>
   );
 }

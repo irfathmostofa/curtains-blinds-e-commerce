@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { mkdir, readdir, writeFile } from "fs/promises";
+import { mkdir, readdir, unlink, writeFile } from "fs/promises";
 import path from "path";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, createWriteClient } from "@/lib/supabase/admin";
@@ -299,6 +299,8 @@ export async function uploadProcessedImage(formData: FormData) {
         url: pub.data.publicUrl,
         alt,
         thumbnailUrl: admin.storage.from(bucket).getPublicUrl(processed.thumbName).data.publicUrl,
+        name: processed.fullName,
+        bucket,
       };
     }
   }
@@ -318,6 +320,7 @@ async function saveLocalImage(
     url: `/uploads/${processed.fullName}`,
     thumbnailUrl: `/uploads/${processed.thumbName}`,
     alt,
+    name: processed.fullName,
   };
 }
 
@@ -347,6 +350,7 @@ export type UploadedImageItem = {
   thumbnailUrl: string;
   name: string;
   alt: string;
+  bucket?: string;
 };
 
 export async function listUploadedImages(folder?: string) {
@@ -381,6 +385,7 @@ export async function listUploadedImages(folder?: string) {
           thumbnailUrl: admin.storage.from(name).getPublicUrl(thumbName).data.publicUrl,
           name: file.name,
           alt: altFromFilename(file.name),
+          bucket: name,
         });
       }
     }
@@ -408,4 +413,89 @@ export async function listUploadedImages(folder?: string) {
   }
 
   return { items };
+}
+
+function thumbNameFor(name: string) {
+  return name.replace(/\.(webp|png|jpe?g|avif|gif)$/i, "-thumb.webp");
+}
+
+function safeImageName(value: string) {
+  const base = path.basename(String(value || "").split("?")[0]);
+  if (!base || base !== path.basename(base) || base.includes("..")) return null;
+  if (!isImageName(base) || isThumbName(base)) return null;
+  return base;
+}
+
+function nameFromUrl(url: string) {
+  try {
+    const pathname = url.startsWith("http") ? new URL(url).pathname : url;
+    return safeImageName(decodeURIComponent(pathname));
+  } catch {
+    return safeImageName(url);
+  }
+}
+
+function isLocalUploadUrl(url: string) {
+  return url.startsWith("/uploads/") || url.includes("/uploads/");
+}
+
+export async function deleteUploadedImages(items: { url: string; name?: string; bucket?: string }[]) {
+  const session = await getAdminSession();
+  if (!session.loggedIn) return { error: "Sign in to continue." };
+  if (!Array.isArray(items) || !items.length) return { deleted: [] as string[], error: "Choose images to delete." };
+
+  const allowedBuckets =
+    session.role === "editor"
+      ? ["product-images", "blog-images"]
+      : ["product-images", "blog-images", "partner-logos", "payment-logos"];
+
+  const admin = createAdminClient();
+  const deleted: string[] = [];
+  let lastError: string | undefined;
+
+  for (const item of items) {
+    const url = String(item?.url || "");
+    const name = safeImageName(item?.name || "") || nameFromUrl(url);
+    if (!name) {
+      lastError = "Invalid image path.";
+      continue;
+    }
+
+    const thumbName = thumbNameFor(name);
+    const requestedBucket = item?.bucket ? allowedBucket(item.bucket) : "";
+    const bucketsToTry =
+      requestedBucket && allowedBuckets.includes(requestedBucket)
+        ? [requestedBucket]
+        : allowedBuckets;
+
+    let removed = false;
+
+    if (admin && !isLocalUploadUrl(url)) {
+      for (const bucket of bucketsToTry) {
+        if (!allowedBuckets.includes(bucket)) continue;
+        const { error } = await admin.storage.from(bucket).remove([name, thumbName]);
+        if (!error) {
+          removed = true;
+          break;
+        }
+        lastError = error.message;
+      }
+    }
+
+    if (!removed && isLocalUploadUrl(url)) {
+      const dir = path.join(process.cwd(), "public", "uploads");
+      try {
+        await unlink(path.join(dir, name));
+        removed = true;
+      } catch {
+        lastError = "Could not delete the local file.";
+      }
+      await unlink(path.join(dir, thumbName)).catch(() => undefined);
+    }
+
+    if (removed) deleted.push(url);
+  }
+
+  if (!deleted.length) return { deleted, error: lastError || "Could not delete the selected images." };
+  return { deleted, error: lastError };
 }
