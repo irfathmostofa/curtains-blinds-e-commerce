@@ -1,16 +1,22 @@
 import { BlogList } from "@/components/blog-list";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { SectionHeading } from "@/components/section-heading";
-import { getBlogPosts } from "@/lib/data/catalog";
+import { getBlogPosts, getSiteSettings } from "@/lib/data/catalog";
 import { buildMetadata } from "@/lib/seo";
 
 export const revalidate = 3600;
 
-export const metadata = buildMetadata({
-  title: "Curtains & Blinds Journal",
-  description: "Guides on blackout, sunscreen blinds and motorised curtains for Dubai and Abu Dhabi homes.",
-  path: "/blog",
-});
+export async function generateMetadata() {
+  const settings = await getSiteSettings();
+  return buildMetadata(
+    {
+      title: "Curtains & Blinds Journal",
+      description: "Guides on blackout, sunscreen blinds and motorised curtains for Dubai and Abu Dhabi homes.",
+      path: "/blog",
+    },
+    settings
+  );
+}
 
 export default async function BlogPage() {
   const posts = await getBlogPosts();

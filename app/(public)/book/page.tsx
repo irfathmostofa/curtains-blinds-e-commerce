@@ -1,14 +1,21 @@
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { SectionHeading } from "@/components/section-heading";
+import { getSiteSettings } from "@/lib/data/catalog";
 import { buildMetadata } from "@/lib/seo";
 import { BookingForm } from "./booking-form";
 
-export const metadata = buildMetadata({
-  title: "Book a Free Measuring Visit",
-  description:
-    "Schedule a complimentary curtains and blinds consultation in Dubai or Abu Dhabi. Choose a date, time slot and share your address.",
-  path: "/book",
-});
+export async function generateMetadata() {
+  const settings = await getSiteSettings();
+  return buildMetadata(
+    {
+      title: "Book a Free Measuring Visit",
+      description:
+        "Schedule a complimentary curtains and blinds consultation in Dubai or Abu Dhabi. Choose a date, time slot and share your address.",
+      path: "/book",
+    },
+    settings
+  );
+}
 
 export default function BookPage() {
   return (

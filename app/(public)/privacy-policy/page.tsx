@@ -1,15 +1,18 @@
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { getCmsPage } from "@/lib/data/catalog";
+import { getCmsPage, getSiteSettings } from "@/lib/data/catalog";
 import { buildMetadata } from "@/lib/seo";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata() {
-  const page = await getCmsPage("privacy-policy");
-  return buildMetadata({
-    title: page?.seo_title || "Privacy Policy",
-    description: page?.seo_description || "Privacy policy",
-    path: "/privacy-policy",
-  });
+  const [page, settings] = await Promise.all([getCmsPage("privacy-policy"), getSiteSettings()]);
+  return buildMetadata(
+    {
+      title: page?.seo_title || "Privacy Policy",
+      description: page?.seo_description || "Privacy policy",
+      path: "/privacy-policy",
+    },
+    settings
+  );
 }
 
 export default async function PrivacyPage() {

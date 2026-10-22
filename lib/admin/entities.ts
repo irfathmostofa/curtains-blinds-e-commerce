@@ -119,7 +119,7 @@ export const entities: Record<string, EntityConfig> = {
       { name: "is_bestseller", label: "Bestseller", type: "checkbox", group: "content" },
       { name: "is_active", label: "Active", type: "checkbox", group: "content" },
       { name: "fabric_options", label: "Fabric options", type: "tags", group: "content", hint: "Tap a suggestion or type a custom fabric and press Enter." },
-      { name: "seo_title", label: "Meta title", type: "text", group: "seo", hint: "Shown in search results and browser tabs." },
+      { name: "seo_title", label: "Meta title", type: "text", group: "seo", hint: "Product name is used if empty. Organisation name is appended automatically as Product | Organisation." },
       { name: "seo_description", label: "Meta description", type: "textarea", group: "seo", hint: "Aim for 140–160 characters." },
       { name: "seo_keywords", label: "Keywords", type: "textarea", group: "seo", hint: "Comma-separated. Example: blackout curtains Dubai, linen drapes Palm Jumeirah." },
     ],

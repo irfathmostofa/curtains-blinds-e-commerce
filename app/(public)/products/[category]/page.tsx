@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ProductCatalog } from "@/components/product-catalog";
 import { SectionHeading } from "@/components/section-heading";
-import { getCategories, getCategoryBySlug, getProductsByCategory } from "@/lib/data/catalog";
+import { getCategories, getCategoryBySlug, getProductsByCategory, getSiteSettings } from "@/lib/data/catalog";
 import { buildMetadata } from "@/lib/seo";
 import { stripHtml } from "@/lib/html";
 import { HtmlContent } from "@/components/html-content";
@@ -15,15 +15,18 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: { category: string } }) {
-  const category = await getCategoryBySlug(params.category);
+  const [category, settings] = await Promise.all([getCategoryBySlug(params.category), getSiteSettings()]);
   if (!category) return {};
-  return buildMetadata({
-    title: category.seo_title || category.name,
-    description: category.seo_description || stripHtml(category.description),
-    path: `/products/${category.slug}`,
-    image: category.image_url,
-    keywords: category.seo_keywords || `${category.name} Dubai, ${category.name} Abu Dhabi, custom ${category.name.toLowerCase()} UAE`,
-  });
+  return buildMetadata(
+    {
+      title: category.seo_title || category.name,
+      description: category.seo_description || stripHtml(category.description),
+      path: `/products/${category.slug}`,
+      image: category.image_url,
+      keywords: category.seo_keywords || `${category.name} Dubai, ${category.name} Abu Dhabi, custom ${category.name.toLowerCase()} UAE`,
+    },
+    settings
+  );
 }
 
 export default async function CategoryPage({

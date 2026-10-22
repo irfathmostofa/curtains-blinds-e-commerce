@@ -1,19 +1,25 @@
 import { SectionHeading } from "@/components/section-heading";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { ProductCatalog } from "@/components/product-catalog";
-import { getCategories, getProducts } from "@/lib/data/catalog";
+import { getCategories, getProducts, getSiteSettings } from "@/lib/data/catalog";
 import { buildMetadata } from "@/lib/seo";
 
 export const revalidate = 3600;
 
-export const metadata = buildMetadata({
-  title: "Curtains, Blinds & Motorized Collections",
-  description:
-    "Browse made-to-measure curtains, blinds and motorised window treatments. Filter by category and sort by price.",
-  path: "/products",
-  keywords:
-    "buy curtains Dubai, custom blinds UAE, motorized tracks Dubai, blackout drapes, sheer curtains, roller blinds Dubai",
-});
+export async function generateMetadata() {
+  const settings = await getSiteSettings();
+  return buildMetadata(
+    {
+      title: "Curtains, Blinds & Motorized Collections",
+      description:
+        "Browse made-to-measure curtains, blinds and motorised window treatments. Filter by category and sort by price.",
+      path: "/products",
+      keywords:
+        "buy curtains Dubai, custom blinds UAE, motorized tracks Dubai, blackout drapes, sheer curtains, roller blinds Dubai",
+    },
+    settings
+  );
+}
 
 export default async function ProductsPage({
   searchParams,

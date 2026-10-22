@@ -31,16 +31,19 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: { params: { category: string; slug: string } }) {
-  const product = await getProductBySlug(params.slug);
+  const [product, settings] = await Promise.all([getProductBySlug(params.slug), getSiteSettings()]);
   if (!product) return {};
-  return buildMetadata({
-    title: product.seo_title || product.name,
-    description: product.seo_description || stripHtml(product.description).slice(0, 160),
-    path: `/products/${params.category}/${product.slug}`,
-    image: product.images[0]?.url,
-    type: "product",
-    keywords: product.seo_keywords || `${product.name}, ${product.category?.name || "curtains"}, curtains Dubai, custom window treatments UAE`,
-  });
+  return buildMetadata(
+    {
+      title: product.seo_title || product.name,
+      description: product.seo_description || stripHtml(product.description).slice(0, 160),
+      path: `/products/${params.category}/${product.slug}`,
+      image: product.images[0]?.url,
+      type: "product",
+      keywords: product.seo_keywords || `${product.name}, ${product.category?.name || "curtains"}, curtains Dubai, custom window treatments UAE`,
+    },
+    settings
+  );
 }
 
 export default async function ProductPage({ params }: { params: { category: string; slug: string } }) {

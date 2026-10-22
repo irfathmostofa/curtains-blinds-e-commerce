@@ -29,12 +29,29 @@ export function mergeKeywords(...groups: Array<string | string[] | undefined | n
   return out;
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function formatPageTitle(title: string, siteName: string) {
+  const name = siteName.trim();
+  let base = title.trim();
+  if (!name) return base;
+  if (!base) return name;
+  base = base.replace(new RegExp(`\\s*\\|\\s*${escapeRegExp(name)}\\s*$`, "i"), "").trim();
+  if (name.toLowerCase() !== "maison drape") {
+    base = base.replace(/\s*\|\s*Maison Drape\s*$/i, "").trim();
+  }
+  if (!base) return name;
+  return `${base} | ${name}`;
+}
+
 export function buildMetadata(config: SeoConfig, settings?: SiteSettings): Metadata {
   const site = settings || siteDefaults();
   const seo = site.seo;
   const siteName = resolveSiteName(site);
   const url = absoluteUrl(config.path, resolveSiteUrl(site));
-  const title = config.title.includes(siteName) ? config.title : `${config.title} | ${siteName}`;
+  const title = formatPageTitle(config.title, siteName);
   const image =
     config.image ||
     seo.og_image ||
@@ -42,7 +59,7 @@ export function buildMetadata(config: SeoConfig, settings?: SiteSettings): Metad
   const keywords = mergeKeywords(config.keywords, seo.keywords);
 
   return {
-    title,
+    title: { absolute: title },
     description: config.description,
     keywords: keywords.length ? keywords : undefined,
     alternates: { canonical: url },

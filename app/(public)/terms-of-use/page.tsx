@@ -1,15 +1,18 @@
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { getCmsPage } from "@/lib/data/catalog";
+import { getCmsPage, getSiteSettings } from "@/lib/data/catalog";
 import { buildMetadata } from "@/lib/seo";
 import { notFound } from "next/navigation";
 
 export async function generateMetadata() {
-  const page = await getCmsPage("terms-of-use");
-  return buildMetadata({
-    title: page?.seo_title || "Terms of Use",
-    description: page?.seo_description || "Terms of use",
-    path: "/terms-of-use",
-  });
+  const [page, settings] = await Promise.all([getCmsPage("terms-of-use"), getSiteSettings()]);
+  return buildMetadata(
+    {
+      title: page?.seo_title || "Terms of Use",
+      description: page?.seo_description || "Terms of use",
+      path: "/terms-of-use",
+    },
+    settings
+  );
 }
 
 export default async function TermsPage() {
