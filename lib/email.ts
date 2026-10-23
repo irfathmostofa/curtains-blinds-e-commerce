@@ -130,29 +130,68 @@ export async function notifyAdmin(input: NotifyInput) {
   ]);
 }
 
+export async function notifyCustomer(input: NotifyInput & { to?: string }) {
+  const settings = await getAdminSiteSettings();
+  const company = resolveSiteName(settings);
+  const to = parseEmailAddress(input.to || input.replyTo || "");
+  if (!to) return;
+  await sendMail(settings, {
+    to,
+    from: formatFromAddress(settings.resend_from_email || "", company),
+    replyTo: parseEmailAddress(settings.email || "") || undefined,
+    subject: input.subject,
+    html: buildCustomerHtml(input.heading, input.rows, company),
+  });
+}
+
+function buildCustomerHtml(heading: string, rows: { label: string; value: string }[], company: string) {
+  const body = rows
+    .map(
+      (row) =>
+        `<tr><td style="padding:8px 12px;border-bottom:1px solid #eee;color:#666;width:160px">${escapeHtml(row.label)}</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${escapeHtml(row.value || "—")}</td></tr>`
+    )
+    .join("");
+  return `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1a1a1a">
+  <h1 style="font-size:22px;margin:0 0 12px">${escapeHtml(heading)}</h1>
+  <p style="font-family:system-ui,sans-serif;font-size:14px;line-height:1.6;color:#444;margin:0 0 18px">Thank you. We have received your request and a consultant will follow up, usually the same working day.</p>
+  <table style="width:100%;border-collapse:collapse;font-family:system-ui,sans-serif;font-size:14px">${body}</table>
+  <p style="margin:24px 0 0;font-size:12px;color:#888">${escapeHtml(company)}</p>
+</div>`;
+}
+
+async function sendMail(
+  settings: Awaited<ReturnType<typeof getAdminSiteSettings>>,
+  input: { to: string; from: string; replyTo?: string; subject: string; html: string }
+) {
+  const apiKey = settings.resend_api_key?.trim();
+  if (!apiKey) return;
+  try {
+    const resend = new Resend(apiKey);
+    const { error } = await resend.emails.send({
+      from: input.from,
+      to: input.to,
+      replyTo: input.replyTo,
+      subject: input.subject,
+      html: input.html,
+    });
+    if (error) console.error("Failed to send email", error);
+  } catch (error) {
+    console.error("Failed to send email", error);
+  }
+}
+
 async function sendAdminEmail(
   settings: Awaited<ReturnType<typeof getAdminSiteSettings>>,
   input: NotifyInput,
   company: string
 ) {
-  const apiKey = settings.resend_api_key?.trim();
   const to = parseEmailAddress(settings.email || "");
-  if (!apiKey || !to) return;
-
-  const from = formatFromAddress(settings.resend_from_email || "", company);
-  const replyTo = parseEmailAddress(input.replyTo || "") || undefined;
-
-  try {
-    const resend = new Resend(apiKey);
-    const { error } = await resend.emails.send({
-      from,
-      to,
-      replyTo,
-      subject: input.subject,
-      html: buildHtml(input.heading, input.rows, company),
-    });
-    if (error) console.error("Failed to send admin notification email", error);
-  } catch (error) {
-    console.error("Failed to send admin notification email", error);
-  }
+  if (!to) return;
+  await sendMail(settings, {
+    to,
+    from: formatFromAddress(settings.resend_from_email || "", company),
+    replyTo: parseEmailAddress(input.replyTo || "") || undefined,
+    subject: input.subject,
+    html: buildHtml(input.heading, input.rows, company),
+  });
 }

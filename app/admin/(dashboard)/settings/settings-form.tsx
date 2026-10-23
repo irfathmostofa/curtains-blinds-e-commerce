@@ -845,7 +845,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           <div>
             <h2 className="font-serif text-xl">Email delivery</h2>
             <p className="text-xs text-muted-foreground">
-              Resend sends admin notifications for estimates, bookings and chatbot leads to the inbox email on the Contact tab. Gmail works as the recipient. It cannot be used as the From address.
+              Resend sends admin alerts for estimates, bookings and chatbot leads to the inbox email on the Contact tab. If the customer left an email, they also get a confirmation. Gmail works as the recipient. It cannot be used as the From address.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
