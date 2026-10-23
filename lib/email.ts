@@ -1,4 +1,3 @@
-import { Resend } from "resend";
 import { getAdminSiteSettings } from "@/lib/data/catalog";
 import { resolveSiteName } from "@/lib/site";
 
@@ -10,7 +9,7 @@ type NotifyInput = {
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
-const PUBLIC_INBOX_HOSTS = new Set(["gmail.com", "googlemail.com", "yahoo.com", "outlook.com", "hotmail.com", "live.com", "icloud.com"]);
+const EMAILJS_URL = "https://api.emailjs.com/api/v1.0/email/send";
 const WHATSAPP_GRAPH_URL = "https://graph.facebook.com/v21.0";
 
 function escapeHtml(value: string) {
@@ -43,18 +42,6 @@ export function parseEmailAddress(value: string) {
   return EMAIL_RE.test(email) ? email : "";
 }
 
-export function isPublicInboxHost(email: string) {
-  const host = parseEmailAddress(email).split("@")[1] || "";
-  return PUBLIC_INBOX_HOSTS.has(host);
-}
-
-export function formatFromAddress(from: string, company: string) {
-  const email = parseEmailAddress(from);
-  if (!email || isPublicInboxHost(email)) return `${company} <onboarding@resend.dev>`;
-  if (from.includes("<") && from.includes(">")) return from.trim();
-  return `${company} <${email}>`;
-}
-
 function digitsOnly(value: string) {
   return value.replace(/[^\d]/g, "");
 }
@@ -70,6 +57,10 @@ function truncate(value: string, max = 1024) {
   const clean = value.replace(/[\n\t\r]+/g, " ").replace(/ {4,}/g, "   ").trim();
   if (clean.length <= max) return clean;
   return `${clean.slice(0, max - 1)}…`;
+}
+
+function rowValue(rows: { label: string; value: string }[], label: string) {
+  return rows.find((row) => row.label.toLowerCase() === label.toLowerCase())?.value || "";
 }
 
 async function sendAdminWhatsApp(
@@ -137,10 +128,13 @@ export async function notifyCustomer(input: NotifyInput & { to?: string }) {
   if (!to) return;
   await sendMail(settings, {
     to,
-    from: formatFromAddress(settings.resend_from_email || "", company),
     replyTo: parseEmailAddress(settings.email || "") || undefined,
     subject: input.subject,
     html: buildCustomerHtml(input.heading, input.rows, company),
+    heading: input.heading,
+    message: buildPlainText(input.heading, input.rows, company),
+    toName: rowValue(input.rows, "Name"),
+    company,
   });
 }
 
@@ -161,20 +155,51 @@ function buildCustomerHtml(heading: string, rows: { label: string; value: string
 
 async function sendMail(
   settings: Awaited<ReturnType<typeof getAdminSiteSettings>>,
-  input: { to: string; from: string; replyTo?: string; subject: string; html: string }
+  input: {
+    to: string;
+    replyTo?: string;
+    subject: string;
+    html: string;
+    heading: string;
+    message: string;
+    toName?: string;
+    company: string;
+  }
 ) {
-  const apiKey = settings.resend_api_key?.trim();
-  if (!apiKey) return;
-  try {
-    const resend = new Resend(apiKey);
-    const { error } = await resend.emails.send({
-      from: input.from,
-      to: input.to,
-      replyTo: input.replyTo,
+  const serviceId = settings.emailjs_service_id?.trim();
+  const templateId = settings.emailjs_template_id?.trim();
+  const publicKey = settings.emailjs_public_key?.trim();
+  const privateKey = settings.emailjs_private_key?.trim();
+  if (!serviceId || !templateId || !publicKey) return;
+
+  const payload: Record<string, unknown> = {
+    service_id: serviceId,
+    template_id: templateId,
+    user_id: publicKey,
+    template_params: {
+      to_email: input.to,
+      to_name: input.toName || input.to,
+      from_name: input.company,
+      reply_to: input.replyTo || input.to,
       subject: input.subject,
+      heading: input.heading,
+      message: input.message,
       html: input.html,
+      company: input.company,
+    },
+  };
+  if (privateKey) payload.accessToken = privateKey;
+
+  try {
+    const res = await fetch(EMAILJS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
-    if (error) console.error("Failed to send email", error);
+    if (!res.ok) {
+      const detail = await res.text().catch(() => "");
+      console.error("Failed to send email", res.status, detail);
+    }
   } catch (error) {
     console.error("Failed to send email", error);
   }
@@ -189,9 +214,12 @@ async function sendAdminEmail(
   if (!to) return;
   await sendMail(settings, {
     to,
-    from: formatFromAddress(settings.resend_from_email || "", company),
     replyTo: parseEmailAddress(input.replyTo || "") || undefined,
     subject: input.subject,
     html: buildHtml(input.heading, input.rows, company),
+    heading: input.heading,
+    message: buildPlainText(input.heading, input.rows, company),
+    toName: company,
+    company,
   });
 }

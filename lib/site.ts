@@ -23,8 +23,10 @@ export const SITE_NAME = "Maison Drape";
 export const SITE_URL = "http://localhost:3000";
 
 export const SECRET_SETTING_KEYS = [
-  "resend_api_key",
-  "resend_from_email",
+  "emailjs_public_key",
+  "emailjs_private_key",
+  "emailjs_service_id",
+  "emailjs_template_id",
   "whatsapp_access_token",
   "whatsapp_phone_number_id",
   "whatsapp_template_name",
@@ -136,8 +138,10 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   meta_pixel_id: "",
   instagram_pixel_id: "",
   tiktok_pixel_id: "",
-  resend_api_key: "",
-  resend_from_email: "",
+  emailjs_public_key: "",
+  emailjs_private_key: "",
+  emailjs_service_id: "",
+  emailjs_template_id: "",
   whatsapp_access_token: "",
   whatsapp_phone_number_id: "",
   whatsapp_template_name: "",

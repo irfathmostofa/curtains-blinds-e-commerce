@@ -383,8 +383,10 @@ export type SiteSettings = {
   meta_pixel_id: string;
   instagram_pixel_id: string;
   tiktok_pixel_id: string;
-  resend_api_key: string;
-  resend_from_email: string;
+  emailjs_public_key: string;
+  emailjs_private_key: string;
+  emailjs_service_id: string;
+  emailjs_template_id: string;
   whatsapp_access_token: string;
   whatsapp_phone_number_id: string;
   whatsapp_template_name: string;
