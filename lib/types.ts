@@ -164,6 +164,7 @@ export type FormOption = {
   id: string;
   label: string;
   hint?: string;
+  enabled?: boolean;
 };
 
 export type BudgetOption = FormOption & {

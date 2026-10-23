@@ -154,10 +154,10 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     { id: "abu-dhabi", label: "Abu Dhabi", hint: "Mussafah, islands and city homes" },
   ],
   form_considering: [
-    { id: "curtains-and-drapes", label: "Curtains & drapes" },
-    { id: "blinds-and-shades", label: "Blinds & shades" },
-    { id: "motorized", label: "Motorized" },
-    { id: "mix", label: "A mix" },
+    { id: "curtains-and-drapes", label: "Curtains & drapes", enabled: true },
+    { id: "blinds-and-shades", label: "Blinds & shades", enabled: true },
+    { id: "motorized", label: "Motorized", enabled: true },
+    { id: "mix", label: "A mix", enabled: true },
   ],
   form_budgets: [
     { id: "under-5k", label: "Under AED 5,000", max: 5000 },
@@ -619,6 +619,59 @@ function asOptionId(value: unknown, label: string, fallback: string) {
   return slugify(label) || fallback;
 }
 
+export function visibleFormOptions(options: FormOption[]): FormOption[] {
+  const shown = options.filter((item) => item.enabled !== false);
+  return shown.length ? shown : options.map((item) => ({ ...item, enabled: true }));
+}
+
+export function consideringFromCategories(
+  categories: { slug: string; name: string; sort_order?: number }[],
+  saved?: unknown
+): FormOption[] {
+  const savedList = Array.isArray(saved)
+    ? (saved
+        .map((item, index) => {
+          if (typeof item === "string") {
+            const label = item.trim();
+            if (!label) return null;
+            return { id: asOptionId("", label, `option-${index + 1}`), label, hint: "", enabled: true };
+          }
+          if (!item || typeof item !== "object") return null;
+          const row = item as Partial<FormOption>;
+          const label = String(row.label || "").trim();
+          const id = asOptionId(row.id, label, `option-${index + 1}`);
+          if (!id && !label) return null;
+          return {
+            id,
+            label: label || id,
+            hint: String(row.hint || "").trim(),
+            enabled: row.enabled !== false,
+          };
+        })
+        .filter(Boolean) as FormOption[])
+    : [];
+  const savedById = new Map(savedList.map((item) => [item.id, item]));
+  const fromCats = [...categories]
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+    .map((cat) => {
+      const prev = savedById.get(cat.slug);
+      return {
+        id: cat.slug,
+        label: cat.name,
+        hint: prev?.hint || "",
+        enabled: prev ? prev.enabled !== false : true,
+      };
+    });
+  const mixPrev = savedById.get("mix") || savedById.get("a-mix") || DEFAULT_SETTINGS.form_considering.find((item) => item.id === "mix");
+  const mix: FormOption = {
+    id: "mix",
+    label: mixPrev?.label || "A mix",
+    hint: mixPrev?.hint || "",
+    enabled: mixPrev ? mixPrev.enabled !== false : true,
+  };
+  return fromCats.length ? [...fromCats, mix] : normalizeFormOptions(saved, DEFAULT_SETTINGS.form_considering);
+}
+
 export function normalizeFormOptions(value: unknown, fallback: FormOption[]): FormOption[] {
   if (!Array.isArray(value)) return fallback.map((item) => ({ ...item }));
   const next = value
@@ -626,7 +679,7 @@ export function normalizeFormOptions(value: unknown, fallback: FormOption[]): Fo
       if (typeof item === "string") {
         const label = item.trim();
         if (!label) return null;
-        return { id: asOptionId("", label, `option-${index + 1}`), label, hint: "" };
+        return { id: asOptionId("", label, `option-${index + 1}`), label, hint: "", enabled: true };
       }
       if (!item || typeof item !== "object") return null;
       const row = item as Partial<FormOption>;
@@ -636,6 +689,7 @@ export function normalizeFormOptions(value: unknown, fallback: FormOption[]): Fo
         id: asOptionId(row.id, label, `option-${index + 1}`),
         label,
         hint: String(row.hint || "").trim(),
+        enabled: row.enabled !== false,
       };
     })
     .filter(Boolean) as FormOption[];

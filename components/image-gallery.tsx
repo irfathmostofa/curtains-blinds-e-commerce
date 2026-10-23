@@ -16,7 +16,7 @@ export function ImageGallery({ images }: { images: ImageAsset[] }) {
 
   return (
     <div className="space-y-3">
-      <ImageMagnifier src={current.url} className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-secondary">
+      <ImageMagnifier src={current.url} className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-secondary">
         <AnimatePresence mode="wait">
           <motion.div
             key={current.url}
@@ -46,7 +46,7 @@ export function ImageGallery({ images }: { images: ImageAsset[] }) {
                 type="button"
                 onClick={() => setActive(i)}
                 className={cn(
-                  "relative aspect-[4/3] w-full overflow-hidden rounded-xl border transition hover:opacity-90",
+                  "relative aspect-[4/5] w-full overflow-hidden rounded-xl border transition hover:opacity-90",
                   i === active ? "border-accent ring-2 ring-accent/30" : "border-transparent"
                 )}
                 aria-label={`Show image ${i + 1}`}

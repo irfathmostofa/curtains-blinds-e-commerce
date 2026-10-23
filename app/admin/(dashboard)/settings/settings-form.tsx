@@ -138,7 +138,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   function addOption(key: "form_cities" | "form_considering" | "form_rooms", label = "") {
     setSettings((s) => ({
       ...s,
-      [key]: [...s[key], { id: "", label, hint: "" }],
+      [key]: [...s[key], { id: "", label, hint: "", enabled: true }],
     }));
   }
 
@@ -493,21 +493,20 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
 
             <div className="space-y-3">
               <h3 className="font-medium">Considering</h3>
+              <p className="text-xs text-muted-foreground">
+                Product categories shown on estimate and chat forms. Check a category to show it, uncheck to hide it.
+              </p>
               {settings.form_considering.map((item, index) => (
-                <div key={index} className="grid gap-3 rounded-xl border p-3 sm:grid-cols-[1fr_auto]">
-                  <Input
-                    value={item.label}
-                    placeholder="Curtains & drapes"
-                    onChange={(e) => patchOption("form_considering", index, { label: e.target.value })}
+                <label key={item.id || index} className="flex items-center gap-3 rounded-xl border p-3">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={item.enabled !== false}
+                    onChange={(e) => patchOption("form_considering", index, { enabled: e.target.checked })}
                   />
-                  <Button type="button" variant="outline" size="sm" onClick={() => removeOption("form_considering", index)}>
-                    Remove
-                  </Button>
-                </div>
+                  <span className="text-sm">{item.label}</span>
+                </label>
               ))}
-              <Button type="button" variant="outline" size="sm" onClick={() => addOption("form_considering")}>
-                Add considering option
-              </Button>
             </div>
 
             <div className="space-y-3">

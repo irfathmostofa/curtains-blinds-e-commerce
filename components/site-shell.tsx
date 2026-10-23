@@ -6,6 +6,7 @@ import { Navbar } from "@/components/navbar";
 import { WhatsAppFloatingButton } from "@/components/whatsapp-floating-button";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { SiteConfigProvider } from "@/components/site-config";
+import { visibleFormOptions } from "@/lib/site";
 import type { SiteSettings } from "@/lib/types";
 
 export function SiteShell({
@@ -21,7 +22,7 @@ export function SiteShell({
         currency: settings.currency,
         showProductPrices: settings.show_product_prices !== false,
         cities: settings.form_cities,
-        considering: settings.form_considering,
+        considering: visibleFormOptions(settings.form_considering),
         budgets: settings.form_budgets,
         rooms: settings.form_rooms,
       }}
@@ -31,7 +32,7 @@ export function SiteShell({
       <Footer settings={settings} />
       <WhatsAppFloatingButton phone={settings.whatsapp} />
       <BackToTop />
-      <AiChatbot companyName={settings.company_name} currency={settings.currency} cities={settings.form_cities} considering={settings.form_considering} rooms={settings.form_rooms} />
+      <AiChatbot companyName={settings.company_name} currency={settings.currency} cities={settings.form_cities} considering={visibleFormOptions(settings.form_considering)} rooms={settings.form_rooms} />
       <CookieConsentBanner />
     </SiteConfigProvider>
   );
