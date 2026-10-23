@@ -891,7 +891,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
               />
             </div>
             <p className="text-xs text-muted-foreground sm:col-span-2">
-              In EmailJS, connect Gmail as the service. Set the template To field to {"{{to_email}}"} and Subject to {"{{subject}}"}. Body can use {"{{heading}}"}, {"{{message}}"} or {"{{{html}}}"}.
+              Connect Gmail in EmailJS. Set To to {"{{to_email}}"}, Subject to {"{{subject}}"}, Reply To to {"{{reply_to}}"}. Paste {"{{{html}}}"} as the whole email body so the branded layout is used.
             </p>
           </div>
         </section>

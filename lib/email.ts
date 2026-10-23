@@ -20,18 +20,63 @@ function escapeHtml(value: string) {
     .replace(/"/g, "&quot;");
 }
 
-function buildHtml(heading: string, rows: { label: string; value: string }[], company: string) {
-  const body = rows
+function buildDetailsTable(rows: { label: string; value: string }[]) {
+  const visible = rows.filter((row) => row.value?.trim());
+  return visible
     .map(
       (row) =>
-        `<tr><td style="padding:8px 12px;border-bottom:1px solid #eee;color:#666;width:160px">${escapeHtml(row.label)}</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${escapeHtml(row.value || "—")}</td></tr>`
+        `<tr>
+          <td style="padding:12px 0;border-bottom:1px solid #E8DFD2;width:38%;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#8A7A66;font-family:Georgia,'Times New Roman',serif">${escapeHtml(row.label)}</td>
+          <td style="padding:12px 0;border-bottom:1px solid #E8DFD2;font-size:15px;line-height:1.5;color:#2C241C;font-family:Georgia,'Times New Roman',serif;text-align:right">${escapeHtml(row.value)}</td>
+        </tr>`.replace(/\n\s+/g, "")
     )
     .join("");
-  return `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1a1a1a">
-  <h1 style="font-size:22px;margin:0 0 16px">${escapeHtml(heading)}</h1>
-  <table style="width:100%;border-collapse:collapse;font-family:system-ui,sans-serif;font-size:14px">${body}</table>
-  <p style="margin:24px 0 0;font-size:12px;color:#888">${escapeHtml(company)}</p>
-</div>`;
+}
+
+function buildHtml(input: {
+  heading: string;
+  intro: string;
+  rows: { label: string; value: string }[];
+  company: string;
+  greeting?: string;
+}) {
+  const year = new Date().getFullYear();
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0;padding:0;background:#F4EFE6">
+  <tr>
+    <td align="center" style="padding:32px 16px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFbf6;border:1px solid #E8DFD2">
+        <tr>
+          <td style="padding:28px 36px 24px;background:#3D3224;text-align:center">
+            <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:#C4A46A">Made to measure</p>
+            <p style="margin:10px 0 0;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.2;color:#F7F1E6">${escapeHtml(input.company)}</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="height:3px;background:#C4A46A;font-size:0;line-height:0">&nbsp;</td>
+        </tr>
+        <tr>
+          <td style="padding:36px 36px 8px">
+            ${input.greeting ? `<p style="margin:0 0 18px;font-family:Georgia,'Times New Roman',serif;font-size:16px;color:#2C241C">${escapeHtml(input.greeting)}</p>` : ""}
+            <h1 style="margin:0 0 14px;font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.3;font-weight:normal;color:#3D3224">${escapeHtml(input.heading)}</h1>
+            <p style="margin:0 0 28px;font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.7;color:#5C5146">${escapeHtml(input.intro)}</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">${buildDetailsTable(input.rows)}</table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px 36px 36px">
+            <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:13px;line-height:1.6;color:#8A7A66">With kind regards,<br><span style="color:#3D3224">${escapeHtml(input.company)}</span></p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 36px;background:#F7F1E6;border-top:1px solid #E8DFD2;text-align:center">
+            <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#8A7A66">Curtains, blinds and window treatments</p>
+            <p style="margin:8px 0 0;font-family:Georgia,'Times New Roman',serif;font-size:12px;color:#A0907C">&copy; ${year} ${escapeHtml(input.company)}</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`;
 }
 
 export function parseEmailAddress(value: string) {
@@ -48,9 +93,10 @@ function digitsOnly(value: string) {
 
 function buildPlainText(heading: string, rows: { label: string; value: string }[], company: string) {
   const body = rows
-    .map((row) => `${row.label}: ${row.value || "—"}`)
-    .join(" | ");
-  return `${heading} | ${body} | ${company}`.replace(/\s+/g, " ").trim();
+    .filter((row) => row.value?.trim())
+    .map((row) => `${row.label}: ${row.value}`)
+    .join("\n");
+  return `${heading}\n\n${body}\n\n${company}`.trim();
 }
 
 function truncate(value: string, max = 1024) {
@@ -126,31 +172,26 @@ export async function notifyCustomer(input: NotifyInput & { to?: string }) {
   const company = resolveSiteName(settings);
   const to = parseEmailAddress(input.to || input.replyTo || "");
   if (!to) return;
+  const name = rowValue(input.rows, "Name");
+  const intro =
+    "Thank you for writing to us. We have received your request and a consultant will follow up, usually the same working day.";
   await sendMail(settings, {
     to,
     replyTo: parseEmailAddress(settings.email || "") || undefined,
     subject: input.subject,
-    html: buildCustomerHtml(input.heading, input.rows, company),
+    html: buildHtml({
+      heading: input.heading,
+      intro,
+      rows: input.rows,
+      company,
+      greeting: name ? `Dear ${name},` : "Dear customer,",
+    }),
     heading: input.heading,
+    intro,
     message: buildPlainText(input.heading, input.rows, company),
-    toName: rowValue(input.rows, "Name"),
+    toName: name,
     company,
   });
-}
-
-function buildCustomerHtml(heading: string, rows: { label: string; value: string }[], company: string) {
-  const body = rows
-    .map(
-      (row) =>
-        `<tr><td style="padding:8px 12px;border-bottom:1px solid #eee;color:#666;width:160px">${escapeHtml(row.label)}</td><td style="padding:8px 12px;border-bottom:1px solid #eee">${escapeHtml(row.value || "—")}</td></tr>`
-    )
-    .join("");
-  return `<div style="font-family:Georgia,serif;max-width:560px;margin:0 auto;color:#1a1a1a">
-  <h1 style="font-size:22px;margin:0 0 12px">${escapeHtml(heading)}</h1>
-  <p style="font-family:system-ui,sans-serif;font-size:14px;line-height:1.6;color:#444;margin:0 0 18px">Thank you. We have received your request and a consultant will follow up, usually the same working day.</p>
-  <table style="width:100%;border-collapse:collapse;font-family:system-ui,sans-serif;font-size:14px">${body}</table>
-  <p style="margin:24px 0 0;font-size:12px;color:#888">${escapeHtml(company)}</p>
-</div>`;
 }
 
 async function sendMail(
@@ -161,6 +202,7 @@ async function sendMail(
     subject: string;
     html: string;
     heading: string;
+    intro: string;
     message: string;
     toName?: string;
     company: string;
@@ -183,9 +225,11 @@ async function sendMail(
       reply_to: input.replyTo || input.to,
       subject: input.subject,
       heading: input.heading,
+      intro: input.intro,
       message: input.message,
       html: input.html,
       company: input.company,
+      year: String(new Date().getFullYear()),
     },
   };
   if (privateKey) payload.accessToken = privateKey;
@@ -212,12 +256,19 @@ async function sendAdminEmail(
 ) {
   const to = parseEmailAddress(settings.email || "");
   if (!to) return;
+  const intro = "A new enquiry has arrived. The details are below.";
   await sendMail(settings, {
     to,
     replyTo: parseEmailAddress(input.replyTo || "") || undefined,
     subject: input.subject,
-    html: buildHtml(input.heading, input.rows, company),
+    html: buildHtml({
+      heading: input.heading,
+      intro,
+      rows: input.rows,
+      company,
+    }),
     heading: input.heading,
+    intro,
     message: buildPlainText(input.heading, input.rows, company),
     toName: company,
     company,
