@@ -31,7 +31,7 @@ export function ProductQuickView({
       <DialogContent className="flex max-h-[92dvh] w-[min(96vw,56rem)] max-w-3xl min-h-0 flex-col gap-0 overflow-hidden p-0">
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="grid md:grid-cols-2">
-            <div className="relative aspect-[4/3] bg-secondary">
+            <div className="relative aspect-[4/5] bg-secondary">
               {image ? (
                 <Image
                   src={image.url}

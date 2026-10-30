@@ -138,7 +138,7 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
   function addOption(key: "form_cities" | "form_considering" | "form_rooms", label = "") {
     setSettings((s) => ({
       ...s,
-      [key]: [...s[key], { id: "", label, hint: "" }],
+      [key]: [...s[key], { id: "", label, hint: "", enabled: true }],
     }));
   }
 
@@ -493,21 +493,20 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
 
             <div className="space-y-3">
               <h3 className="font-medium">Considering</h3>
+              <p className="text-xs text-muted-foreground">
+                Product categories shown on estimate and chat forms. Check a category to show it, uncheck to hide it.
+              </p>
               {settings.form_considering.map((item, index) => (
-                <div key={index} className="grid gap-3 rounded-xl border p-3 sm:grid-cols-[1fr_auto]">
-                  <Input
-                    value={item.label}
-                    placeholder="Curtains & drapes"
-                    onChange={(e) => patchOption("form_considering", index, { label: e.target.value })}
+                <label key={item.id || index} className="flex items-center gap-3 rounded-xl border p-3">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={item.enabled !== false}
+                    onChange={(e) => patchOption("form_considering", index, { enabled: e.target.checked })}
                   />
-                  <Button type="button" variant="outline" size="sm" onClick={() => removeOption("form_considering", index)}>
-                    Remove
-                  </Button>
-                </div>
+                  <span className="text-sm">{item.label}</span>
+                </label>
               ))}
-              <Button type="button" variant="outline" size="sm" onClick={() => addOption("form_considering")}>
-                Add considering option
-              </Button>
             </div>
 
             <div className="space-y-3">
@@ -846,33 +845,54 @@ export function SettingsForm({ initial }: { initial: SiteSettings }) {
           <div>
             <h2 className="font-serif text-xl">Email delivery</h2>
             <p className="text-xs text-muted-foreground">
-              Resend sends admin notifications for estimates, bookings and chatbot leads to the inbox email on the Contact tab. Gmail works as the recipient. It cannot be used as the From address.
+              EmailJS sends admin alerts to the inbox email on the Contact tab through your connected Gmail. If the customer left an email, they also get a confirmation.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="resend-key">Resend API key</Label>
+              <Label htmlFor="emailjs-public">Public key</Label>
               <Input
-                id="resend-key"
+                id="emailjs-public"
+                autoComplete="off"
+                placeholder="xxxxxxxxxxxxxxxx"
+                value={settings.emailjs_public_key}
+                onChange={(e) => patch({ emailjs_public_key: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="emailjs-private">Private key</Label>
+              <Input
+                id="emailjs-private"
                 type="password"
                 autoComplete="off"
-                placeholder="re_xxxxxxxx"
-                value={settings.resend_api_key}
-                onChange={(e) => patch({ resend_api_key: e.target.value })}
+                placeholder="xxxxxxxxxxxxxxxx"
+                value={settings.emailjs_private_key}
+                onChange={(e) => patch({ emailjs_private_key: e.target.value })}
               />
             </div>
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="resend-from">From email</Label>
+            <div className="space-y-2">
+              <Label htmlFor="emailjs-service">Service ID</Label>
               <Input
-                id="resend-from"
-                placeholder="Maison Drape &lt;hello@yourdomain.com&gt;"
-                value={settings.resend_from_email}
-                onChange={(e) => patch({ resend_from_email: e.target.value })}
+                id="emailjs-service"
+                autoComplete="off"
+                placeholder="service_xxxxxxx"
+                value={settings.emailjs_service_id}
+                onChange={(e) => patch({ emailjs_service_id: e.target.value })}
               />
-              <p className="text-xs text-muted-foreground">
-                Must be a domain you verified in Resend. Leave blank to send from onboarding@resend.dev while testing. Do not put a Gmail address here.
-              </p>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="emailjs-template">Template ID</Label>
+              <Input
+                id="emailjs-template"
+                autoComplete="off"
+                placeholder="template_xxxxxxx"
+                value={settings.emailjs_template_id}
+                onChange={(e) => patch({ emailjs_template_id: e.target.value })}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground sm:col-span-2">
+              Connect Gmail in EmailJS. Set To to {"{{to_email}}"}, Subject to {"{{subject}}"}, Reply To to {"{{reply_to}}"}. Paste {"{{{html}}}"} as the whole email body so the branded layout is used.
+            </p>
           </div>
         </section>
         <section className="mt-4 space-y-4 rounded-2xl border bg-card p-4 sm:p-6">

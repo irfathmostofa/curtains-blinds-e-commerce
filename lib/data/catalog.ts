@@ -27,8 +27,9 @@ import {
   normalizePaymentMethods,
   normalizePhoneList,
   primaryPhone,
-  omitSecrets,
-  SECRET_SETTING_KEYS,
+    omitSecrets,
+    SECRET_SETTING_KEYS,
+    consideringFromCategories,
 } from "@/lib/site";
 import { asProductFaqs } from "@/lib/product-faqs";
 import type {
@@ -45,6 +46,13 @@ import type {
   SiteSettings,
   Testimonial,
 } from "@/lib/types";
+
+function withCategoryConsidering(settings: SiteSettings, categories: Category[]): SiteSettings {
+  return {
+    ...settings,
+    form_considering: consideringFromCategories(categories, settings.form_considering),
+  };
+}
 
 const CATALOG_REVALIDATE = 60;
 
@@ -226,8 +234,10 @@ function assembleSettings(
     meta_pixel_id: str(general.meta_pixel_id),
     instagram_pixel_id: str(general.instagram_pixel_id),
     tiktok_pixel_id: str(general.tiktok_pixel_id),
-    resend_api_key: "",
-    resend_from_email: "",
+    emailjs_public_key: "",
+    emailjs_private_key: "",
+    emailjs_service_id: "",
+    emailjs_template_id: "",
     whatsapp_access_token: "",
     whatsapp_phone_number_id: "",
     whatsapp_template_name: "",
@@ -290,34 +300,44 @@ const fetchSiteSettings = cached("catalog-site-settings", async (): Promise<Site
 });
 
 export async function getAdminSiteSettings(): Promise<SiteSettings> {
+  const categories = await getCategories();
   const supabase = createWriteClient();
   if (!supabase) {
     const store = getStore();
-    return {
-      ...store.settings,
-      homepage: mergeHomepage(store.settings.homepage),
-      about: mergeAbout(store.settings.about),
-    };
+    return withCategoryConsidering(
+      {
+        ...store.settings,
+        homepage: mergeHomepage(store.settings.homepage),
+        about: mergeAbout(store.settings.about),
+      },
+      categories
+    );
   }
   try {
     const { data } = await supabase.from("site_settings").select("key, value");
     if (!data?.length) {
       const store = getStore();
-      return {
+      return withCategoryConsidering(
+        {
+          ...store.settings,
+          homepage: mergeHomepage(store.settings.homepage),
+          about: mergeAbout(store.settings.about),
+        },
+        categories
+      );
+    }
+    const map = Object.fromEntries(data.map((row: { key: string; value: unknown }) => [row.key, row.value]));
+    return withCategoryConsidering(assembleSettings(map, true), categories);
+  } catch {
+    const store = getStore();
+    return withCategoryConsidering(
+      {
         ...store.settings,
         homepage: mergeHomepage(store.settings.homepage),
         about: mergeAbout(store.settings.about),
-      };
-    }
-    const map = Object.fromEntries(data.map((row: { key: string; value: unknown }) => [row.key, row.value]));
-    return assembleSettings(map, true);
-  } catch {
-    const store = getStore();
-    return {
-      ...store.settings,
-      homepage: mergeHomepage(store.settings.homepage),
-      about: mergeAbout(store.settings.about),
-    };
+      },
+      categories
+    );
   }
 }
 
@@ -414,15 +434,21 @@ export const getCmsPage = cache(async (slug: string): Promise<CmsPage | undefine
 });
 
 export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
+  const categories = await getCategories();
   if (!catalogClient()) {
     const store = getStore();
-    return omitSecrets({
-      ...store.settings,
-      homepage: mergeHomepage(store.settings.homepage),
-      about: mergeAbout(store.settings.about),
-    });
+    return omitSecrets(
+      withCategoryConsidering(
+        {
+          ...store.settings,
+          homepage: mergeHomepage(store.settings.homepage),
+          about: mergeAbout(store.settings.about),
+        },
+        categories
+      )
+    );
   }
-  return fetchSiteSettings();
+  return withCategoryConsidering(await fetchSiteSettings(), categories);
 });
 
 export async function getLeads(): Promise<Lead[]> {

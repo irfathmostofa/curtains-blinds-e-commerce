@@ -30,7 +30,7 @@ export function ProductCard({
       }
     >
       <Link href={href} className="flex h-full flex-col">
-        <div className="relative aspect-[4/3] overflow-hidden bg-secondary">
+        <div className="relative aspect-[4/5] overflow-hidden bg-secondary">
           {image ? (
             <Image
               src={image.url}
