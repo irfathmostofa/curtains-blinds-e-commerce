@@ -69,7 +69,7 @@ export function HomeIntro({
         </div>
         {imageUrl ? (
           <Reveal delay={0.1} direction="right">
-            <div className="relative aspect-[3/5] overflow-hidden rounded-3xl border border-border shadow-lg sm:aspect-[5/4] lg:aspect-[3/5]">
+            <div className="relative aspect-[5/4] overflow-hidden rounded-3xl border border-border shadow-lg sm:aspect-[5/4] lg:aspect-[5/4]">
               {isLocal ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={imageUrl} alt={t(content.image_alt) || content.image_alt} className="h-full w-full object-cover" />
