@@ -61,7 +61,6 @@ export const adminNav = [
   { href: "/admin/blog", label: "Blog", group: "Content" },
   { href: "/admin/faqs", label: "FAQs", group: "Content" },
   { href: "/admin/partners", label: "Partners", group: "Content" },
-  { href: "/admin/pages", label: "Pages", group: "Content" },
   { href: "/admin/settings", label: "Site settings", group: "System" },
   { href: "/admin/users", label: "Users", group: "System" },
 ] as const;

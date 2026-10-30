@@ -41,7 +41,6 @@ const ICONS: Record<string, typeof Home> = {
   "/admin/blog": BookOpen,
   "/admin/faqs": HelpCircle,
   "/admin/partners": Users,
-  "/admin/pages": LayoutTemplate,
   "/admin/settings": Settings,
   "/admin/users": Users,
 };
