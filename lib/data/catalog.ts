@@ -479,6 +479,39 @@ export async function getAdminUsers() {
   });
 }
 
+export type PromoContact = {
+  email: string;
+  name: string;
+  sources: string[];
+};
+
+function addContact(
+  map: Map<string, PromoContact>,
+  email: string,
+  name: string,
+  source: string
+) {
+  const key = email.trim().toLowerCase();
+  if (!key || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(key)) return;
+  const existing = map.get(key);
+  const label = name.trim();
+  if (existing) {
+    if (label && !existing.name) existing.name = label;
+    if (!existing.sources.includes(source)) existing.sources.push(source);
+    return;
+  }
+  map.set(key, { email: key, name: label, sources: [source] });
+}
+
+export async function getUniquePromoContacts(): Promise<PromoContact[]> {
+  const [leads, bookings, chatLeads] = await Promise.all([getLeads(), getBookings(), getChatLeads()]);
+  const map = new Map<string, PromoContact>();
+  leads.forEach((row) => addContact(map, row.email, row.name, "Lead"));
+  bookings.forEach((row) => addContact(map, row.email, row.name, "Booking"));
+  chatLeads.forEach((row) => addContact(map, row.email, row.name, "Chat"));
+  return Array.from(map.values()).sort((a, b) => a.email.localeCompare(b.email));
+}
+
 export function getRecentlyViewedSlugs(): string[] {
   try {
     const raw = cookies().get("recently_viewed_products")?.value;

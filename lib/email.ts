@@ -1,4 +1,5 @@
 import { getAdminSiteSettings } from "@/lib/data/catalog";
+import { normalizeRichText, sanitizeHtml, stripHtml } from "@/lib/html";
 import { resolveSiteName } from "@/lib/site";
 
 type NotifyInput = {
@@ -194,6 +195,94 @@ export async function notifyCustomer(input: NotifyInput & { to?: string }) {
   });
 }
 
+function buildPromoHtml(input: { company: string; heading: string; bodyHtml: string }) {
+  const year = new Date().getFullYear();
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0;padding:0;background:#F4EFE6">
+  <tr>
+    <td align="center" style="padding:32px 16px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#FFFbf6;border:1px solid #E8DFD2">
+        <tr>
+          <td style="padding:28px 36px 24px;background:#3D3224;text-align:center">
+            <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:0.28em;text-transform:uppercase;color:#C4A46A">Made to measure</p>
+            <p style="margin:10px 0 0;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.2;color:#F7F1E6">${escapeHtml(input.company)}</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="height:3px;background:#C4A46A;font-size:0;line-height:0">&nbsp;</td>
+        </tr>
+        <tr>
+          <td style="padding:36px 36px 8px">
+            <h1 style="margin:0 0 18px;font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.3;font-weight:normal;color:#3D3224">${escapeHtml(input.heading)}</h1>
+            <div style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.7;color:#5C5146">${input.bodyHtml}</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:28px 36px 36px">
+            <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:13px;line-height:1.6;color:#8A7A66">With kind regards,<br><span style="color:#3D3224">${escapeHtml(input.company)}</span></p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:16px 36px;background:#F7F1E6;border-top:1px solid #E8DFD2;text-align:center">
+            <p style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#8A7A66">Curtains, blinds and window treatments</p>
+            <p style="margin:8px 0 0;font-family:Georgia,'Times New Roman',serif;font-size:12px;color:#A0907C">&copy; ${year} ${escapeHtml(input.company)}</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`;
+}
+
+export async function sendPromotionalEmails(input: {
+  emails: string[];
+  subject: string;
+  html: string;
+}): Promise<{ sent: number; failed: number; error?: string }> {
+  const settings = await getAdminSiteSettings();
+  const company = resolveSiteName(settings);
+  const subject = input.subject.trim();
+  const unique = Array.from(
+    new Set(input.emails.map((email) => parseEmailAddress(email)).filter(Boolean))
+  );
+  if (!unique.length) return { sent: 0, failed: 0, error: "Select at least one email." };
+  if (!subject) return { sent: 0, failed: unique.length, error: "Add a subject." };
+
+  const bodyHtml = normalizeRichText(sanitizeHtml(input.html));
+  if (!stripHtml(bodyHtml)) return { sent: 0, failed: unique.length, error: "Write the email body." };
+
+  const html = buildPromoHtml({ company, heading: subject, bodyHtml });
+  const message = stripHtml(bodyHtml);
+  const replyTo = parseEmailAddress(settings.email || "") || undefined;
+  let sent = 0;
+  let failed = 0;
+  let lastError = "";
+
+  for (const to of unique) {
+    const result = await sendMail(settings, {
+      to,
+      replyTo,
+      subject,
+      html,
+      heading: subject,
+      intro: message,
+      message,
+      toName: to,
+      company,
+    });
+    if (result.ok) sent += 1;
+    else {
+      failed += 1;
+      lastError = result.error || lastError;
+    }
+  }
+
+  return {
+    sent,
+    failed,
+    error: sent ? undefined : lastError || "Could not send the promotional email.",
+  };
+}
+
 async function sendMail(
   settings: Awaited<ReturnType<typeof getAdminSiteSettings>>,
   input: {
@@ -207,12 +296,14 @@ async function sendMail(
     toName?: string;
     company: string;
   }
-) {
+): Promise<{ ok: boolean; error?: string }> {
   const serviceId = settings.emailjs_service_id?.trim();
   const templateId = settings.emailjs_template_id?.trim();
   const publicKey = settings.emailjs_public_key?.trim();
   const privateKey = settings.emailjs_private_key?.trim();
-  if (!serviceId || !templateId || !publicKey) return;
+  if (!serviceId || !templateId || !publicKey) {
+    return { ok: false, error: "EmailJS is not configured. Add keys in Site settings → Alerts." };
+  }
 
   const payload: Record<string, unknown> = {
     service_id: serviceId,
@@ -243,9 +334,12 @@ async function sendMail(
     if (!res.ok) {
       const detail = await res.text().catch(() => "");
       console.error("Failed to send email", res.status, detail);
+      return { ok: false, error: `Email provider returned ${res.status}.` };
     }
+    return { ok: true };
   } catch (error) {
     console.error("Failed to send email", error);
+    return { ok: false, error: "Could not reach the email provider." };
   }
 }
 

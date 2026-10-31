@@ -57,6 +57,7 @@ export const adminNav = [
   { href: "/admin/leads", label: "Leads", group: "Inbox" },
   { href: "/admin/chat-leads", label: "Chat leads", group: "Inbox" },
   { href: "/admin/bookings", label: "Bookings", group: "Inbox" },
+  { href: "/admin/promotions", label: "Promotions", group: "Inbox" },
   { href: "/admin/testimonials", label: "Testimonials", group: "Content" },
   { href: "/admin/blog", label: "Blog", group: "Content" },
   { href: "/admin/faqs", label: "FAQs", group: "Content" },

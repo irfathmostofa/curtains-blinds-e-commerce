@@ -10,6 +10,7 @@ import { isSupabaseConfigured } from "@/lib/utils";
 import { loginSchema } from "@/lib/validations";
 import { getStore } from "@/lib/data/store";
 import { getSiteSettings } from "@/lib/data/catalog";
+import { sendPromotionalEmails } from "@/lib/email";
 import { processImage } from "@/lib/images/process";
 import { slugify } from "@/lib/utils";
 import { revalidatePath, revalidateTag } from "next/cache";
@@ -186,6 +187,16 @@ export async function updateLeadStatus(id: string, status: string) {
 
 export async function updateBookingStatus(id: string, status: string) {
   return upsertEntity("bookings", { id, status });
+}
+
+export async function sendPromotion(input: { emails: string[]; subject: string; html: string }) {
+  const denied = await requireWriteAccess("promotions");
+  if (denied) return { sent: 0, failed: 0, ...denied };
+  return sendPromotionalEmails({
+    emails: Array.isArray(input.emails) ? input.emails : [],
+    subject: String(input.subject || ""),
+    html: String(input.html || ""),
+  });
 }
 
 export async function saveSettings(settings: Record<string, unknown>) {
