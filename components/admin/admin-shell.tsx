@@ -208,6 +208,8 @@ function SidebarFooter({ role, onNavigate }: { role: AdminRole; onNavigate?: () 
       <Link
         href="/"
         onClick={onNavigate}
+        target="_blank"
+        rel="noopener noreferrer"
         className="block px-3 text-xs text-muted-foreground hover:text-foreground"
       >
         View site
