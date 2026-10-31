@@ -1,32 +1,61 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type ClipboardEvent, type FormEvent } from "react";
 import { sendPromotion } from "@/app/admin/actions";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import type { PromoContact } from "@/lib/data/catalog";
 import { cn } from "@/lib/utils";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
+
+function parsePastedEmails(value: string) {
+  const unique: string[] = [];
+  for (const part of value.split(/[\s,;]+/)) {
+    const email = part.replace(/^<|>$/g, "").trim().toLowerCase();
+    if (!EMAIL_RE.test(email) || unique.includes(email)) continue;
+    unique.push(email);
+  }
+  return unique;
+}
+
 export function PromotionForm({ contacts }: { contacts: PromoContact[] }) {
   const [query, setQuery] = useState("");
+  const [pasteValue, setPasteValue] = useState("");
+  const [pasted, setPasted] = useState<string[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [subject, setSubject] = useState("");
   const [html, setHtml] = useState("");
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  const allContacts = useMemo(() => {
+    const map = new Map<string, PromoContact>();
+    contacts.forEach((contact) => map.set(contact.email, { ...contact, sources: [...contact.sources] }));
+    pasted.forEach((email) => {
+      const existing = map.get(email);
+      if (existing) {
+        if (!existing.sources.includes("Pasted")) existing.sources.push("Pasted");
+        return;
+      }
+      map.set(email, { email, name: "", sources: ["Pasted"] });
+    });
+    return Array.from(map.values()).sort((a, b) => a.email.localeCompare(b.email));
+  }, [contacts, pasted]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return contacts;
-    return contacts.filter(
+    if (!q) return allContacts;
+    return allContacts.filter(
       (contact) =>
         contact.email.includes(q) ||
         contact.name.toLowerCase().includes(q) ||
         contact.sources.some((source) => source.toLowerCase().includes(q))
     );
-  }, [contacts, query]);
+  }, [allContacts, query]);
 
   const visibleEmails = filtered.map((contact) => contact.email);
   const allVisibleSelected = visibleEmails.length > 0 && visibleEmails.every((email) => selected.includes(email));
@@ -42,6 +71,26 @@ export function PromotionForm({ contacts }: { contacts: PromoContact[] }) {
       if (allVisibleSelected) return current.filter((email) => !visibleEmails.includes(email));
       return Array.from(new Set([...current, ...visibleEmails]));
     });
+  }
+
+  function addPastedEmails(raw: string) {
+    const emails = parsePastedEmails(raw);
+    if (!emails.length) {
+      setMessage("Paste valid emails separated by commas.");
+      return 0;
+    }
+    setPasted((current) => Array.from(new Set([...current, ...emails])));
+    setSelected((current) => Array.from(new Set([...current, ...emails])));
+    setPasteValue("");
+    setMessage(null);
+    return emails.length;
+  }
+
+  function onPasteEmails(e: ClipboardEvent<HTMLTextAreaElement>) {
+    const text = e.clipboardData.getData("text");
+    if (!text.includes(",") && !text.includes(";") && !/\s/.test(text.trim())) return;
+    e.preventDefault();
+    addPastedEmails(`${pasteValue} ${text}`);
   }
 
   async function onSubmit(e: FormEvent) {
@@ -70,7 +119,7 @@ export function PromotionForm({ contacts }: { contacts: PromoContact[] }) {
       <div>
         <h1 className="font-serif text-3xl">Promotions</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Unique emails from leads, chat and bookings. Select recipients, then write and send.
+          Unique emails from leads, chat and bookings. Paste extra addresses to add them to the list.
         </p>
       </div>
 
@@ -80,12 +129,33 @@ export function PromotionForm({ contacts }: { contacts: PromoContact[] }) {
             <div>
               <h2 className="font-serif text-xl">Recipients</h2>
               <p className="text-sm text-muted-foreground">
-                {contacts.length} unique {contacts.length === 1 ? "email" : "emails"}
+                {allContacts.length} unique {allContacts.length === 1 ? "email" : "emails"}
                 {selected.length ? ` · ${selected.length} selected` : ""}
               </p>
             </div>
             <Button type="button" variant="outline" size="sm" onClick={toggleVisible} disabled={!filtered.length}>
               {allVisibleSelected ? "Clear visible" : "Select visible"}
+            </Button>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="promo-paste">Paste emails</Label>
+            <Textarea
+              id="promo-paste"
+              value={pasteValue}
+              onChange={(e) => setPasteValue(e.target.value)}
+              onPaste={onPasteEmails}
+              placeholder="name@email.com, second@email.com"
+              className="min-h-[88px]"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => addPastedEmails(pasteValue)}
+              disabled={!pasteValue.trim()}
+            >
+              Add to list
             </Button>
           </div>
 
@@ -128,7 +198,7 @@ export function PromotionForm({ contacts }: { contacts: PromoContact[] }) {
             })}
             {!filtered.length ? (
               <li className="rounded-xl border px-4 py-8 text-center text-sm text-muted-foreground">
-                {contacts.length ? "No emails match that search." : "No unique emails yet."}
+                {allContacts.length ? "No emails match that search." : "No unique emails yet."}
               </li>
             ) : null}
           </ul>
